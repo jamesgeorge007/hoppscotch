@@ -167,6 +167,10 @@
           @click="nativeShare()"
         />
         <HoppButtonSecondary
+          v-if="
+            ['index', 'graphql'].includes(route.name as string) ||
+            (route.name as string).startsWith('realtime')
+          "
           v-tippy="{ theme: 'tooltip' }"
           :title="COLUMN_LAYOUT ? t('layout.row') : t('layout.column')"
           :icon="IconColumns"
@@ -181,6 +185,7 @@
           }"
         >
           <HoppButtonSecondary
+            v-if="['index', 'graphql'].includes(route.name as string)"
             v-tippy="{ theme: 'tooltip' }"
             :title="SIDEBAR ? t('hide.sidebar') : t('show.sidebar')"
             :icon="IconSidebarOpen"
@@ -221,6 +226,7 @@ import { TippyComponent } from "vue-tippy"
 import { getPlatformSpecialKey as getSpecialKey } from "~/helpers/platformutils"
 import { invokeAction } from "@helpers/actions"
 import { HoppSmartItem } from "@hoppscotch/ui"
+import { useRoute } from "vue-router"
 
 const t = useI18n()
 const showDeveloperOptions = ref(false)
@@ -236,6 +242,8 @@ const currentUser = useReadonlyStream(
   platform.auth.getCurrentUserStream(),
   platform.auth.getCurrentUser()
 )
+
+const route = useRoute()
 
 const nativeShare = () => {
   if (navigator.share) {
