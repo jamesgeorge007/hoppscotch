@@ -52,15 +52,14 @@ import {
   settingsStore,
 } from "../../newstore/settings"
 import {
+  COLLECTION_SCHEMA,
   ENVIRONMENTS_SCHEMA,
   GLOBAL_ENV_SCHEMA,
-  GQL_COLLECTION_SCHEMA,
   GQL_HISTORY_ENTRY_SCHEMA,
   GQL_TAB_STATE_SCHEMA,
   LOCAL_STATE_SCHEMA,
   MQTT_REQUEST_SCHEMA,
   NUXT_COLOR_MODE_SCHEMA,
-  REST_COLLECTION_SCHEMA,
   REST_HISTORY_ENTRY_SCHEMA,
   REST_TAB_STATE_SCHEMA,
   SELECTED_ENV_INDEX_SCHEMA,
@@ -344,7 +343,7 @@ export class PersistenceService extends Service {
 
     // Validate data read from localStorage
     const restCollectionsSchemaParsedresult = z
-      .array(REST_COLLECTION_SCHEMA)
+      .array(COLLECTION_SCHEMA)
       .safeParse(restCollectionsData)
 
     if (restCollectionsSchemaParsedresult.success) {
@@ -358,7 +357,7 @@ export class PersistenceService extends Service {
     }
 
     const gqlCollectionsSchemaParsedresult = z
-      .array(GQL_COLLECTION_SCHEMA)
+      .array(COLLECTION_SCHEMA)
       .safeParse(graphqlCollectionsData)
 
     if (gqlCollectionsSchemaParsedresult.success) {

@@ -4,6 +4,7 @@ import {
   HoppGQLAuth,
   HoppGQLRequest,
   HoppRESTRequest,
+  HoppCollection,
 } from "@hoppscotch/data"
 import { entityReference } from "verzod"
 import { z } from "zod"
@@ -45,38 +46,19 @@ const SettingsDefSchema = z.object({
   COLUMN_LAYOUT: z.boolean(),
 })
 
-// Common properties shared across REST & GQL collections
-const HoppCollectionSchemaCommonProps = z
-  .object({
-    v: z.number(),
-    name: z.string(),
-    id: z.optional(z.string()),
-  })
-  .strict()
+export const COLLECTION_SCHEMA = entityReference(HoppCollection)
 
 const HoppRESTRequestSchema = entityReference(HoppRESTRequest)
 
 const HoppGQLRequestSchema = entityReference(HoppGQLRequest)
-
-// @ts-expect-error recursive schema
-const HoppRESTCollectionSchema = HoppCollectionSchemaCommonProps.extend({
-  folders: z.array(z.lazy(() => HoppRESTCollectionSchema)),
-  requests: z.optional(z.array(HoppRESTRequestSchema)),
-}).strict()
-
-// @ts-expect-error recursive schema
-const HoppGQLCollectionSchema = HoppCollectionSchemaCommonProps.extend({
-  folders: z.array(z.lazy(() => HoppGQLCollectionSchema)),
-  requests: z.optional(z.array(HoppGQLRequestSchema)),
-}).strict()
 
 export const VUEX_SCHEMA = z.object({
   postwoman: z.optional(
     z.object({
       settings: z.optional(SettingsDefSchema),
       //! Versioned entities
-      collections: z.optional(z.array(HoppRESTCollectionSchema)),
-      collectionsGraphql: z.optional(z.array(HoppGQLCollectionSchema)),
+      collections: z.optional(z.array(COLLECTION_SCHEMA)),
+      collectionsGraphql: z.optional(z.array(COLLECTION_SCHEMA)),
       environments: z.optional(z.array(entityReference(Environment))),
     })
   ),
@@ -131,10 +113,6 @@ export const GQL_HISTORY_ENTRY_SCHEMA = z
     updatedOn: z.optional(z.union([z.date(), z.string()])),
   })
   .strict()
-
-export const REST_COLLECTION_SCHEMA = HoppRESTCollectionSchema
-
-export const GQL_COLLECTION_SCHEMA = HoppGQLCollectionSchema
 
 export const ENVIRONMENTS_SCHEMA = z.array(entityReference(Environment))
 

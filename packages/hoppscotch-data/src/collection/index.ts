@@ -1,25 +1,34 @@
+import { InferredEntity, createVersionedEntity } from "verzod"
 import {
   GQL_REQ_SCHEMA_VERSION,
   HoppGQLRequest,
   translateToGQLRequest,
 } from "../graphql"
-import { HoppRESTRequest, translateToNewRequest } from "../rest"
+import { translateToNewRequest } from "../rest"
+
+import V0_VERSION from "./v/0"
+import V1_VERSION from "./v/1"
+import { z } from "zod"
 
 const CURRENT_COLL_SCHEMA_VER = 1
 
-type SupportedReqTypes = HoppRESTRequest | HoppGQLRequest
+const versionedObject = z.object({
+  v: z.number(),
+})
 
-export type HoppCollection<T extends SupportedReqTypes> = {
-  v: number
-  name: string
-  folders: HoppCollection<T>[]
-  requests: T[]
+export const HoppCollection = createVersionedEntity({
+  latestVersion: 1,
+  versionMap: {
+    0: V0_VERSION,
+    1: V1_VERSION,
+  },
+  getVersion(data) {
+    const result = versionedObject.safeParse(data)
+    return result.success ? result.data.v : null
+  }
+})
 
-  auth: T["auth"]
-  headers: T["headers"]
-
-  id?: string // For Firestore ID data
-}
+export type HoppCollection = InferredEntity<typeof HoppCollection>
 
 /**
  * Generates a Collection object. This ignores the version number object
@@ -27,9 +36,9 @@ export type HoppCollection<T extends SupportedReqTypes> = {
  * @param x The Collection Data
  * @returns The final collection
  */
-export function makeCollection<T extends SupportedReqTypes>(
-  x: Omit<HoppCollection<T>, "v">
-): HoppCollection<T> {
+export function makeCollection(
+  x: Omit<HoppCollection, "v">
+): HoppCollection {
   return {
     v: CURRENT_COLL_SCHEMA_VER,
     ...x,
@@ -43,7 +52,7 @@ export function makeCollection<T extends SupportedReqTypes>(
  */
 export function translateToNewRESTCollection(
   x: any
-): HoppCollection<HoppRESTRequest> {
+): HoppCollection {
   if (x.v && x.v === 1) return x
 
   // Legacy
@@ -54,7 +63,7 @@ export function translateToNewRESTCollection(
   const auth = x.auth ?? "None"
   const headers = x.headers ?? []
 
-  const obj = makeCollection<HoppRESTRequest>({
+  const obj = makeCollection({
     name,
     folders,
     requests,
@@ -74,7 +83,7 @@ export function translateToNewRESTCollection(
  */
 export function translateToNewGQLCollection(
   x: any
-): HoppCollection<HoppGQLRequest> {
+): HoppCollection {
   if (x.v && x.v === GQL_REQ_SCHEMA_VERSION) return x
 
   // Legacy
@@ -85,7 +94,7 @@ export function translateToNewGQLCollection(
   const auth = x.auth ?? { authType: "inherit", authActive: true }
   const headers = x.headers ?? []
 
-  const obj = makeCollection<HoppGQLRequest>({
+  const obj = makeCollection({
     name,
     folders,
     requests,
