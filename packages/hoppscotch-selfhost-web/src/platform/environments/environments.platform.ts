@@ -162,8 +162,13 @@ function setupUserEnvironmentUpdatedSubscription() {
 
       // handle the case for global environments
       if (isGlobal) {
+        const globalEnvEntries = JSON.parse(variables)
+
+        const result =
+          entityReference(GlobalEnvironment).safeParse(globalEnvEntries)
+
         runDispatchWithOutSyncing(() => {
-          setGlobalEnvVariables(JSON.parse(variables))
+          setGlobalEnvVariables(result.success ? result.data : globalEnvEntries)
         })
       } else {
         // handle the case for normal environments

@@ -170,6 +170,7 @@ import { platform } from "~/platform"
 import { useService } from "dioc/vue"
 import { SecretEnvironmentService } from "~/services/secret-environment.service"
 import { uniqueId } from "lodash-es"
+import { entityReference } from "verzod"
 
 type EnvironmentVariable = {
   id: number
@@ -263,7 +264,7 @@ const clearIcon = refAutoReset<typeof IconTrash2 | typeof IconDone>(
   1000
 )
 
-const globalVars = useReadonlyStream(globalEnv$, [])
+const globalVars = useReadonlyStream(globalEnv$, {} as GlobalEnvironment)
 
 type SelectedEnv = "variables" | "secret"
 
@@ -321,7 +322,7 @@ const liveEnvs = computed(() => {
   }
   return [
     ...vars.value.map((x) => ({ ...x.env, source: editingName.value! })),
-    ...globalVars.value.map((x) => ({ ...x, source: "Global" })),
+    ...globalVars.value.variables.map((x) => ({ ...x, source: "Global" })),
   ]
 })
 
@@ -451,7 +452,13 @@ const saveEnvironment = () => {
     })
   } else if (props.editingEnvironmentIndex === "Global") {
     // Editing the Global environment
-    setGlobalEnvVariables(environmentUpdated.variables as GlobalEnvironment)
+    const result = entityReference(GlobalEnvironment).safeParse(
+      environmentUpdated.variables
+    )
+
+    setGlobalEnvVariables(
+      result.success ? result.data : (environmentUpdated.variables as any)
+    )
     toast.success(`${t("environment.updated")}`)
   } else if (props.editingEnvironmentIndex !== null) {
     const envID =

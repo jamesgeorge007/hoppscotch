@@ -1,4 +1,4 @@
-import { Environment } from "@hoppscotch/data"
+import { Environment, GlobalEnvironment } from "@hoppscotch/data"
 import { SandboxTestResult, TestDescriptor } from "@hoppscotch/js-sandbox"
 import { runTestScript } from "@hoppscotch/js-sandbox/web"
 import * as A from "fp-ts/Array"
@@ -35,6 +35,7 @@ import {
   SecretVariable,
 } from "~/services/secret-environment.service"
 import { getService } from "~/modules/dioc"
+import { entityReference } from "verzod"
 
 const secretEnvironmentService = getService(SecretEnvironmentService)
 
@@ -119,6 +120,7 @@ const updateEnvironmentsWithSecret = (
       updatedSecretEnvironments
     )
   }
+
   return updatedEnv
 }
 
@@ -233,11 +235,15 @@ export function runRESTRequest$(
             tab.value.document.testResults =
               translateToSandboxTestResults(updatedRunResult)
 
+            const globalEnvs = updateEnvironmentsWithSecret(
+              runResult.right.envs.global,
+              "global"
+            )
+            const result =
+              entityReference(GlobalEnvironment).safeParse(globalEnvs)
+
             setGlobalEnvVariables(
-              updateEnvironmentsWithSecret(
-                runResult.right.envs.global,
-                "global"
-              )
+              result.success ? result.data : (globalEnvs as any)
             )
             if (
               environmentsStore.value.selectedEnvironmentIndex.type === "MY_ENV"

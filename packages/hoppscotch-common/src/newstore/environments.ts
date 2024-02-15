@@ -42,6 +42,11 @@ const secretEnvironmentService = getService(SecretEnvironmentService)
 
 type EnvironmentStore = typeof defaultEnvironmentsState
 
+const translateGlobalEnvs = (envs: GlobalEnvironment) => {
+  const result = entityReference(GlobalEnvironment).safeParse(envs.variables)
+  return result.success ? result.data : envs
+}
+
 const dispatchers = defineDispatchers({
   setSelectedEnvironmentIndex(
     store: EnvironmentStore,
@@ -278,8 +283,9 @@ const dispatchers = defineDispatchers({
     }
   },
   setGlobalVariables(_, { entries }: { entries: GlobalEnvironment }) {
+    const updatedEntries = translateGlobalEnvs(entries)
     return {
-      globals: entries,
+      globals: updatedEntries,
     }
   },
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -448,6 +454,7 @@ export function getAggregateEnvs() {
 }
 
 export function getAggregateEnvsWithSecrets() {
+  debugger
   const currentEnv = getCurrentEnvironment()
   return [
     ...currentEnv.variables.map((x, index) => {
@@ -510,6 +517,7 @@ export const aggregateEnvsWithSecrets$: Observable<AggregateEnvironment[]> =
         })
       })
 
+      debugger
       globalVars?.variables.map((x, index) => {
         let value
         if (x.secret) {
@@ -583,10 +591,6 @@ export function getLegacyGlobalEnvironment(): Environment | null {
 }
 
 export function getGlobalVariables(): GlobalEnvironment["variables"] {
-  console.log(
-    `Present state of environmentsStore is `, environmentsStore.value
-  )
-
   return environmentsStore.value.globals.variables
 }
 
