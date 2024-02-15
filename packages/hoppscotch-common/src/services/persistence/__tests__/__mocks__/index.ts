@@ -1,3 +1,4 @@
+import { GlobalEnvironment } from "@hoppscotch/data"
 import { Environment, HoppCollection } from "@hoppscotch/data"
 
 import { HoppGQLDocument } from "~/helpers/graphql/document"
@@ -110,8 +111,8 @@ export const MQTT_REQUEST_MOCK = {
   clientID: "hoppscotch",
 }
 
-export const GLOBAL_ENV_MOCK: Environment["variables"] = [
-  { key: "test-key", value: "test-value", secret: false },
+export const GLOBAL_ENV_MOCK: GlobalEnvironment[] = [
+  { v: 1, key: "test-key", value: "test-value", secret: false },
 ]
 
 export const VUEX_DATA_MOCK: VUEX_DATA = {

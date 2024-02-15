@@ -145,7 +145,11 @@ import * as E from "fp-ts/Either"
 import * as A from "fp-ts/Array"
 import * as O from "fp-ts/Option"
 import { pipe, flow } from "fp-ts/function"
-import { Environment, parseTemplateStringE } from "@hoppscotch/data"
+import {
+  Environment,
+  GlobalEnvironment,
+  parseTemplateStringE,
+} from "@hoppscotch/data"
 import { refAutoReset } from "@vueuse/core"
 import {
   createEnvironment,
@@ -447,7 +451,7 @@ const saveEnvironment = () => {
     })
   } else if (props.editingEnvironmentIndex === "Global") {
     // Editing the Global environment
-    setGlobalEnvVariables(environmentUpdated.variables)
+    setGlobalEnvVariables(environmentUpdated.variables as GlobalEnvironment[])
     toast.success(`${t("environment.updated")}`)
   } else if (props.editingEnvironmentIndex !== null) {
     const envID =

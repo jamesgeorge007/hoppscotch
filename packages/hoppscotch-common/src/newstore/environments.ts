@@ -30,7 +30,7 @@ const defaultEnvironmentsState = {
 
   // as a temp fix for identifying global env when syncing
   globalEnvID: undefined as string | undefined,
-  globals: [] as Environment["variables"],
+  globals: [] as GlobalEnvironment[],
 
   selectedEnvironmentIndex: {
     type: "NO_ENV_SELECTED",
@@ -287,10 +287,7 @@ const dispatchers = defineDispatchers({
       globals: [],
     }
   },
-  addGlobalVariable(
-    { globals },
-    { entry }: { entry: Environment["variables"][number] }
-  ) {
+  addGlobalVariable({ globals }, { entry }: { entry: GlobalEnvironment }) {
     return {
       globals: [...globals, entry],
     }
@@ -305,7 +302,7 @@ const dispatchers = defineDispatchers({
     {
       envIndex,
       updatedEntry,
-    }: { envIndex: number; updatedEntry: Environment["variables"][number] }
+    }: { envIndex: number; updatedEntry: GlobalEnvironment }
   ) {
     return {
       globals: globals.map((x, i) => (i !== envIndex ? x : updatedEntry)),
@@ -583,7 +580,7 @@ export function getLocalIndexByEnvironmentID(id: string) {
   return envIndex !== -1 ? envIndex : null
 }
 
-export function addGlobalEnvVariable(entry: Environment["variables"][number]) {
+export function addGlobalEnvVariable(entry: GlobalEnvironment) {
   environmentsStore.dispatch({
     dispatcher: "addGlobalVariable",
     payload: {
@@ -619,7 +616,7 @@ export function removeGlobalEnvVariable(envIndex: number) {
 
 export function updateGlobalEnvVariable(
   envIndex: number,
-  updatedEntry: Environment["variables"][number]
+  updatedEntry: GlobalEnvironment
 ) {
   environmentsStore.dispatch({
     dispatcher: "updateGlobalVariable",

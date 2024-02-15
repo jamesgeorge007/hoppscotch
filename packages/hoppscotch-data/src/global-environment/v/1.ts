@@ -24,6 +24,7 @@ export default defineVersion({
   up(old: z.infer<typeof V0_SCHEMA>) {
     if ("value" in old) {
       return <z.infer<typeof V1_SCHEMA>>{
+        v: 1,
         key: old.key,
         value: old.value,
         secret: false,
@@ -31,6 +32,7 @@ export default defineVersion({
     }
 
     return <z.infer<typeof V1_SCHEMA>>{
+      v: 1,
       key: old.key,
       secret: old.secret,
     }
