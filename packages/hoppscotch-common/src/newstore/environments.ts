@@ -1,4 +1,4 @@
-import { Environment } from "@hoppscotch/data"
+import { Environment, GlobalEnvironment } from "@hoppscotch/data"
 import { cloneDeep, isEqual, uniqueId } from "lodash-es"
 import { combineLatest, Observable } from "rxjs"
 import { distinctUntilChanged, map, pluck } from "rxjs/operators"
@@ -276,7 +276,7 @@ const dispatchers = defineDispatchers({
       ),
     }
   },
-  setGlobalVariables(_, { entries }: { entries: Environment["variables"] }) {
+  setGlobalVariables(_, { entries }: { entries: GlobalEnvironment[] }) {
     return {
       globals: entries,
     }
@@ -592,7 +592,7 @@ export function addGlobalEnvVariable(entry: Environment["variables"][number]) {
   })
 }
 
-export function setGlobalEnvVariables(entries: Environment["variables"]) {
+export function setGlobalEnvVariables(entries: GlobalEnvironment[]) {
   environmentsStore.dispatch({
     dispatcher: "setGlobalVariables",
     payload: {

@@ -644,7 +644,7 @@ export class PersistenceService extends Service {
       )
     }
 
-    setGlobalEnvVariables(globalEnvData as Environment["variables"])
+    setGlobalEnvVariables(globalEnvData)
 
     globalEnv$.subscribe((vars) => {
       window.localStorage.setItem(globalEnvKey, JSON.stringify(vars))

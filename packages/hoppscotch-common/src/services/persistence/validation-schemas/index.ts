@@ -6,6 +6,7 @@ import {
   HoppRESTAuth,
   HoppRESTRequest,
   HoppRESTHeaders,
+  GlobalEnvironment,
 } from "@hoppscotch/data"
 import { entityReference } from "verzod"
 import { z } from "zod"
@@ -245,9 +246,7 @@ const EnvironmentVariablesSchema = z.union([
   }),
 ])
 
-export const GLOBAL_ENV_SCHEMA = z.array(
-  z.union([z.never(), EnvironmentVariablesSchema])
-)
+export const GLOBAL_ENV_SCHEMA = z.array(entityReference(GlobalEnvironment))
 
 const OperationTypeSchema = z.enum([
   "subscription",
