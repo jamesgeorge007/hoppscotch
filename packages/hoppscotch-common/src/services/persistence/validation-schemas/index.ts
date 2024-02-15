@@ -246,7 +246,7 @@ const EnvironmentVariablesSchema = z.union([
   }),
 ])
 
-export const GLOBAL_ENV_SCHEMA = z.array(entityReference(GlobalEnvironment))
+export const GLOBAL_ENV_SCHEMA = entityReference(GlobalEnvironment)
 
 const OperationTypeSchema = z.enum([
   "subscription",

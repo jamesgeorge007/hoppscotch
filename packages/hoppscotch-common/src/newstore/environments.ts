@@ -7,6 +7,7 @@ import DispatchingStore, {
   defineDispatchers,
 } from "~/newstore/DispatchingStore"
 import { SecretEnvironmentService } from "~/services/secret-environment.service"
+import { entityReference } from "verzod"
 
 export type SelectedEnvironmentIndex =
   | { type: "NO_ENV_SELECTED" }
@@ -30,7 +31,7 @@ const defaultEnvironmentsState = {
 
   // as a temp fix for identifying global env when syncing
   globalEnvID: undefined as string | undefined,
-  globals: [] as GlobalEnvironment[],
+  globals: {} as GlobalEnvironment,
 
   selectedEnvironmentIndex: {
     type: "NO_ENV_SELECTED",
@@ -276,7 +277,7 @@ const dispatchers = defineDispatchers({
       ),
     }
   },
-  setGlobalVariables(_, { entries }: { entries: GlobalEnvironment[] }) {
+  setGlobalVariables(_, { entries }: { entries: GlobalEnvironment }) {
     return {
       globals: entries,
     }
@@ -284,17 +285,26 @@ const dispatchers = defineDispatchers({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   clearGlobalVariables(_store, {}) {
     return {
-      globals: [],
+      globals: {} as GlobalEnvironment,
     }
   },
-  addGlobalVariable({ globals }, { entry }: { entry: GlobalEnvironment }) {
+  addGlobalVariable(
+    { globals },
+    { entry }: { entry: GlobalEnvironment["variables"][number] }
+  ) {
     return {
-      globals: [...globals, entry],
+      globals: {
+        ...globals,
+        variables: [...globals.variables, entry],
+      },
     }
   },
   removeGlobalVariable({ globals }, { envIndex }: { envIndex: number }) {
     return {
-      globals: globals.filter((_, i) => i !== envIndex),
+      globals: {
+        ...globals,
+        variables: globals.variables.filter((_, i) => i !== envIndex),
+      },
     }
   },
   updateGlobalVariable(
@@ -302,10 +312,18 @@ const dispatchers = defineDispatchers({
     {
       envIndex,
       updatedEntry,
-    }: { envIndex: number; updatedEntry: GlobalEnvironment }
+    }: {
+      envIndex: number
+      updatedEntry: GlobalEnvironment["variables"][number]
+    }
   ) {
     return {
-      globals: globals.map((x, i) => (i !== envIndex ? x : updatedEntry)),
+      globals: {
+        ...globals,
+        variables: globals.variables.map((x, i) =>
+          i !== envIndex ? x : updatedEntry
+        ),
+      },
     }
   },
   setGlobalEnvID(_, { id }: { id: string }) {
@@ -389,7 +407,7 @@ export const aggregateEnvs$: Observable<AggregateEnvironment[]> = combineLatest(
     selectedEnv?.variables.forEach(({ key, value, secret }) =>
       results.push({ key, value, secret, sourceEnv: selectedEnv.name })
     )
-    globalVars.forEach(({ key, value, secret }) =>
+    globalVars?.variables.forEach(({ key, value, secret }) =>
       results.push({ key, value, secret, sourceEnv: "Global" })
     )
 
@@ -492,7 +510,7 @@ export const aggregateEnvsWithSecrets$: Observable<AggregateEnvironment[]> =
         })
       })
 
-      globalVars.map((x, index) => {
+      globalVars?.variables.map((x, index) => {
         let value
         if (x.secret) {
           value = secretEnvironmentService.getSecretEnvironmentVariableValue(
@@ -564,8 +582,12 @@ export function getLegacyGlobalEnvironment(): Environment | null {
   return el ?? null
 }
 
-export function getGlobalVariables(): Environment["variables"] {
-  return environmentsStore.value.globals
+export function getGlobalVariables(): GlobalEnvironment["variables"] {
+  console.log(
+    `Present state of environmentsStore is `, environmentsStore.value
+  )
+
+  return environmentsStore.value.globals.variables
 }
 
 export function getGlobalVariableID() {
@@ -580,7 +602,9 @@ export function getLocalIndexByEnvironmentID(id: string) {
   return envIndex !== -1 ? envIndex : null
 }
 
-export function addGlobalEnvVariable(entry: GlobalEnvironment) {
+export function addGlobalEnvVariable(
+  entry: GlobalEnvironment["variables"][number]
+) {
   environmentsStore.dispatch({
     dispatcher: "addGlobalVariable",
     payload: {
@@ -589,7 +613,7 @@ export function addGlobalEnvVariable(entry: GlobalEnvironment) {
   })
 }
 
-export function setGlobalEnvVariables(entries: GlobalEnvironment[]) {
+export function setGlobalEnvVariables(entries: GlobalEnvironment) {
   environmentsStore.dispatch({
     dispatcher: "setGlobalVariables",
     payload: {
@@ -616,7 +640,7 @@ export function removeGlobalEnvVariable(envIndex: number) {
 
 export function updateGlobalEnvVariable(
   envIndex: number,
-  updatedEntry: GlobalEnvironment
+  updatedEntry: GlobalEnvironment["variables"][number]
 ) {
   environmentsStore.dispatch({
     dispatcher: "updateGlobalVariable",

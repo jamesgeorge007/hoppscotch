@@ -9,6 +9,7 @@ import {
   setGlobalEnvVariables,
   updateEnvironment,
 } from "@hoppscotch/common/newstore/environments"
+import { entityReference } from "verzod"
 
 import { EnvironmentsPlatformDef } from "@hoppscotch/common/src/platform/environments"
 import { runGQLSubscription } from "@hoppscotch/common/helpers/backend/GQLClient"
@@ -25,6 +26,7 @@ import {
   runUserEnvironmentDeletedSubscription,
   runUserEnvironmentUpdatedSubscription,
 } from "@platform/environments/environments.api"
+import { GlobalEnvironment } from "@hoppscotch/data"
 
 export function initEnvironmentsSync() {
   const currentUser$ = platformAuth.getCurrentUserStream()
@@ -99,8 +101,16 @@ async function loadGlobalEnvironments() {
     const globalEnv = res.right.me.globalEnvironments
 
     if (globalEnv) {
+      const globalEnvVariableEntries = JSON.parse(globalEnv.variables)
+
+      const result = entityReference(GlobalEnvironment).safeParse(
+        globalEnvVariableEntries
+      )
+
       runDispatchWithOutSyncing(() => {
-        setGlobalEnvVariables(JSON.parse(globalEnv.variables))
+        setGlobalEnvVariables(
+          result.success ? result.data : globalEnvVariableEntries
+        )
         setGlobalEnvID(globalEnv.id)
       })
     }

@@ -1467,13 +1467,9 @@ describe("PersistenceService", () => {
 
       it(`shows an error and sets the entry as a backup in localStorage if "${globalEnvKey}" read from localStorage doesn't match the schema`, () => {
         // Invalid shape for `globalEnv`
-        const globalEnv = [
-          {
-            ...GLOBAL_ENV_MOCK[0],
-            // `key` -> `string`
-            key: 1,
-          },
-        ]
+        const globalEnv = GLOBAL_ENV_MOCK
+        // @ts-expect-error - `key` should be a string
+        globalEnv.variables[0].key = 1
 
         window.localStorage.setItem(globalEnvKey, JSON.stringify(globalEnv))
 

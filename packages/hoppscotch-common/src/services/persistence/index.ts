@@ -2,7 +2,6 @@
 
 import {
   Environment,
-  GlobalEnvironment,
   translateToNewGQLCollection,
   translateToNewRESTCollection,
 } from "@hoppscotch/data"
@@ -426,9 +425,7 @@ export class PersistenceService extends Service {
 
     if (globalIndex !== -1) {
       const globalEnv = environmentsData[globalIndex]
-      globalEnv.variables.forEach((variable) =>
-        addGlobalEnvVariable(variable as GlobalEnvironment)
-      )
+      globalEnv.variables.forEach((variable) => addGlobalEnvVariable(variable))
 
       // Remove global from environments
       environmentsData.splice(globalIndex, 1)
@@ -637,6 +634,7 @@ export class PersistenceService extends Service {
 
     // Validate data read from localStorage
     const result = GLOBAL_ENV_SCHEMA.safeParse(globalEnvData)
+
     if (result.success) {
       globalEnvData = result.data
     } else {

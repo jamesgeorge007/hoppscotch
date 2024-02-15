@@ -451,7 +451,7 @@ const saveEnvironment = () => {
     })
   } else if (props.editingEnvironmentIndex === "Global") {
     // Editing the Global environment
-    setGlobalEnvVariables(environmentUpdated.variables as GlobalEnvironment[])
+    setGlobalEnvVariables(environmentUpdated.variables as GlobalEnvironment)
     toast.success(`${t("environment.updated")}`)
   } else if (props.editingEnvironmentIndex !== null) {
     const envID =
