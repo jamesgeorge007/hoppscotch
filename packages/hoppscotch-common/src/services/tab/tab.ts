@@ -82,7 +82,10 @@ export abstract class TabService<Doc>
     this.currentTabID.value = tabID
   }
 
+  // Might need to update the type for data
+  // This ensures at runtime the tabs have handles within them
   public loadTabsFromPersistedState(data: PersistableTabState<Doc>): void {
+    // This becomes async since we have to load back request handles from the 3 IDs persisted
     if (data) {
       this.tabMap.clear()
       this.tabOrdering.value = []
@@ -180,13 +183,18 @@ export abstract class TabService<Doc>
     this.currentTabID.value = tabID
   }
 
+  private getPersistedDocument(tabDoc: unknown) {
+    // Returns tab document
+    // Replace handles with the top level unique IDs to write back
+  }
+
   public persistableTabState = computed<PersistableTabState<Doc>>(() => ({
     lastActiveTabID: this.currentTabID.value,
     orderedDocs: this.tabOrdering.value.map((tabID) => {
       const tab = this.tabMap.get(tabID)! // tab ordering is guaranteed to have value for this key
       return {
         tabID: tab.id,
-        doc: tab.document,
+        doc: this.getPersistedDocument(tab.document),
       }
     }),
   }))

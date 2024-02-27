@@ -504,10 +504,16 @@ export class PersonalWorkspaceProviderService
       return Promise.resolve(E.left("INVALID_COLLECTION_HANDLE" as const))
     }
 
+    // Encode the contents of the tabs open `JSON.stringify`
+
     moveRESTFolder(
       collectionHandle.value.data.collectionID,
       destinationCollectionID
     )
+
+    // After performing the action, the tabs should update the handle reference without explicit notification
+
+    // Maintain an array of issued handles, and when the action happens check against the affected IDs and ask to update
 
     return Promise.resolve(E.right(undefined))
   }
