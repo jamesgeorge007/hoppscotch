@@ -59,6 +59,8 @@ import {
 import { HoppRESTRequest } from "@hoppscotch/data"
 import { merge } from "lodash-es"
 import path from "path"
+import { getFoldersByPath } from "~/helpers/collection/collection"
+import { getRequestsByPath } from "~/helpers/collection/request"
 import { initializeDownloadFile } from "~/helpers/import-export/export"
 import { HoppInheritedProperty } from "~/helpers/types/HoppInheritedProperties"
 import IconUser from "~icons/lucide/user"
@@ -511,35 +513,17 @@ export class PersonalWorkspaceProviderService
       return Promise.resolve(E.left("INVALID_COLLECTION_HANDLE" as const))
     }
 
-    const draggedCollectionIndex = collectionHandle.value.data.collectionID
-
-    updateRESTCollectionOrder(draggedCollectionIndex, destinationCollectionID)
-
-    return Promise.resolve(E.right(undefined))
-  }
-
-  public moveRESTCollection(
-    collectionHandle: HandleRef<WorkspaceCollection>,
-    destinationCollectionID: string | null
-  ): Promise<E.Either<unknown, void>> {
-    if (
-      !isValidCollectionHandle(collectionHandle, this.providerID, "personal")
-    ) {
-      return Promise.resolve(E.left("INVALID_COLLECTION_HANDLE" as const))
-    }
-
-    // Encode the contents of the tabs open `JSON.stringify`
-
-    moveRESTFolder(
-      collectionHandle.value.data.collectionID,
-      destinationCollectionID
-    )
-
     const { collectionID: draggedCollectionID } = collectionHandle.value.data
-
     const resolvedDestinationCollectionID =
       destinationCollectionID ??
-      restCollectionStore.value.state.length.toString()
+      (
+        getFoldersByPath(
+          restCollectionStore.value.state,
+          draggedCollectionID.split("/").slice(0, -1).join("/")
+        ).length - 1
+      ).toString()
+
+    updateRESTCollectionOrder(draggedCollectionID, destinationCollectionID)
 
     for (const handle of this.issuedHandles) {
       if (handle.value.type === "invalid") continue
@@ -560,9 +544,45 @@ export class PersonalWorkspaceProviderService
       }
     }
 
-    // After performing the action, the tabs should update the handle reference without explicit notification
+    return Promise.resolve(E.right(undefined))
+  }
 
-    // Maintain an array of issued handles, and when the action happens check against the affected IDs and ask to update
+  public moveRESTCollection(
+    collectionHandle: HandleRef<WorkspaceCollection>,
+    destinationCollectionID: string | null
+  ): Promise<E.Either<unknown, void>> {
+    if (
+      !isValidCollectionHandle(collectionHandle, this.providerID, "personal")
+    ) {
+      return Promise.resolve(E.left("INVALID_COLLECTION_HANDLE" as const))
+    }
+
+    const { collectionID: draggedCollectionID } = collectionHandle.value.data
+
+    const resolvedDestinationCollectionID =
+      destinationCollectionID ??
+      restCollectionStore.value.state.length.toString()
+
+    moveRESTFolder(draggedCollectionID, destinationCollectionID)
+
+    for (const handle of this.issuedHandles) {
+      if (handle.value.type === "invalid") continue
+
+      const { collectionID } = handle.value.data
+
+      if (collectionID.startsWith(draggedCollectionID)) {
+        handle.value = {
+          type: "ok",
+          data: {
+            ...handle.value.data,
+            collectionID: collectionID.replace(
+              draggedCollectionID,
+              resolvedDestinationCollectionID
+            ),
+          },
+        }
+      }
+    }
 
     return Promise.resolve(E.right(undefined))
   }
@@ -576,13 +596,47 @@ export class PersonalWorkspaceProviderService
       return Promise.resolve(E.left("INVALID_REQUEST_HANDLE" as const))
     }
 
-    const draggedRequestIndex = requestHandle.value.data.requestID
+    const { requestID: draggedRequestID } = requestHandle.value.data
+
+    const resolvedDestinationRequestID =
+      destinationRequestID ??
+      (
+        getRequestsByPath(
+          restCollectionStore.value.state,
+          destinationCollectionID
+        ).length - 1
+      ).toString()
 
     updateRESTRequestOrder(
-      this.pathToLastIndex(draggedRequestIndex),
+      this.pathToLastIndex(draggedRequestID),
       destinationRequestID ? this.pathToLastIndex(destinationRequestID) : null,
       destinationCollectionID
     )
+
+    for (const handle of this.issuedHandles) {
+      if (handle.value.type === "invalid") {
+        continue
+      }
+
+      if (!("requestID" in handle.value)) {
+        continue
+      }
+
+      const { requestID } = handle.value.data as WorkspaceRequest
+
+      if (draggedRequestID.startsWith(requestID)) {
+        handle.value = {
+          type: "ok",
+          data: {
+            ...handle.value.data,
+            requestID: requestID.replace(
+              draggedRequestID,
+              resolvedDestinationRequestID
+            ),
+          },
+        }
+      }
+    }
 
     return Promise.resolve(E.right(undefined))
   }
@@ -595,17 +649,47 @@ export class PersonalWorkspaceProviderService
       return Promise.resolve(E.left("INVALID_REQUEST_HANDLE" as const))
     }
 
-    const requestIndex = requestHandle.value.data.requestID
-    const parentCollectionIndexPath = requestIndex
+    const { requestID: draggedRequestID } = requestHandle.value.data
+    const parentCollectionID = draggedRequestID
       .split("/")
       .slice(0, -1)
       .join("/")
 
+    const resolvedDestinationRequestID = getRequestsByPath(
+      restCollectionStore.value.state,
+      destinationCollectionID
+    ).length.toString()
+
     moveRESTRequest(
-      parentCollectionIndexPath,
-      this.pathToLastIndex(requestIndex),
+      parentCollectionID,
+      this.pathToLastIndex(draggedRequestID),
       destinationCollectionID
     )
+
+    for (const handle of this.issuedHandles) {
+      if (handle.value.type === "invalid") {
+        continue
+      }
+
+      if (!("requestID" in handle.value)) {
+        continue
+      }
+
+      const { requestID } = handle.value.data as WorkspaceRequest
+
+      if (draggedRequestID.startsWith(requestID)) {
+        handle.value = {
+          type: "ok",
+          data: {
+            ...handle.value.data,
+            requestID: requestID.replace(
+              draggedRequestID,
+              resolvedDestinationRequestID
+            ),
+          },
+        }
+      }
+    }
 
     return Promise.resolve(E.right(undefined))
   }
