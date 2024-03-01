@@ -10,16 +10,25 @@ import {
   shallowReadonly,
   watch,
 } from "vue"
+
+import * as E from "fp-ts/Either"
+
+import { HoppRESTDocument } from "~/helpers/rest/document"
 import {
   HoppTab,
   PersistableTabState,
   TabService as TabServiceInterface,
 } from "."
+import { NewWorkspaceService } from "../new-workspace"
+import { HandleRef } from "../new-workspace/handle"
+import { WorkspaceRequest } from "../new-workspace/workspace"
 
 export abstract class TabService<Doc>
   extends Service
   implements TabServiceInterface<Doc>
 {
+  private workspaceService = this.bind(NewWorkspaceService)
+
   protected tabMap = reactive(new Map<string, HoppTab<Doc>>())
   protected tabOrdering = ref<string[]>(["test"])
 
@@ -82,18 +91,50 @@ export abstract class TabService<Doc>
     this.currentTabID.value = tabID
   }
 
-  // Might need to update the type for data
-  // This ensures at runtime the tabs have handles within them
-  public loadTabsFromPersistedState(data: PersistableTabState<Doc>): void {
-    // This becomes async since we have to load back request handles from the 3 IDs persisted
+  public async loadTabsFromPersistedState(
+    data: PersistableTabState<Doc>
+  ): Promise<void> {
     if (data) {
       this.tabMap.clear()
       this.tabOrdering.value = []
 
       for (const doc of data.orderedDocs) {
+        let requestHandle: HandleRef<WorkspaceRequest> | null = null
+        let resolvedTabDoc = doc.doc
+
+        // TODO: Account for GQL
+        const { saveContext } = doc.doc as HoppRESTDocument
+
+        if (
+          saveContext &&
+          saveContext.originLocation === "workspace-user-collection"
+        ) {
+          const { requestID } = saveContext
+
+          if (this.workspaceService.activeWorkspaceHandle.value) {
+            const requestHandleResult =
+              await this.workspaceService.getRequestHandle(
+                this.workspaceService.activeWorkspaceHandle.value,
+                requestID
+              )
+
+            if (E.isRight(requestHandleResult)) {
+              requestHandle = requestHandleResult.right
+
+              resolvedTabDoc = {
+                ...resolvedTabDoc,
+                saveContext: {
+                  ...saveContext,
+                  requestHandle,
+                },
+              }
+            }
+          }
+        }
+
         this.tabMap.set(doc.tabID, {
           id: doc.tabID,
-          document: doc.doc,
+          document: resolvedTabDoc,
         })
 
         this.tabOrdering.value.push(doc.tabID)
@@ -183,9 +224,42 @@ export abstract class TabService<Doc>
     this.currentTabID.value = tabID
   }
 
-  private getPersistedDocument(tabDoc: unknown) {
-    // Returns tab document
-    // Replace handles with the top level unique IDs to write back
+  private getPersistedDocument(tabDoc: Doc): Doc {
+    const { saveContext } = tabDoc as HoppRESTDocument
+
+    if (saveContext?.originLocation !== "workspace-user-collection") {
+      return tabDoc
+    }
+
+    const { requestHandle } = saveContext
+
+    if (!requestHandle) {
+      return tabDoc
+    }
+
+    if (requestHandle.value.type === "invalid") {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { requestHandle, ...rest } = saveContext
+
+      // Return the document without the handle
+      return {
+        ...tabDoc,
+        saveContext: rest,
+      }
+    }
+
+    const { providerID, workspaceID, requestID } = requestHandle.value.data
+
+    // Return the document without the handle
+    return {
+      ...tabDoc,
+      saveContext: {
+        originLocation: "workspace-user-collection",
+        requestID,
+        providerID,
+        workspaceID,
+      },
+    }
   }
 
   public persistableTabState = computed<PersistableTabState<Doc>>(() => ({
