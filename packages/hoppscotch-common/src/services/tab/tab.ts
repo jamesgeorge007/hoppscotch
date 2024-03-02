@@ -105,10 +105,7 @@ export abstract class TabService<Doc>
         // TODO: Account for GQL
         const { saveContext } = doc.doc as HoppRESTDocument
 
-        if (
-          saveContext &&
-          saveContext.originLocation === "workspace-user-collection"
-        ) {
+        if (saveContext?.originLocation === "workspace-user-collection") {
           const { requestID } = saveContext
 
           if (this.workspaceService.activeWorkspaceHandle.value) {

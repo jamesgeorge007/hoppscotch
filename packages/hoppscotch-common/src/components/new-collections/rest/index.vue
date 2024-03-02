@@ -501,10 +501,6 @@ import {
   updateInheritedPropertiesForAffectedRequests,
   updateSaveContextForAffectedRequests,
 } from "~/helpers/collection/collection"
-import {
-  getRequestsByPath,
-  resolveSaveContextOnRequestReorder,
-} from "~/helpers/collection/request"
 import { HoppInheritedProperty } from "~/helpers/types/HoppInheritedProperties"
 import { Picked } from "~/helpers/types/HoppPicked"
 import {
@@ -517,7 +513,7 @@ import { platform } from "~/platform"
 import { NewWorkspaceService } from "~/services/new-workspace"
 import { HandleRef } from "~/services/new-workspace/handle"
 import { RESTCollectionViewRequest } from "~/services/new-workspace/view"
-import { Workspace } from "~/services/new-workspace/workspace"
+import { Workspace, WorkspaceRequest } from "~/services/new-workspace/workspace"
 import { RESTTabService } from "~/services/tab/rest"
 import IconImport from "~icons/lucide/folder-down"
 import IconHelpCircle from "~icons/lucide/help-circle"
@@ -772,20 +768,22 @@ const onRemoveRootCollection = async () => {
     return
   }
 
-  const activeTabs = tabs.getActiveTabs()
+  // TODO: Tab holding a request under the collection should be aware of the parent collection invalidation and toggle the dirty state
 
-  for (const tab of activeTabs.value) {
-    if (
-      tab.document.saveContext?.originLocation === "workspace-user-collection"
-    ) {
-      const { requestID } = tab.document.saveContext
+  // const activeTabs = tabs.getActiveTabs()
 
-      if (requestID.startsWith(collectionIndexPath)) {
-        tab.document.saveContext = null
-        tab.document.isDirty = true
-      }
-    }
-  }
+  // for (const tab of activeTabs.value) {
+  //   if (
+  //     tab.document.saveContext?.originLocation === "workspace-user-collection"
+  //   ) {
+  //     const { requestID } = tab.document.saveContext
+
+  //     if (requestID.startsWith(collectionIndexPath)) {
+  //       tab.document.saveContext = null
+  //       tab.document.isDirty = true
+  //     }
+  //   }
+  // }
 
   toast.success(t("state.deleted"))
   displayConfirmModal(false)
@@ -867,6 +865,7 @@ const onAddRequest = async (requestName: string) => {
       workspaceID,
       providerID,
       requestID,
+      requestHandle,
     },
     inheritedProperties: {
       auth,
@@ -1055,20 +1054,22 @@ const onRemoveChildCollection = async () => {
     return
   }
 
-  const activeTabs = tabs.getActiveTabs()
+  // TODO: Tab holding a request under the collection should be aware of the parent collection invalidation and toggle the dirty state
 
-  for (const tab of activeTabs.value) {
-    if (
-      tab.document.saveContext?.originLocation === "workspace-user-collection"
-    ) {
-      const { requestID } = tab.document.saveContext
+  // const activeTabs = tabs.getActiveTabs()
 
-      if (requestID.startsWith(parentCollectionIndexPath)) {
-        tab.document.saveContext = null
-        tab.document.isDirty = true
-      }
-    }
-  }
+  // for (const tab of activeTabs.value) {
+  //   if (
+  //     tab.document.saveContext?.originLocation === "workspace-user-collection"
+  //   ) {
+  //     const { requestID } = tab.document.saveContext
+
+  //     if (requestID.startsWith(parentCollectionIndexPath)) {
+  //       tab.document.saveContext = null
+  //       tab.document.isDirty = true
+  //     }
+  //   }
+  // }
 
   toast.success(t("state.deleted"))
   displayConfirmModal(false)
@@ -1209,9 +1210,7 @@ const selectRequest = async (requestIndexPath: string) => {
   // If there is a request with this save context, switch into it
   const possibleTab = tabs.getTabRefWithSaveContext({
     originLocation: "workspace-user-collection",
-    workspaceID,
-    providerID,
-    requestID,
+    requestHandle,
   })
 
   if (possibleTab) {
@@ -1226,6 +1225,7 @@ const selectRequest = async (requestIndexPath: string) => {
         workspaceID,
         providerID,
         requestID,
+        requestHandle,
       },
       inheritedProperties: {
         auth,
@@ -1615,10 +1615,10 @@ const dropToRoot = async ({ dataTransfer }: DragEvent) => {
     restCollectionState.value.length - 1
   ).toString()
 
-  updateSaveContextForAffectedRequests(
-    draggedCollectionIndex,
-    destinationRootCollectionIndex
-  )
+  // updateSaveContextForAffectedRequests(
+  //   draggedCollectionIndex,
+  //   destinationRootCollectionIndex
+  // )
 
   const destinationRootCollectionHandleResult =
     await workspaceService.getCollectionHandle(
@@ -1767,17 +1767,17 @@ const dropRequest = async (payload: {
 
   // If there is a tab attached to this request, update its save context
   if (possibleTab) {
-    const newRequestID = `${destinationCollectionIndex}/${(
-      getRequestsByPath(restCollectionState.value, destinationCollectionIndex)
-        .length - 1
-    ).toString()}`
+    // const newRequestID = `${destinationCollectionIndex}/${(
+    //   getRequestsByPath(restCollectionState.value, destinationCollectionIndex)
+    //     .length - 1
+    // ).toString()}`
 
-    possibleTab.value.document.saveContext = {
-      originLocation: "workspace-user-collection",
-      workspaceID,
-      providerID,
-      requestID: newRequestID,
-    }
+    // possibleTab.value.document.saveContext = {
+    //   originLocation: "workspace-user-collection",
+    //   workspaceID,
+    //   providerID,
+    //   requestID: newRequestID,
+    // }
 
     possibleTab.value.document.inheritedProperties = {
       auth,
@@ -1786,15 +1786,15 @@ const dropRequest = async (payload: {
   }
 
   // When it's drop it's basically getting deleted from last folder. reordering last folder accordingly
-  resolveSaveContextOnRequestReorder({
-    lastIndex: pathToLastIndex(requestIndex),
-    newIndex: -1, // being deleted from last folder
-    folderPath: parentCollectionIndexPath,
-    length: getRequestsByPath(
-      restCollectionState.value,
-      parentCollectionIndexPath
-    ).length,
-  })
+  // resolveSaveContextOnRequestReorder({
+  //   lastIndex: pathToLastIndex(requestIndex),
+  //   newIndex: -1, // being deleted from last folder
+  //   folderPath: parentCollectionIndexPath,
+  //   length: getRequestsByPath(
+  //     restCollectionState.value,
+  //     parentCollectionIndexPath
+  //   ).length,
+  // })
 
   toast.success(`${t("request.moved")}`)
   draggingToRoot.value = false
@@ -2087,33 +2087,33 @@ const updateCollectionOrder = async (
   }
 
   // Moving to the last position indicated by `destinationCollectionIndex` being `null` requires computing the index path of the new child collection being inserted
-  let newDestinationCollectionIndex = 0
-  if (destinationCollectionIndex === null) {
-    if (destinationCollectionParentIndex === null) {
-      newDestinationCollectionIndex = restCollectionState.value.length - 1
-    } else {
-      const destinationCollectionParent = navigateToFolderWithIndexPath(
-        restCollectionState.value,
-        destinationCollectionParentIndex.split("/").map((id) => parseInt(id))
-      )
+  // let newDestinationCollectionIndex = 0
+  // if (destinationCollectionIndex === null) {
+  //   if (destinationCollectionParentIndex === null) {
+  //     newDestinationCollectionIndex = restCollectionState.value.length - 1
+  //   } else {
+  //     const destinationCollectionParent = navigateToFolderWithIndexPath(
+  //       restCollectionState.value,
+  //       destinationCollectionParentIndex.split("/").map((id) => parseInt(id))
+  //     )
 
-      if (!destinationCollectionParent) {
-        return
-      }
+  //     if (!destinationCollectionParent) {
+  //       return
+  //     }
 
-      newDestinationCollectionIndex = destinationCollectionParent.folders.length
-    }
-  }
+  //     newDestinationCollectionIndex = destinationCollectionParent.folders.length
+  //   }
+  // }
 
-  resolveSaveContextOnCollectionReorder({
-    lastIndex: pathToLastIndex(draggedCollectionIndex),
-    newIndex: pathToLastIndex(
-      destinationCollectionIndex
-        ? destinationCollectionIndex
-        : newDestinationCollectionIndex.toString()
-    ),
-    folderPath: draggedCollectionIndex.split("/").slice(0, -1).join("/"),
-  })
+  // resolveSaveContextOnCollectionReorder({
+  //   lastIndex: pathToLastIndex(draggedCollectionIndex),
+  //   newIndex: pathToLastIndex(
+  //     destinationCollectionIndex
+  //       ? destinationCollectionIndex
+  //       : newDestinationCollectionIndex.toString()
+  //   ),
+  //   folderPath: draggedCollectionIndex.split("/").slice(0, -1).join("/"),
+  // })
 
   toast.success(`${t("collection.order_changed")}`)
 }
@@ -2177,9 +2177,19 @@ const isActiveRequest = (requestView: RESTCollectionViewRequest) => {
     return false
   }
 
-  const { requestID } = tabs.currentActiveTab.value.document.saveContext
+  // TODO: Investigate why requestHandle is available unwrapped here
+  const requestHandle = tabs.currentActiveTab.value.document.saveContext
+    .requestHandle as HandleRef<WorkspaceRequest>["value"] | undefined
 
-  return requestID === requestView.requestID
+  if (!requestHandle) {
+    return false
+  }
+
+  if (requestHandle.type === "invalid") {
+    return false
+  }
+
+  return requestHandle.data.requestID === requestView.requestID
 }
 
 const onSelectPick = (payload: Picked | null) => {
