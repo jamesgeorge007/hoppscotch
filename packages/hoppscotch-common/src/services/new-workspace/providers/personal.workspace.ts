@@ -59,6 +59,7 @@ import {
 import { HoppRESTRequest } from "@hoppscotch/data"
 import { merge } from "lodash-es"
 import path from "path"
+import { getAffectedIndexes } from "~/helpers/collection/affectedIndex"
 import { getFoldersByPath } from "~/helpers/collection/collection"
 import { getRequestsByPath } from "~/helpers/collection/request"
 import { initializeDownloadFile } from "~/helpers/import-export/export"
@@ -150,6 +151,16 @@ export class PersonalWorkspaceProviderService
 
     const { providerID, workspaceID } = workspaceHandle.value.data
 
+    const handleRefData = ref({
+      type: "ok" as const,
+      data: {
+        providerID,
+        workspaceID,
+        collectionID: newCollectionID,
+        name: newCollectionName,
+      },
+    })
+
     const handle: HandleRef<WorkspaceCollection> = computed(() => {
       if (!isValidWorkspaceHandle(workspaceHandle, providerID, "personal")) {
         return {
@@ -158,23 +169,15 @@ export class PersonalWorkspaceProviderService
         }
       }
 
-      return {
-        type: "ok",
-        data: {
-          providerID,
-          workspaceID,
-          collectionID: newCollectionID,
-          name: newCollectionName,
-        },
-      }
+      return handleRefData.value
     })
 
     const writableHandle = computed({
       get() {
-        return handle.value
+        return handleRefData.value
       },
       set(newValue) {
-        handle.value = newValue
+        handleRefData.value = newValue
       },
     })
 
@@ -210,6 +213,16 @@ export class PersonalWorkspaceProviderService
       platform: "rest",
     })
 
+    const handleRefData = ref({
+      type: "ok" as const,
+      data: {
+        providerID,
+        workspaceID,
+        collectionID,
+        name: newCollectionName,
+      },
+    })
+
     const handle: HandleRef<WorkspaceCollection> = computed(() => {
       if (
         !isValidCollectionHandle(parentCollectionHandle, providerID, "personal")
@@ -220,23 +233,15 @@ export class PersonalWorkspaceProviderService
         }
       }
 
-      return {
-        type: "ok",
-        data: {
-          providerID,
-          workspaceID,
-          collectionID,
-          name: newCollectionName,
-        },
-      }
+      return handleRefData.value
     })
 
     const writableHandle = computed({
       get() {
-        return handle.value
+        return handleRefData.value
       },
       set(newValue) {
-        handle.value = newValue
+        handleRefData.value = newValue
       },
     })
 
@@ -345,6 +350,17 @@ export class PersonalWorkspaceProviderService
       platform: "rest",
     })
 
+    const handleRefData = ref({
+      type: "ok" as const,
+      data: {
+        providerID,
+        workspaceID,
+        collectionID,
+        requestID,
+        request: newRequest,
+      },
+    })
+
     const handle: HandleRef<WorkspaceRequest> = computed(() => {
       if (
         !isValidCollectionHandle(
@@ -359,24 +375,15 @@ export class PersonalWorkspaceProviderService
         }
       }
 
-      return {
-        type: "ok",
-        data: {
-          providerID,
-          workspaceID,
-          collectionID,
-          requestID,
-          request: newRequest,
-        },
-      }
+      return handleRefData.value
     })
 
     const writableHandle = computed({
       get() {
-        return handle.value
+        return handleRefData.value
       },
       set(newValue) {
-        handle.value = newValue
+        handleRefData.value = newValue
       },
     })
 
@@ -526,8 +533,6 @@ export class PersonalWorkspaceProviderService
     updateRESTCollectionOrder(draggedCollectionID, destinationCollectionID)
 
     for (const handle of this.issuedHandles) {
-      if (handle.value.type === "invalid") continue
-
       const { collectionID } = handle.value.data
 
       if (collectionID.startsWith(draggedCollectionID)) {
@@ -539,6 +544,14 @@ export class PersonalWorkspaceProviderService
               draggedCollectionID,
               resolvedDestinationCollectionID
             ),
+            ...("requestID" in handle.value.data
+              ? {
+                  requestID: handle.value.data.requestID.replace(
+                    draggedCollectionID,
+                    resolvedDestinationCollectionID
+                  ),
+                }
+              : {}),
           },
         }
       }
@@ -566,8 +579,6 @@ export class PersonalWorkspaceProviderService
     moveRESTFolder(draggedCollectionID, destinationCollectionID)
 
     for (const handle of this.issuedHandles) {
-      if (handle.value.type === "invalid") continue
-
       const { collectionID } = handle.value.data
 
       if (collectionID.startsWith(draggedCollectionID)) {
@@ -579,6 +590,14 @@ export class PersonalWorkspaceProviderService
               draggedCollectionID,
               resolvedDestinationCollectionID
             ),
+            ...("requestID" in handle.value.data
+              ? {
+                  requestID: handle.value.data.requestID.replace(
+                    draggedCollectionID,
+                    resolvedDestinationCollectionID
+                  ),
+                }
+              : {}),
           },
         }
       }
@@ -598,14 +617,21 @@ export class PersonalWorkspaceProviderService
 
     const { requestID: draggedRequestID } = requestHandle.value.data
 
+    const destinationCollectionRequestCount = getRequestsByPath(
+      restCollectionStore.value.state,
+      destinationCollectionID
+    ).length
+
+    const draggedRequestParentCollectionID = draggedRequestID
+      .split("/")
+      .slice(0, -1)
+      .join("/")
+
     const resolvedDestinationRequestID =
       destinationRequestID ??
-      (
-        getRequestsByPath(
-          restCollectionStore.value.state,
-          destinationCollectionID
-        ).length - 1
-      ).toString()
+      `${destinationCollectionID}/${(
+        destinationCollectionRequestCount - 1
+      ).toString()}`
 
     updateRESTRequestOrder(
       this.pathToLastIndex(draggedRequestID),
@@ -614,15 +640,11 @@ export class PersonalWorkspaceProviderService
     )
 
     for (const handle of this.issuedHandles) {
-      if (handle.value.type === "invalid") {
+      if (!("requestID" in handle.value.data)) {
         continue
       }
 
-      if (!("requestID" in handle.value)) {
-        continue
-      }
-
-      const { requestID } = handle.value.data as WorkspaceRequest
+      const { collectionID, requestID } = handle.value.data as WorkspaceRequest
 
       if (draggedRequestID.startsWith(requestID)) {
         handle.value = {
@@ -633,6 +655,24 @@ export class PersonalWorkspaceProviderService
               draggedRequestID,
               resolvedDestinationRequestID
             ),
+          },
+        }
+      } else if (draggedRequestParentCollectionID.startsWith(collectionID)) {
+        const affectedIndices = getAffectedIndexes(
+          this.pathToLastIndex(draggedRequestID),
+          this.pathToLastIndex(
+            destinationRequestID ?? destinationCollectionRequestCount.toString()
+          )
+        )
+
+        handle.value = {
+          type: "ok",
+          data: {
+            ...handle.value.data,
+            requestID:
+              `${collectionID}/${affectedIndices
+                .get(this.pathToLastIndex(requestID))
+                ?.toString()}` ?? requestID,
           },
         }
       }
@@ -655,10 +695,10 @@ export class PersonalWorkspaceProviderService
       .slice(0, -1)
       .join("/")
 
-    const resolvedDestinationRequestID = getRequestsByPath(
+    const resolvedDestinationRequestID = `${destinationCollectionID}/${getRequestsByPath(
       restCollectionStore.value.state,
       destinationCollectionID
-    ).length.toString()
+    ).length.toString()}`
 
     moveRESTRequest(
       parentCollectionID,
@@ -667,21 +707,21 @@ export class PersonalWorkspaceProviderService
     )
 
     for (const handle of this.issuedHandles) {
-      if (handle.value.type === "invalid") {
+      if (!("requestID" in handle.value.data)) {
         continue
       }
 
-      if (!("requestID" in handle.value)) {
-        continue
-      }
-
-      const { requestID } = handle.value.data as WorkspaceRequest
+      const { collectionID, requestID } = handle.value.data as WorkspaceRequest
 
       if (draggedRequestID.startsWith(requestID)) {
         handle.value = {
           type: "ok",
           data: {
             ...handle.value.data,
+            collectionID: collectionID.replace(
+              parentCollectionID,
+              destinationCollectionID
+            ),
             requestID: requestID.replace(
               draggedRequestID,
               resolvedDestinationRequestID
@@ -717,6 +757,16 @@ export class PersonalWorkspaceProviderService
 
     const { providerID, workspaceID } = workspaceHandle.value.data
 
+    const handleRefData = ref({
+      type: "ok" as const,
+      data: {
+        providerID,
+        workspaceID,
+        collectionID,
+        name: collection.name,
+      },
+    })
+
     const handle: HandleRef<WorkspaceCollection> = computed(() => {
       if (
         !isValidWorkspaceHandle(workspaceHandle, this.providerID, "personal")
@@ -727,23 +777,15 @@ export class PersonalWorkspaceProviderService
         }
       }
 
-      return {
-        type: "ok",
-        data: {
-          providerID,
-          workspaceID,
-          collectionID,
-          name: collection.name,
-        },
-      }
+      return handleRefData.value
     })
 
     const writableHandle = computed({
       get() {
-        return handle.value
+        return handleRefData.value
       },
       set(newValue) {
-        handle.value = newValue
+        handleRefData.value = newValue
       },
     })
 
@@ -790,6 +832,17 @@ export class PersonalWorkspaceProviderService
       return Promise.resolve(E.left("REQUEST_NOT_FOUND" as const))
     }
 
+    const handleRefData = ref({
+      type: "ok" as const,
+      data: {
+        providerID,
+        workspaceID,
+        collectionID,
+        requestID,
+        request,
+      },
+    })
+
     const handle: HandleRef<WorkspaceRequest> = computed(() => {
       if (
         !isValidWorkspaceHandle(workspaceHandle, this.providerID, "personal")
@@ -800,24 +853,15 @@ export class PersonalWorkspaceProviderService
         }
       }
 
-      return {
-        type: "ok",
-        data: {
-          providerID,
-          workspaceID,
-          collectionID,
-          requestID,
-          request,
-        },
-      }
+      return handleRefData.value
     })
 
     const writableHandle = computed({
       get() {
-        return handle.value
+        return handleRefData.value
       },
       set(newValue) {
-        handle.value = newValue
+        handleRefData.value = newValue
       },
     })
 

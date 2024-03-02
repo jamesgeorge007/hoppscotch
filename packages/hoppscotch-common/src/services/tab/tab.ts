@@ -105,29 +105,44 @@ export abstract class TabService<Doc>
         // TODO: Account for GQL
         const { saveContext } = doc.doc as HoppRESTDocument
 
-        if (
-          saveContext &&
-          saveContext.originLocation === "workspace-user-collection"
-        ) {
-          const { requestID } = saveContext
+        if (saveContext?.originLocation === "workspace-user-collection") {
+          const { providerID, requestID, workspaceID } = saveContext
 
-          if (this.workspaceService.activeWorkspaceHandle.value) {
-            const requestHandleResult =
-              await this.workspaceService.getRequestHandle(
-                this.workspaceService.activeWorkspaceHandle.value,
-                requestID
-              )
+          if (!providerID || !workspaceID || !requestID) {
+            continue
+          }
 
-            if (E.isRight(requestHandleResult)) {
-              requestHandle = requestHandleResult.right
+          const workspaceHandleResult =
+            await this.workspaceService.getWorkspaceHandle(
+              providerID!,
+              workspaceID!
+            )
 
-              resolvedTabDoc = {
-                ...resolvedTabDoc,
-                saveContext: {
-                  ...saveContext,
-                  requestHandle,
-                },
-              }
+          if (E.isLeft(workspaceHandleResult)) {
+            continue
+          }
+
+          const workspaceHandle = workspaceHandleResult.right
+
+          if (workspaceHandle.value.type === "invalid") {
+            continue
+          }
+
+          const requestHandleResult =
+            await this.workspaceService.getRequestHandle(
+              workspaceHandle,
+              requestID!
+            )
+
+          if (E.isRight(requestHandleResult)) {
+            requestHandle = requestHandleResult.right
+
+            resolvedTabDoc = {
+              ...resolvedTabDoc,
+              saveContext: {
+                ...saveContext,
+                requestHandle,
+              },
             }
           }
         }

@@ -7,6 +7,4 @@ export type HandleRef<T, InvalidateReason = unknown> = Ref<
 export type WritableHandleRef<
   T,
   InvalidateReason = unknown,
-> = WritableComputedRef<
-  { type: "ok"; data: T } | { type: "invalid"; reason: InvalidateReason }
->
+> = WritableComputedRef<{ type: "ok"; data: T }>
