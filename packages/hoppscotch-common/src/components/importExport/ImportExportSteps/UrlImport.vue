@@ -35,10 +35,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
 import { useI18n } from "@composables/i18n"
+import { useService } from "dioc/vue"
+import { ref, watch } from "vue"
 import { useToast } from "~/composables/toast"
-import axios, { AxiosResponse } from "axios"
+import { InterceptorService } from "~/services/interceptor.service"
+
+import * as E from "fp-ts/Either"
+
+const interceptorService = useService(InterceptorService)
 
 const t = useI18n()
 
@@ -46,7 +51,7 @@ const toast = useToast()
 
 const props = defineProps<{
   caption: string
-  fetchLogic?: (url: string) => Promise<AxiosResponse<any>>
+  fetchLogic?: (url: string) => Promise<E.Either<string, string>>
 }>()
 
 const emit = defineEmits<{
@@ -65,15 +70,26 @@ watch(inputChooseGistToImportFrom, (url) => {
 const urlFetchLogic =
   props.fetchLogic ??
   async function (url: string) {
-    const res = await axios.get(url, {
+    const res = await interceptorService.runRequest({
+      url,
       transitional: {
         forcedJSONParsing: false,
         silentJSONParsing: false,
         clarifyTimeoutError: true,
       },
-    })
+    }).response
 
-    return res
+    if (E.isLeft(res)) {
+      return E.left("REQUEST_FAILED")
+    }
+
+    // convert ArrayBuffer to string
+    if (!(res.right.data instanceof ArrayBuffer)) {
+      return E.left("REQUEST_FAILED")
+    }
+
+    const data = new TextDecoder().decode(res.right.data).replace(/\0+$/, "")
+    return E.right(data)
   }
 
 async function fetchUrlData() {
@@ -82,12 +98,16 @@ async function fetchUrlData() {
   try {
     const res = await urlFetchLogic(inputChooseGistToImportFrom.value)
 
-    if (res.status === 200) {
-      emit("importFromURL", res.data)
+    if (E.isLeft(res)) {
+      toast.error(t("import.failed"))
+      console.error(res.left)
+      return
     }
-  } catch (e) {
+
+    emit("importFromURL", res.right)
+  } catch (err) {
     toast.error(t("import.failed"))
-    console.log(e)
+    console.error(err)
   } finally {
     isFetchingUrl.value = false
   }
