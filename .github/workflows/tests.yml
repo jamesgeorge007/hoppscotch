@@ -2,14 +2,13 @@ name: Node.js CI
 
 on:
   push:
-    branches: [main, next, patch]
   pull_request:
     branches: [main, next, patch]
 
 jobs:
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     strategy:
       matrix:
