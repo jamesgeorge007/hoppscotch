@@ -2,9 +2,7 @@ name: Node.js CI
 
 on:
   push:
-    branches: [main, next, patch]
   pull_request:
-    branches: [main, next, patch]
 
 jobs:
   test:
@@ -13,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: ["lts/*"]
+        node-version: ["18.x", "lts/*"]
 
     steps:
       - name: Checkout
