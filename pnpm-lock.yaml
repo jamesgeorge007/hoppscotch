@@ -520,7 +520,7 @@ importers:
         version: link:../hoppscotch-kernel
       '@hoppscotch/plugin-appload':
         specifier: github:CuriousCorrelation/tauri-plugin-appload
-        version: '@CuriousCorrelation/plugin-appload@https://codeload.github.com/CuriousCorrelation/tauri-plugin-appload/tar.gz/1c2e8b19db7f1b6af6d00abb907f15cdc2017298'
+        version: '@CuriousCorrelation/plugin-appload@https://codeload.github.com/CuriousCorrelation/tauri-plugin-appload/tar.gz/2659db4264b28fcccdcadfa4a08bd291923f0c74'
       '@hoppscotch/ui':
         specifier: 0.2.2
         version: 0.2.2(eslint@8.57.0)(terser@5.34.1)(typescript@5.3.3)(vite@5.4.9(@types/node@22.9.3)(sass@1.79.5)(terser@5.34.1))(vue@3.5.12(typescript@5.3.3))
@@ -978,7 +978,7 @@ importers:
         version: link:../hoppscotch-kernel
       '@hoppscotch/plugin-appload':
         specifier: github:CuriousCorrelation/tauri-plugin-appload
-        version: '@CuriousCorrelation/plugin-appload@https://codeload.github.com/CuriousCorrelation/tauri-plugin-appload/tar.gz/1c2e8b19db7f1b6af6d00abb907f15cdc2017298'
+        version: '@CuriousCorrelation/plugin-appload@https://codeload.github.com/CuriousCorrelation/tauri-plugin-appload/tar.gz/2659db4264b28fcccdcadfa4a08bd291923f0c74'
       '@hoppscotch/ui':
         specifier: 0.2.1
         version: 0.2.1(eslint@9.12.0(jiti@2.3.3))(terser@5.34.1)(typescript@5.7.2)(vite@5.4.11(@types/node@22.9.3)(sass@1.80.3)(terser@5.34.1))(vue@3.5.12(typescript@5.7.2))
@@ -1115,9 +1115,15 @@ importers:
       '@hoppscotch/data':
         specifier: workspace:^
         version: link:../hoppscotch-data
+      '@jitl/quickjs-wasmfile-release-asyncify':
+        specifier: 0.31.0
+        version: 0.31.0
       '@types/lodash-es':
         specifier: 4.17.12
         version: 4.17.12
+      faraday-cage:
+        specifier: 0.0.3
+        version: 0.0.3
       fp-ts:
         specifier: 2.16.9
         version: 2.16.9
@@ -1806,8 +1812,8 @@ packages:
       graphql:
         optional: true
 
-  '@CuriousCorrelation/plugin-appload@https://codeload.github.com/CuriousCorrelation/tauri-plugin-appload/tar.gz/1c2e8b19db7f1b6af6d00abb907f15cdc2017298':
-    resolution: {tarball: https://codeload.github.com/CuriousCorrelation/tauri-plugin-appload/tar.gz/1c2e8b19db7f1b6af6d00abb907f15cdc2017298}
+  '@CuriousCorrelation/plugin-appload@https://codeload.github.com/CuriousCorrelation/tauri-plugin-appload/tar.gz/2659db4264b28fcccdcadfa4a08bd291923f0c74':
+    resolution: {tarball: https://codeload.github.com/CuriousCorrelation/tauri-plugin-appload/tar.gz/2659db4264b28fcccdcadfa4a08bd291923f0c74}
     version: 0.1.0
 
   '@CuriousCorrelation/plugin-relay@https://codeload.github.com/CuriousCorrelation/tauri-plugin-relay/tar.gz/68d6b2532c900b4be24a038c49eec4794e990a3d':
@@ -4269,6 +4275,21 @@ packages:
   '@jest/types@29.6.3':
     resolution: {integrity: sha512-u3UPsIilWKOM3F9CXtrG8LEJmNxwoCQC/XVj4IKYXvvpx7QIi/Kg1LI5uDmDpKlac62NUtX7eLjRh+jVZcLOzw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+
+  '@jitl/quickjs-ffi-types@0.31.0':
+    resolution: {integrity: sha512-1yrgvXlmXH2oNj3eFTrkwacGJbmM0crwipA3ohCrjv52gBeDaD7PsTvFYinlAnqU8iPME3LGP437yk05a2oejw==}
+
+  '@jitl/quickjs-wasmfile-debug-asyncify@0.31.0':
+    resolution: {integrity: sha512-YkdzQdr1uaftFhgEnTRjTTZHk2SFZdpWO7XhOmRVbi6CEVsH9g5oNF8Ta1q3OuSJHRwwT8YsuR1YzEiEIJEk6w==}
+
+  '@jitl/quickjs-wasmfile-debug-sync@0.31.0':
+    resolution: {integrity: sha512-8XvloaaWBONqcHXYs5tWOjdhQVxzULilIfB2hvZfS6S+fI4m2+lFiwQy7xeP8ExHmiZ7D8gZGChNkdLgjGfknw==}
+
+  '@jitl/quickjs-wasmfile-release-asyncify@0.31.0':
+    resolution: {integrity: sha512-uz0BbQYTxNsFkvkurd7vk2dOg57ElTBLCuvNtRl4rgrtbC++NIndD5qv2+AXb6yXDD3Uy1O2PCwmoaH0eXgEOg==}
+
+  '@jitl/quickjs-wasmfile-release-sync@0.31.0':
+    resolution: {integrity: sha512-hYduecOByj9AsAfsJhZh5nA6exokmuFC8cls39+lYmTCGY51bgjJJJwReEu7Ff7vBWaQCL6TeDdVlnp2WYz0jw==}
 
   '@jridgewell/gen-mapping@0.3.5':
     resolution: {integrity: sha512-IzL8ZoEDIBRWEzlCcRhOaCupYyN5gdIK+Q6fbFdPDg6HqX6jpkItn7DFIpW9LQzXG6Df9sA7+OKnq0qlz/GaQg==}
@@ -7973,6 +7994,9 @@ packages:
     resolution: {integrity: sha512-FuoE1qtbJ4bBVvv94CC7s0oTnKUGvQs+Rjf1L2SJFfS+HTVVjhPFtehPdQ0JiGPqVNfSSZvL5yzHHQq2Z4WNhQ==}
     engines: {node: ^12.20 || >= 14.13}
 
+  faraday-cage@0.0.3:
+    resolution: {integrity: sha512-YBO7gpxstxSkkjeYglPIbr1eSlWCs4XDSp7dxi8zqla9eMr3/14ixquHX4dWV2cJ5/1hzKaswPPszno5aC0lGQ==}
+
   fast-decode-uri-component@1.0.1:
     resolution: {integrity: sha512-WKgKWg5eUxvRZGwW8FvfbaH7AXSh2cL+3j5fMGzUMCxWBJ3dV3a7Wz8y2f/uQ0e3B6WmodD3oS54jTQ9HVTIIg==}
 
@@ -10862,6 +10886,13 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
+  quickjs-emscripten-core@0.31.0:
+    resolution: {integrity: sha512-oQz8p0SiKDBc1TC7ZBK2fr0GoSHZKA0jZIeXxsnCyCs4y32FStzCW4d1h6E1sE0uHDMbGITbk2zhNaytaoJwXQ==}
+
+  quickjs-emscripten@0.31.0:
+    resolution: {integrity: sha512-K7Yt78aRPLjPcqv3fIuLW1jW3pvwO21B9pmFOolsjM/57ZhdVXBr51GqJpalgBlkPu9foAvhEAuuQPnvIGvLvQ==}
+    engines: {node: '>=16.0.0'}
+
   quicktype-core@23.0.170:
     resolution: {integrity: sha512-ZsjveG0yJUIijUx4yQshzyQ5EAXKbFSBTQJHnJ+KoSZVxcS+m3GcmDpzrdUIRYMhgLaF11ZGvLSYi5U0xcwemw==}
 
@@ -13204,7 +13235,7 @@ snapshots:
     optionalDependencies:
       graphql: 16.9.0
 
-  '@CuriousCorrelation/plugin-appload@https://codeload.github.com/CuriousCorrelation/tauri-plugin-appload/tar.gz/1c2e8b19db7f1b6af6d00abb907f15cdc2017298':
+  '@CuriousCorrelation/plugin-appload@https://codeload.github.com/CuriousCorrelation/tauri-plugin-appload/tar.gz/2659db4264b28fcccdcadfa4a08bd291923f0c74':
     dependencies:
       '@tauri-apps/api': 2.1.1
 
@@ -16574,6 +16605,24 @@ snapshots:
       '@types/node': 22.9.3
       '@types/yargs': 17.0.33
       chalk: 4.1.2
+
+  '@jitl/quickjs-ffi-types@0.31.0': {}
+
+  '@jitl/quickjs-wasmfile-debug-asyncify@0.31.0':
+    dependencies:
+      '@jitl/quickjs-ffi-types': 0.31.0
+
+  '@jitl/quickjs-wasmfile-debug-sync@0.31.0':
+    dependencies:
+      '@jitl/quickjs-ffi-types': 0.31.0
+
+  '@jitl/quickjs-wasmfile-release-asyncify@0.31.0':
+    dependencies:
+      '@jitl/quickjs-ffi-types': 0.31.0
+
+  '@jitl/quickjs-wasmfile-release-sync@0.31.0':
+    dependencies:
+      '@jitl/quickjs-ffi-types': 0.31.0
 
   '@jridgewell/gen-mapping@0.3.5':
     dependencies:
@@ -21353,6 +21402,10 @@ snapshots:
 
   extract-files@11.0.0: {}
 
+  faraday-cage@0.0.3:
+    dependencies:
+      quickjs-emscripten: 0.31.0
+
   fast-decode-uri-component@1.0.1: {}
 
   fast-deep-equal@3.1.3: {}
@@ -25114,6 +25167,18 @@ snapshots:
   quansync@0.2.8: {}
 
   queue-microtask@1.2.3: {}
+
+  quickjs-emscripten-core@0.31.0:
+    dependencies:
+      '@jitl/quickjs-ffi-types': 0.31.0
+
+  quickjs-emscripten@0.31.0:
+    dependencies:
+      '@jitl/quickjs-wasmfile-debug-asyncify': 0.31.0
+      '@jitl/quickjs-wasmfile-debug-sync': 0.31.0
+      '@jitl/quickjs-wasmfile-release-asyncify': 0.31.0
+      '@jitl/quickjs-wasmfile-release-sync': 0.31.0
+      quickjs-emscripten-core: 0.31.0
 
   quicktype-core@23.0.170:
     dependencies:
