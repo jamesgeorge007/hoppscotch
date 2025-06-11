@@ -38,7 +38,14 @@
     </div>
     <div class="flex flex-1 border-b border-dividerLight">
       <div class="w-2/3 border-r border-dividerLight h-full relative">
-        <div ref="preRequestEditor" class="h-full absolute inset-0"></div>
+        <!-- <div ref="preRequestEditor" class="h-full absolute inset-0"></div> -->
+        <vue-monaco-editor
+          v-model:value="preRequestScript"
+          theme="vs-dark"
+          language="typescript"
+          :options="MONACO_EDITOR_OPTIONS"
+          @mount="onEditorMounted"
+        />
       </div>
       <div
         class="z-[9] sticky top-upperTertiaryStickyFold h-full min-w-[12rem] max-w-1/3 flex-shrink-0 overflow-auto overflow-x-auto bg-primary p-4"
@@ -76,26 +83,34 @@
 </template>
 
 <script setup lang="ts">
-import IconHelpCircle from "~icons/lucide/help-circle"
-import IconWrapText from "~icons/lucide/wrap-text"
-import IconTrash2 from "~icons/lucide/trash-2"
-import IconSparkles from "~icons/lucide/sparkles"
-import { reactive, ref, computed } from "vue"
-import snippets from "@helpers/preRequestScriptSnippets"
-import { useCodemirror } from "@composables/codemirror"
-import linter from "~/helpers/editor/linting/preRequest"
-import completer from "~/helpers/editor/completion/preRequest"
-import { useI18n } from "@composables/i18n"
-import { useVModel } from "@vueuse/core"
-import { useNestedSetting } from "~/composables/settings"
-import { toggleNestedSetting } from "~/newstore/settings"
-import { useAIExperiments } from "~/composables/ai-experiments"
-import { useService } from "dioc/vue"
-import { RESTTabService } from "~/services/tab/rest"
-import { platform } from "~/platform"
-import { useReadonlyStream } from "~/composables/stream"
 import AiexperimentsModifyPreRequestModal from "@components/aiexperiments/ModifyPreRequestModal.vue"
+import { useCodemirror } from "@composables/codemirror"
+import { useI18n } from "@composables/i18n"
+import snippets from "@helpers/preRequestScriptSnippets"
+import { useVModel } from "@vueuse/core"
+import { useService } from "dioc/vue"
+import * as monaco from "monaco-editor"
+import { computed, reactive, ref, shallowRef } from "vue"
+
+import { useAIExperiments } from "~/composables/ai-experiments"
+import { useNestedSetting } from "~/composables/settings"
+import { useReadonlyStream } from "~/composables/stream"
 import { invokeAction } from "~/helpers/actions"
+import completer from "~/helpers/editor/completion/preRequest"
+import linter from "~/helpers/editor/linting/preRequest"
+import { toggleNestedSetting } from "~/newstore/settings"
+import { platform } from "~/platform"
+import { RESTTabService } from "~/services/tab/rest"
+import IconHelpCircle from "~icons/lucide/help-circle"
+import IconSparkles from "~icons/lucide/sparkles"
+import IconTrash2 from "~icons/lucide/trash-2"
+import IconWrapText from "~icons/lucide/wrap-text"
+import {
+  getPreRequestScriptCompletions,
+  performPreRequestLinting,
+} from "../../helpers/tern"
+
+import { VueMonacoEditor } from "@guolao/vue-monaco-editor"
 
 const t = useI18n()
 
@@ -110,6 +125,12 @@ const preRequestScript = useVModel(props, "modelValue", emit)
 
 const preRequestEditor = ref<any | null>(null)
 const WRAP_LINES = useNestedSetting("WRAP_LINES", "httpPreRequest")
+
+const MONACO_EDITOR_OPTIONS = {
+  automaticLayout: true,
+  formatOnType: true,
+  formatOnPaste: true,
+}
 
 useCodemirror(
   preRequestEditor,
@@ -126,6 +147,56 @@ useCodemirror(
     contextMenuEnabled: false,
   })
 )
+
+const onEditorMounted = (editor: monaco.editor.IStandaloneCodeEditor) => {
+  const model = editor.getModel()
+  if (!model) return
+
+  editor.onDidChangeModelContent(async () => {
+    const value = model.getValue()
+    const lints = await performPreRequestLinting(value)
+
+    const markers = lints.map((lint: any) => ({
+      severity: monaco.MarkerSeverity.Error,
+      message: lint.message,
+      startLineNumber: lint.from.line + 1,
+      startColumn: lint.from.ch + 1,
+      endLineNumber: lint.to.line + 1,
+      endColumn: lint.to.ch + 1,
+    }))
+
+    monaco.editor.setModelMarkers(model, "owner", markers)
+  })
+}
+
+// Register autocomplete
+;["javascript", "typescript"].forEach((lang) => {
+  monaco.languages.registerCompletionItemProvider(lang, {
+    triggerCharacters: [".", "(", '"', "'", "/", " "],
+    provideCompletionItems: async (model, position) => {
+      const code = model.getValue()
+      const row = position.lineNumber - 1
+      const col = position.column - 1
+
+      const result = await getPreRequestScriptCompletions(code, row, col)
+
+      return {
+        suggestions: result.completions.map((c: any) => ({
+          label: c.name,
+          kind: monaco.languages.CompletionItemKind.Function,
+          insertText: c.name,
+          detail: c.type,
+          range: {
+            startLineNumber: position.lineNumber,
+            endLineNumber: position.lineNumber,
+            startColumn: position.column,
+            endColumn: position.column,
+          },
+        })),
+      }
+    },
+  })
+})
 
 const useSnippet = (script: string) => {
   preRequestScript.value += script
