@@ -11,7 +11,7 @@ export const runPreRequestScript = (
   const { envs, experimentalScriptingSandbox = true } = options
 
   if (experimentalScriptingSandbox) {
-    const { request, cookies } = options as Extract<
+    const { request, cookies, hoppFetchHook } = options as Extract<
       RunPreRequestScriptOptions,
       { experimentalScriptingSandbox: true }
     >
@@ -20,7 +20,8 @@ export const runPreRequestScript = (
       preRequestScript,
       envs,
       request,
-      cookies
+      cookies,
+      hoppFetchHook
     )
   }
 

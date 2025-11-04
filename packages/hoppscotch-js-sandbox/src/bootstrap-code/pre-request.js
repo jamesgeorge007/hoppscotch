@@ -156,6 +156,8 @@
       delete: (domain, name) => inputs.cookieDelete(domain, name),
       clear: (domain) => inputs.cookieClear(domain),
     },
+    // Expose fetch as hopp.fetch() (global fetch() is provided by faraday-cage fetch module)
+    fetch: typeof fetch !== "undefined" ? fetch : undefined,
   }
 
   // PM Namespace - Postman Compatibility Layer
@@ -1218,9 +1220,88 @@
       },
     },
 
-    // Unsupported APIs that throw errors
-    sendRequest: (_request, _callback) => {
-      throw new Error("pm.sendRequest() is not yet implemented in Hoppscotch")
+    // pm.sendRequest() - Postman-compatible fetch wrapper
+    sendRequest: (urlOrRequest, callback) => {
+      // Check if fetch is available
+      if (typeof fetch === "undefined") {
+        const error = new Error(
+          "pm.sendRequest() requires experimental scripting sandbox to be enabled"
+        )
+        callback(error, null)
+        return
+      }
+
+      // Parse arguments (Postman supports both string and object)
+      let url, options
+
+      if (typeof urlOrRequest === "string") {
+        url = urlOrRequest
+        options = {}
+      } else {
+        // Object format: { url, method, header, body }
+        url = urlOrRequest.url
+        options = {
+          method: urlOrRequest.method || "GET",
+          headers: urlOrRequest.header
+            ? Object.fromEntries(
+                urlOrRequest.header.map((h) => [h.key, h.value])
+              )
+            : {},
+        }
+
+        // Handle body based on mode
+        if (urlOrRequest.body) {
+          if (urlOrRequest.body.mode === "raw") {
+            options.body = urlOrRequest.body.raw
+          } else if (urlOrRequest.body.mode === "urlencoded") {
+            const params = new URLSearchParams()
+            urlOrRequest.body.urlencoded?.forEach((pair) => {
+              params.append(pair.key, pair.value)
+            })
+            options.body = params.toString()
+            options.headers["Content-Type"] = "application/x-www-form-urlencoded"
+          } else if (urlOrRequest.body.mode === "formdata") {
+            const formData = new FormData()
+            urlOrRequest.body.formdata?.forEach((pair) => {
+              formData.append(pair.key, pair.value)
+            })
+            options.body = formData
+          }
+        }
+      }
+
+      // Call hopp.fetch() and adapt response
+      globalThis.hopp
+        .fetch(url, options)
+        .then((response) => {
+          // Convert Response to Postman response format
+          response.text().then((body) => {
+            const pmResponse = {
+              code: response.status,
+              status: response.statusText,
+              headers: Array.from(response.headers.entries()).map(
+                ([k, v]) => ({
+                  key: k,
+                  value: v,
+                })
+              ),
+              body,
+              json: () => {
+                try {
+                  return JSON.parse(body)
+                } catch {
+                  return null
+                }
+              },
+            }
+
+            callback(null, pmResponse)
+          })
+        })
+        .catch((error) => {
+          callback(error, null)
+        })
+
     },
 
     // Collection variables (unsupported)

@@ -5,13 +5,14 @@ import * as TE from "fp-ts/lib/TaskEither"
 import { cloneDeep } from "lodash"
 
 import { defaultModules, preRequestModule } from "~/cage-modules"
-import { SandboxPreRequestResult, TestResult } from "~/types"
+import { HoppFetchHook, SandboxPreRequestResult, TestResult } from "~/types"
 
 export const runPreRequestScriptWithFaradayCage = (
   preRequestScript: string,
   envs: TestResult["envs"],
   request: HoppRESTRequest,
-  cookies: Cookie[] | null
+  cookies: Cookie[] | null,
+  hoppFetchHook?: HoppFetchHook
 ): TE.TaskEither<string, SandboxPreRequestResult> => {
   return pipe(
     TE.tryCatch(
@@ -22,29 +23,38 @@ export const runPreRequestScriptWithFaradayCage = (
 
         const cage = await FaradayCage.create()
 
-        const result = await cage.runCode(preRequestScript, [
-          ...defaultModules(),
+        try {
+          const result = await cage.runCode(preRequestScript, [
+            ...defaultModules({
+              hoppFetchHook,
+            }),
 
-          preRequestModule({
-            envs: cloneDeep(envs),
-            request: cloneDeep(request),
-            cookies: cookies ? cloneDeep(cookies) : null,
-            handleSandboxResults: ({ envs, request, cookies }) => {
-              finalEnvs = envs
-              finalRequest = request
-              finalCookies = cookies
-            },
-          }),
-        ])
+            preRequestModule({
+              envs: cloneDeep(envs),
+              request: cloneDeep(request),
+              cookies: cookies ? cloneDeep(cookies) : null,
+              handleSandboxResults: ({ envs, request, cookies }) => {
+                finalEnvs = envs
+                finalRequest = request
+                finalCookies = cookies
+              },
+            }),
+          ])
 
-        if (result.type === "error") {
-          throw result.err
-        }
+          if (result.type === "error") {
+            throw result.err
+          }
 
-        return {
-          updatedEnvs: finalEnvs,
-          updatedRequest: finalRequest,
-          updatedCookies: finalCookies,
+          return {
+            updatedEnvs: finalEnvs,
+            updatedRequest: finalRequest,
+            updatedCookies: finalCookies,
+          }
+        } finally {
+          // NOTE: Do NOT dispose the cage here - it causes QuickJS lifetime errors
+          // because returned objects may still be accessed later.
+          // Rely on garbage collection to clean up the cage when no longer referenced.
+          // TODO: Investigate proper disposal timing or cage pooling/reuse strategy
         }
       },
       (error) => {

@@ -30,6 +30,7 @@ type PostRequestModuleConfig = {
     testRunStack: TestDescriptor[]
     cookies: Cookie[] | null
   }) => void
+  onTestPromise?: (promise: Promise<void>) => void
 }
 
 type PreRequestModuleConfig = {
@@ -198,6 +199,15 @@ const createScriptingInputsObj = (
           postConfig.testRunStack.length - 1
         ].children.push(child)
       }),
+      registerTestPromise: defineSandboxFn(
+        ctx,
+        "registerTestPromise",
+        function registerTestPromise(promise: unknown) {
+          if (postConfig.onTestPromise && typeof promise === "object" && promise !== null) {
+            postConfig.onTestPromise(promise as Promise<void>)
+          }
+        }
+      ),
       getResponse: defineSandboxFn(ctx, "getResponse", function getResponse() {
         return postConfig.response
       }),

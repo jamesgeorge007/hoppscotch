@@ -3,6 +3,7 @@ import { ConsoleEntry } from "faraday-cage/modules"
 import * as E from "fp-ts/Either"
 import { cloneDeep } from "lodash"
 import {
+  HoppFetchHook,
   RunPreRequestScriptOptions,
   SandboxPreRequestResult,
   TestResult,
@@ -38,7 +39,8 @@ const runPreRequestScriptWithFaradayCage = async (
   preRequestScript: string,
   envs: TestResult["envs"],
   request: HoppRESTRequest,
-  cookies: Cookie[] | null
+  cookies: Cookie[] | null,
+  hoppFetchHook?: HoppFetchHook
 ): Promise<E.Either<string, SandboxPreRequestResult>> => {
   const consoleEntries: ConsoleEntry[] = []
   let finalEnvs = envs
@@ -47,41 +49,50 @@ const runPreRequestScriptWithFaradayCage = async (
 
   const cage = await FaradayCage.create()
 
-  const result = await cage.runCode(preRequestScript, [
-    ...defaultModules({
-      handleConsoleEntry: (consoleEntry) => consoleEntries.push(consoleEntry),
-    }),
+  try {
+    const result = await cage.runCode(preRequestScript, [
+      ...defaultModules({
+        handleConsoleEntry: (consoleEntry) => consoleEntries.push(consoleEntry),
+        hoppFetchHook,
+      }),
 
-    preRequestModule({
-      envs: cloneDeep(envs),
-      request: cloneDeep(request),
-      cookies: cookies ? cloneDeep(cookies) : null,
-      handleSandboxResults: ({ envs, request, cookies }) => {
-        finalEnvs = envs
-        finalRequest = request
-        finalCookies = cookies
-      },
-    }),
-  ])
+      preRequestModule({
+        envs: cloneDeep(envs),
+        request: cloneDeep(request),
+        cookies: cookies ? cloneDeep(cookies) : null,
+        handleSandboxResults: ({ envs, request, cookies }) => {
+          finalEnvs = envs
+          finalRequest = request
+          finalCookies = cookies
+        },
+      }),
+    ])
 
-  if (result.type === "error") {
-    if (
-      result.err !== null &&
-      typeof result.err === "object" &&
-      "message" in result.err
-    ) {
-      return E.left(`Script execution failed: ${result.err.message}`)
+    if (result.type === "error") {
+      if (
+        result.err !== null &&
+        typeof result.err === "object" &&
+        "message" in result.err
+      ) {
+        return E.left(`Script execution failed: ${result.err.message}`)
+      }
+
+      return E.left(`Script execution failed: ${String(result.err)}`)
     }
 
-    return E.left(`Script execution failed: ${String(result.err)}`)
+    return E.right({
+      updatedEnvs: finalEnvs,
+      consoleEntries,
+      updatedRequest: finalRequest,
+      updatedCookies: finalCookies,
+    } satisfies SandboxPreRequestResult)
+  } finally {
+    // NOTE: Do NOT dispose the cage here - it causes QuickJS lifetime errors
+    // because returned objects (like Response from hopp.fetch()) may still be
+    // accessed after script execution completes.
+    // Rely on garbage collection to clean up the cage when no longer referenced.
+    // TODO: Investigate proper disposal timing or cage pooling/reuse strategy
   }
-
-  return E.right({
-    updatedEnvs: finalEnvs,
-    consoleEntries,
-    updatedRequest: finalRequest,
-    updatedCookies: finalCookies,
-  } satisfies SandboxPreRequestResult)
 }
 
 export const runPreRequestScript = (
@@ -91,7 +102,7 @@ export const runPreRequestScript = (
   const { envs, experimentalScriptingSandbox = true } = options
 
   if (experimentalScriptingSandbox) {
-    const { request, cookies } = options as Extract<
+    const { request, cookies, hoppFetchHook } = options as Extract<
       RunPreRequestScriptOptions,
       { experimentalScriptingSandbox: true }
     >
@@ -100,7 +111,8 @@ export const runPreRequestScript = (
       preRequestScript,
       envs,
       request,
-      cookies
+      cookies,
+      hoppFetchHook
     )
   }
 

@@ -28,6 +28,8 @@ import { runPreRequestScript, runTestScript } from "@hoppscotch/js-sandbox/web"
 import { useSetting } from "~/composables/settings"
 import { getService } from "~/modules/dioc"
 import { stripModulePrefix } from "~/helpers/scripting"
+import { createHoppFetchHook } from "~/helpers/fetch/hopp-fetch"
+import { KernelInterceptorService } from "~/services/kernel-interceptor.service"
 import {
   environmentsStore,
   getCurrentEnvironment,
@@ -59,24 +61,14 @@ import { HoppRESTResponse } from "./types/HoppRESTResponse"
 import { HoppTestData, HoppTestResult } from "./types/HoppTestResult"
 import { getEffectiveRESTRequest } from "./utils/EffectiveURL"
 import { getCombinedEnvVariables } from "./utils/environments"
-import {
-  OutgoingSandboxPostRequestWorkerMessage,
-  OutgoingSandboxPreRequestWorkerMessage,
-} from "./workers/sandbox.worker"
 import { transformInheritedCollectionVariablesToAggregateEnv } from "./utils/inheritedCollectionVarTransformer"
 import { isJSONContentType } from "./utils/contenttypes"
 import { applyScriptRequestUpdates } from "./experimental-sandbox-integration"
 
-const sandboxWorker = new Worker(
-  new URL("./workers/sandbox.worker.ts", import.meta.url),
-  {
-    type: "module",
-  }
-)
-
 const secretEnvironmentService = getService(SecretEnvironmentService)
 const currentEnvironmentValueService = getService(CurrentValueService)
 const cookieJarService = getService(CookieJarService)
+const kernelInterceptorService = getService(KernelInterceptorService)
 
 const EXPERIMENTAL_SCRIPTING_SANDBOX = useSetting(
   "EXPERIMENTAL_SCRIPTING_SANDBOX"
@@ -366,34 +358,15 @@ const delegatePreRequestScriptRunner = (
     })
   }
 
-  return new Promise((resolve) => {
-    const handleMessage = (
-      event: MessageEvent<OutgoingSandboxPreRequestWorkerMessage>
-    ) => {
-      if (event.data.type === "PRE_REQUEST_SCRIPT_ERROR") {
-        const error =
-          event.data.data instanceof Error
-            ? event.data.data.message
-            : String(event.data.data)
+  // Experimental sandbox enabled - use faraday-cage with hook
+  const hoppFetchHook = createHoppFetchHook(kernelInterceptorService)
 
-        sandboxWorker.removeEventListener("message", handleMessage)
-        resolve(E.left(error))
-      }
-
-      if (event.data.type === "PRE_REQUEST_SCRIPT_RESULT") {
-        sandboxWorker.removeEventListener("message", handleMessage)
-        resolve(event.data.data)
-      }
-    }
-
-    sandboxWorker.addEventListener("message", handleMessage)
-
-    sandboxWorker.postMessage({
-      type: "pre",
-      envs,
-      request: JSON.stringify(request),
-      cookies: cookies ? JSON.stringify(cookies) : null,
-    })
+  return runPreRequestScript(preRequestScript, {
+    envs,
+    request,
+    cookies,
+    experimentalScriptingSandbox: true,
+    hoppFetchHook,
   })
 }
 
@@ -416,35 +389,16 @@ const runPostRequestScript = (
     })
   }
 
-  return new Promise((resolve) => {
-    const handleMessage = (
-      event: MessageEvent<OutgoingSandboxPostRequestWorkerMessage>
-    ) => {
-      if (event.data.type === "POST_REQUEST_SCRIPT_ERROR") {
-        const error =
-          event.data.data instanceof Error
-            ? event.data.data.message
-            : String(event.data.data)
+  // Experimental sandbox enabled - use faraday-cage with hook
+  const hoppFetchHook = createHoppFetchHook(kernelInterceptorService)
 
-        sandboxWorker.removeEventListener("message", handleMessage)
-        resolve(E.left(error))
-      }
-
-      if (event.data.type === "POST_REQUEST_SCRIPT_RESULT") {
-        sandboxWorker.removeEventListener("message", handleMessage)
-        resolve(event.data.data)
-      }
-    }
-
-    sandboxWorker.addEventListener("message", handleMessage)
-
-    sandboxWorker.postMessage({
-      type: "post",
-      envs,
-      request: JSON.stringify(request),
-      response,
-      cookies: cookies ? JSON.stringify(cookies) : null,
-    })
+  return runTestScript(testScript, {
+    envs,
+    request,
+    response,
+    cookies,
+    experimentalScriptingSandbox: true,
+    hoppFetchHook,
   })
 }
 

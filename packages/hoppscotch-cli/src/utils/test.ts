@@ -17,6 +17,7 @@ import { HoppCLIError, error } from "../types/errors";
 import { HoppEnvs } from "../types/request";
 import { ExpectResult, TestMetrics, TestRunnerRes } from "../types/response";
 import { getDurationInSeconds } from "./getters";
+import { createHoppFetchHook } from "./hopp-fetch";
 
 /**
  * Executes test script and runs testDescriptorParser to generate test-report using
@@ -49,12 +50,14 @@ export const testRunner = (
           };
 
           const experimentalScriptingSandbox = !legacySandbox;
+          const hoppFetchHook = createHoppFetchHook();
 
           return runTestScript(request.testScript, {
             envs,
             request,
             response: effectiveResponse,
             experimentalScriptingSandbox,
+            hoppFetchHook,
           });
         })
       )

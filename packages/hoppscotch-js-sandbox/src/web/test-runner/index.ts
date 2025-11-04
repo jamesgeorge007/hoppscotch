@@ -5,6 +5,7 @@ import { cloneDeep } from "lodash-es"
 
 import { defaultModules, postRequestModule } from "~/cage-modules"
 import {
+  HoppFetchHook,
   RunPostRequestScriptOptions,
   SandboxTestResult,
   TestDescriptor,
@@ -43,7 +44,8 @@ const runPostRequestScriptWithFaradayCage = async (
   envs: TestResult["envs"],
   request: HoppRESTRequest,
   response: TestResponse,
-  cookies: Cookie[] | null
+  cookies: Cookie[] | null,
+  hoppFetchHook?: HoppFetchHook
 ): Promise<E.Either<string, SandboxTestResult>> => {
   const testRunStack: TestDescriptor[] = [
     { descriptor: "root", expectResults: [], children: [] },
@@ -53,46 +55,64 @@ const runPostRequestScriptWithFaradayCage = async (
   let finalTestResults = testRunStack
   const consoleEntries: ConsoleEntry[] = []
   let finalCookies = cookies
+  const testPromises: Promise<void>[] = []
 
   const cage = await FaradayCage.create()
 
-  const result = await cage.runCode(testScript, [
-    ...defaultModules({
-      handleConsoleEntry: (consoleEntry) => consoleEntries.push(consoleEntry),
-    }),
+  try {
+    const result = await cage.runCode(testScript, [
+      ...defaultModules({
+        handleConsoleEntry: (consoleEntry) => consoleEntries.push(consoleEntry),
+        hoppFetchHook,
+      }),
 
-    postRequestModule({
-      envs: cloneDeep(envs),
-      testRunStack: cloneDeep(testRunStack),
-      request: cloneDeep(request),
-      response: cloneDeep(response),
-      cookies: cookies ? cloneDeep(cookies) : null,
-      handleSandboxResults: ({ envs, testRunStack, cookies }) => {
-        finalEnvs = envs
-        finalTestResults = testRunStack
-        finalCookies = cookies
-      },
-    }),
-  ])
+      postRequestModule({
+        envs: cloneDeep(envs),
+        testRunStack: cloneDeep(testRunStack),
+        request: cloneDeep(request),
+        response: cloneDeep(response),
+        cookies: cookies ? cloneDeep(cookies) : null,
+        handleSandboxResults: ({ envs, testRunStack, cookies }) => {
+          finalEnvs = envs
+          finalTestResults = testRunStack
+          finalCookies = cookies
+        },
+        onTestPromise: (promise) => {
+          testPromises.push(promise)
+        },
+      }),
+    ])
 
-  if (result.type === "error") {
-    if (
-      result.err !== null &&
-      typeof result.err === "object" &&
-      "message" in result.err
-    ) {
-      return E.left(`Script execution failed: ${result.err.message}`)
+    if (result.type === "error") {
+      if (
+        result.err !== null &&
+        typeof result.err === "object" &&
+        "message" in result.err
+      ) {
+        return E.left(`Script execution failed: ${result.err.message}`)
+      }
+
+      return E.left(`Script execution failed: ${String(result.err)}`)
     }
 
-    return E.left(`Script execution failed: ${String(result.err)}`)
-  }
+    // Wait for any async test functions to complete
+    if (testPromises.length > 0) {
+      await Promise.all(testPromises)
+    }
 
-  return E.right(<SandboxTestResult>{
-    tests: finalTestResults[0],
-    envs: finalEnvs,
-    consoleEntries,
-    updatedCookies: finalCookies,
-  })
+    return E.right(<SandboxTestResult>{
+      tests: finalTestResults[0],
+      envs: finalEnvs,
+      consoleEntries,
+      updatedCookies: finalCookies,
+    })
+  } finally{
+    // NOTE: Do NOT dispose the cage here - it causes QuickJS lifetime errors
+    // because returned objects (like Response from hopp.fetch()) may still be
+    // accessed after script execution completes.
+    // Rely on garbage collection to clean up the cage when no longer referenced.
+    // TODO: Investigate proper disposal timing or cage pooling/reuse strategy
+  }
 }
 
 export const runTestScript = async (
@@ -110,7 +130,7 @@ export const runTestScript = async (
   const { envs, experimentalScriptingSandbox = true } = options
 
   if (experimentalScriptingSandbox) {
-    const { request, cookies } = options as Extract<
+    const { request, cookies, hoppFetchHook } = options as Extract<
       RunPostRequestScriptOptions,
       { experimentalScriptingSandbox: true }
     >
@@ -120,7 +140,8 @@ export const runTestScript = async (
       envs,
       request,
       resolvedResponse,
-      cookies
+      cookies,
+      hoppFetchHook
     )
   }
 

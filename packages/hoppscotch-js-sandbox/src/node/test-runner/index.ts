@@ -22,7 +22,7 @@ export const runTestScript = (
   const { envs, experimentalScriptingSandbox = true } = options
 
   if (experimentalScriptingSandbox) {
-    const { request } = options as Extract<
+    const { request, hoppFetchHook } = options as Extract<
       RunPostRequestScriptOptions,
       { experimentalScriptingSandbox: true }
     >
@@ -31,7 +31,8 @@ export const runTestScript = (
       testScript,
       envs,
       request,
-      resolvedResponse
+      resolvedResponse,
+      hoppFetchHook
     )
   }
 
