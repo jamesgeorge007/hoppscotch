@@ -174,7 +174,37 @@ function convertRelayResponseToSerializableResponse(
   }
 
   // Store body as array (serializable across QuickJS boundary)
-  const bodyBytes = relayResponse.body ? Array.from(relayResponse.body as Uint8Array) : []
+  // RelayResponse has structure: {body: {body: Uint8Array, mediaType: string}, ...}
+  // So we need to access the nested body property
+  let bodyBytes: number[] = []
+
+  // Extract the actual body data - it's nested inside relayResponse.body.body
+  const actualBody = relayResponse.body?.body || relayResponse.body
+
+  if (actualBody) {
+    if (Array.isArray(actualBody)) {
+      // Already an array
+      bodyBytes = actualBody
+    } else if (actualBody instanceof Uint8Array) {
+      // Uint8Array - convert to plain array
+      bodyBytes = Array.from(actualBody)
+    } else if (ArrayBuffer.isView(actualBody)) {
+      // Other typed array
+      bodyBytes = Array.from(new Uint8Array(actualBody.buffer))
+    } else if (typeof actualBody === 'object') {
+      // Check if it's a Buffer-like object with 'type' and 'data' properties
+      if ('type' in actualBody && 'data' in actualBody) {
+        // This is likely a serialized Buffer: {type: 'Buffer', data: [1,2,3,...]}
+        if (Array.isArray(actualBody.data)) {
+          bodyBytes = actualBody.data
+        }
+      } else {
+        // Plain object with numeric keys (like {0: 72, 1: 101, ...})
+        const keys = Object.keys(actualBody).map(Number).filter(n => !isNaN(n)).sort((a, b) => a - b)
+        bodyBytes = keys.map(k => actualBody[k])
+      }
+    }
+  }
 
   // Create Response-like object with all methods implemented using stored data
   const serializableResponse = {

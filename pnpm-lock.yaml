@@ -1162,7 +1162,7 @@ importers:
         specifier: 6.2.0
         version: 6.2.0
       faraday-cage:
-        specifier: 0.1.0
+        specifier: ^0.1.0
         version: 0.1.0
       fp-ts:
         specifier: 2.16.11

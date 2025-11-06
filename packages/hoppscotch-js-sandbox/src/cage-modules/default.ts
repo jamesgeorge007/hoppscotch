@@ -5,11 +5,11 @@ import {
   crypto,
   encoding,
   esmModuleLoader,
-  fetch,
   timers,
   urlPolyfill,
 } from "faraday-cage/modules"
 import type { HoppFetchHook } from "~/types"
+import { hoppFetchModule } from "./hopp-fetch"
 
 type DefaultModulesConfig = {
   handleConsoleEntry?: (consoleEntries: ConsoleEntry) => void
@@ -65,7 +65,8 @@ export const defaultModules = (config?: DefaultModulesConfig) => {
     }),
 
     esmModuleLoader,
-    fetch({
+    // Use custom fetch module - EXACT copy from working faraday-cage PR
+    hoppFetchModule({
       fetchImpl: config?.hoppFetchHook,
     }),
     encoding(),

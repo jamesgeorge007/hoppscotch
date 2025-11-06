@@ -54,7 +54,7 @@
     "@hoppscotch/data": "workspace:^",
     "@types/lodash-es": "4.17.12",
     "chai": "6.2.0",
-    "faraday-cage": "0.1.0",
+    "faraday-cage": "^0.1.0",
     "fp-ts": "2.16.11",
     "lodash": "4.17.21",
     "lodash-es": "4.17.21"

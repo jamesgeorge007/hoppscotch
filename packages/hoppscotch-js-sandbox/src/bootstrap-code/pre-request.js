@@ -156,8 +156,23 @@
       delete: (domain, name) => inputs.cookieDelete(domain, name),
       clear: (domain) => inputs.cookieClear(domain),
     },
-    // Expose fetch as hopp.fetch() (global fetch() is provided by faraday-cage fetch module)
+    // Expose fetch as hopp.fetch() - save reference before we override global
     fetch: typeof fetch !== "undefined" ? fetch : undefined,
+  }
+
+  // Override global fetch() to prevent confusion and CORS issues
+  // Users should use hopp.fetch() which respects interceptor settings
+  if (typeof fetch !== "undefined") {
+    const originalFetch = fetch
+    globalThis.fetch = function () {
+      throw new Error(
+        "Use hopp.fetch() instead of fetch(). " +
+        "hopp.fetch() respects your interceptor settings (browser/proxy/extension/agent) " +
+        "and avoids CORS issues in the sandbox."
+      )
+    }
+    // Ensure hopp.fetch still works
+    globalThis.hopp.fetch = originalFetch
   }
 
   // PM Namespace - Postman Compatibility Layer
