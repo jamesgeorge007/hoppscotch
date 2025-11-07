@@ -1,0 +1,35 @@
+{
+  "id": "test-iterator-collection",
+  "v": 10,
+  "name": "Iterator Test Collection",
+  "folders": [],
+  "variables": [],
+  "auth": {
+    "authType": "inherit",
+    "authActive": true
+  },
+  "headers": [],
+  "requests": [
+    {
+      "v": "15",
+      "id": "test-iterator",
+      "name": "Test Iterator",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\nconst response = await hopp.fetch('https://echo.hoppscotch.io')\nconsole.log('Response headers object:', typeof response.headers)\nconsole.log('Response headers.entries:', typeof response.headers.entries)\n\ntry {\n  const entriesResult = response.headers.entries()\n  console.log('entries() returned:', typeof entriesResult)\n  console.log('entriesResult is array:', Array.isArray(entriesResult))\n  \n  // Try direct iteration\n  for (const entry of entriesResult) {\n    console.log('Entry:', entry)\n    break\n  }\n  \n  hopp.env.active.set('iterator_test', 'success')\n} catch (error) {\n  console.error('Error:', error)\n  hopp.env.active.set('iterator_test', String(error))\n}\n",
+      "testScript": "export {};\nhopp.test('Iterator works', () => {\n  const result = hopp.env.active.get('iterator_test')\n  console.log('Test result:', result)\n  hopp.expect(result).toBe('success')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    }
+  ]
+}

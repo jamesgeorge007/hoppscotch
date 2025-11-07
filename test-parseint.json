@@ -1,0 +1,35 @@
+{
+  "id": "test-parseint",
+  "v": 10,
+  "name": "Test parseInt",
+  "folders": [],
+  "variables": [],
+  "auth": {
+    "authType": "inherit",
+    "authActive": true
+  },
+  "headers": [],
+  "requests": [
+    {
+      "v": "15",
+      "id": "test-pi",
+      "name": "Test parseInt in test script",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\nhopp.env.active.set('number_string', '42')\n",
+      "testScript": "export {};\nhopp.test('parseInt works', () => {\n  console.log('typeof parseInt:', typeof parseInt)\n  const numStr = hopp.env.active.get('number_string')\n  console.log('numStr:', numStr, 'type:', typeof numStr)\n  const num = parseInt(numStr)\n  console.log('parseInt result:', num, 'type:', typeof num)\n  const expectResult = hopp.expect(num)\n  console.log('hopp.expect returned:', typeof expectResult)\n  console.log('expectResult.toBeGreaterThan:', typeof expectResult.toBeGreaterThan)\n  console.log('expectResult keys:', Object.keys(expectResult))\n  expectResult.toBeGreaterThan(0)\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    }
+  ]
+}

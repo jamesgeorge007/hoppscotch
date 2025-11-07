@@ -25,8 +25,6 @@ export const createHoppFetchHook = (
           : input.url
     const method = (init?.method || "GET").toUpperCase()
 
-    console.log('[hopp-fetch] Called with URL:', urlStr, 'method:', method)
-
     // Track the fetch call for inspector warnings
     onFetchCall?.({
       url: urlStr,
@@ -36,25 +34,13 @@ export const createHoppFetchHook = (
 
     // Convert Fetch API request to RelayRequest
     const relayRequest = await convertFetchToRelayRequest(input, init)
-    console.log('[hopp-fetch] RelayRequest created:', {
-      id: relayRequest.id,
-      url: relayRequest.url,
-      method: relayRequest.method,
-      hasParams: !!relayRequest.params,
-      hasAuth: !!relayRequest.auth
-    })
 
     // Execute via interceptor
     const execution = kernelInterceptor.execute(relayRequest)
-    console.log('[hopp-fetch] Waiting for interceptor response...')
     const result = await execution.response
-    console.log('[hopp-fetch] Got result, isLeft:', E.isLeft(result), 'isRight:', E.isRight(result))
 
     if (E.isLeft(result)) {
       const error = result.left
-      console.error('[hopp-fetch] Interceptor returned error:', error)
-      console.error('[hopp-fetch] Error type:', typeof error)
-      console.error('[hopp-fetch] Error keys:', error && typeof error === 'object' ? Object.keys(error) : 'N/A')
 
       const errorMessage =
         typeof error === "string"
@@ -70,9 +56,7 @@ export const createHoppFetchHook = (
     // Convert RelayResponse to serializable Response-like object
     // CRITICAL: Cannot return native Response - it cannot cross QuickJS boundary
     // Native Response has internal state that becomes invalid after cage disposal
-    const serializableResponse = convertRelayResponseToSerializableResponse(result.right)
-    console.log('[hopp-fetch] Returning response, status:', serializableResponse.status, '_bodyBytes length:', (serializableResponse as any)._bodyBytes?.length)
-    return serializableResponse
+    return convertRelayResponseToSerializableResponse(result.right)
   }
 }
 
@@ -109,51 +93,53 @@ async function convertFetchToRelayRequest(
 
   if (init?.body) {
     if (typeof init.body === "string") {
-      // Text/JSON body
-      const contentType = headers["Content-Type"] || "text/plain"
+      // Text/JSON body - use proper ContentType structure
+      // Case-insensitive header lookup (Headers API normalizes to lowercase)
+      const mediaType = headers["content-type"] || headers["Content-Type"] || "text/plain"
+
+      // Use "text" kind for string bodies - Axios will handle it correctly
       content = {
-        contentType,
-        body: new TextEncoder().encode(init.body),
+        kind: "text",
+        content: init.body,
+        mediaType,
       }
     } else if (init.body instanceof FormData) {
-      // FormData - convert to multipart
-      const formDataArray: Array<{ key: string; value: string }> = []
-      init.body.forEach((value, key) => {
-        if (typeof value === "string") {
-          formDataArray.push({ key, value })
-        }
-      })
+      // FormData - convert to multipart using proper ContentType structure
       content = {
-        contentType: "multipart/form-data",
-        body: formDataArray as any, // Relay will handle multipart encoding
+        kind: "multipart",
+        content: init.body,
+        mediaType: "multipart/form-data",
       }
     } else if (init.body instanceof Blob) {
-      // Blob/File - convert to binary
+      // Blob/File - convert to binary using proper ContentType structure
       const arrayBuffer = await init.body.arrayBuffer()
       content = {
-        contentType: init.body.type || "application/octet-stream",
-        body: new Uint8Array(arrayBuffer),
+        kind: "binary",
+        content: new Uint8Array(arrayBuffer),
+        mediaType: init.body.type || "application/octet-stream",
       }
     } else if (init.body instanceof ArrayBuffer) {
-      // Raw binary
+      // Raw binary using proper ContentType structure
       content = {
-        contentType: "application/octet-stream",
-        body: new Uint8Array(init.body),
+        kind: "binary",
+        content: new Uint8Array(init.body),
+        mediaType: "application/octet-stream",
       }
     } else if (ArrayBuffer.isView(init.body)) {
-      // Typed array
+      // Typed array using proper ContentType structure
       content = {
-        contentType: "application/octet-stream",
-        body: new Uint8Array(
+        kind: "binary",
+        content: new Uint8Array(
           init.body.buffer,
           init.body.byteOffset,
           init.body.byteLength
         ),
+        mediaType: "application/octet-stream",
       }
     }
   }
 
-  return {
+  const relayRequest = {
     id: Math.floor(Math.random() * 1000000), // Random ID for tracking
     url: urlStr,
     method,
@@ -164,6 +150,8 @@ async function convertFetchToRelayRequest(
     content,
     // Note: auth, proxy, security are inherited from interceptor configuration
   }
+
+  return relayRequest
 }
 
 /**
@@ -199,7 +187,6 @@ function convertRelayResponseToSerializableResponse(
 
   // Extract the actual body data - it's nested inside relayResponse.body.body
   const actualBody = relayResponse.body?.body || relayResponse.body
-  console.log('[hopp-fetch] actualBody type:', actualBody?.constructor?.name, 'isArray:', Array.isArray(actualBody))
 
   if (actualBody) {
     if (Array.isArray(actualBody)) {
@@ -229,13 +216,13 @@ function convertRelayResponseToSerializableResponse(
     }
   }
 
-  console.log('[hopp-fetch] Final bodyBytes length:', bodyBytes.length, 'first 20 bytes:', bodyBytes.slice(0, 20))
-
   // Create Response-like object with all methods implemented using stored data
   const serializableResponse = {
     status,
     statusText,
     ok,
+    // Store raw headers data for custom-fetch to use
+    _headersData: headersObj,
     headers: {
       get(name: string): string | null {
         // Case-insensitive header lookup

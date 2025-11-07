@@ -94,6 +94,14 @@ export class ProxyKernelInterceptorService
     // This is required for backwards compatibility with current proxyscotch impl
     if (request.content) {
       switch (request.content.kind) {
+        case "text":
+          // Text content - pass string directly
+          requestData =
+            typeof request.content.content === "string"
+              ? request.content.content
+              : String(request.content.content)
+          break
+
         case "json":
           requestData =
             typeof request.content.content === "string"
@@ -122,6 +130,9 @@ export class ProxyKernelInterceptorService
               console.error("Error converting binary data:", e)
               requestData = request.content.content
             }
+          } else if (request.content.content instanceof Uint8Array) {
+            // Convert Uint8Array to Blob for proxy compatibility
+            requestData = new Blob([request.content.content.buffer])
           } else {
             requestData = request.content.content
           }
@@ -132,6 +143,27 @@ export class ProxyKernelInterceptorService
           // where we combine request with request body
           // so removing that part right now
           requestData = ""
+          break
+
+        case "urlencoded":
+          // URL-encoded form data - pass string directly
+          requestData =
+            typeof request.content.content === "string"
+              ? request.content.content
+              : String(request.content.content)
+          break
+
+        case "xml":
+          // XML content - pass string directly
+          requestData =
+            typeof request.content.content === "string"
+              ? request.content.content
+              : String(request.content.content)
+          break
+
+        case "form":
+          // Form data - pass directly
+          requestData = request.content.content
           break
 
         default:

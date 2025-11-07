@@ -24,22 +24,31 @@ export const runPreRequestScriptWithFaradayCage = (
         const cage = await FaradayCage.create()
 
         try {
+          const captureHook: { capture?: () => void } = {}
+
           const result = await cage.runCode(preRequestScript, [
             ...defaultModules({
               hoppFetchHook,
             }),
 
-            preRequestModule({
-              envs: cloneDeep(envs),
-              request: cloneDeep(request),
-              cookies: cookies ? cloneDeep(cookies) : null,
-              handleSandboxResults: ({ envs, request, cookies }) => {
-                finalEnvs = envs
-                finalRequest = request
-                finalCookies = cookies
+            preRequestModule(
+              {
+                envs: cloneDeep(envs),
+                request: cloneDeep(request),
+                cookies: cookies ? cloneDeep(cookies) : null,
+                handleSandboxResults: ({ envs, request, cookies }) => {
+                  finalEnvs = envs
+                  finalRequest = request
+                  finalCookies = cookies
+                },
               },
-            }),
+              captureHook
+            ),
           ])
+
+          if (captureHook.capture) {
+            captureHook.capture()
+          }
 
           if (result.type === "error") {
             throw result.err

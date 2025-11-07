@@ -60,28 +60,39 @@ const runPostRequestScriptWithFaradayCage = async (
   const cage = await FaradayCage.create()
 
   try {
+    // Create a hook object to receive the capture function from the module
+    const captureHook: { capture?: () => void } = {}
+
     const result = await cage.runCode(testScript, [
       ...defaultModules({
         handleConsoleEntry: (consoleEntry) => consoleEntries.push(consoleEntry),
         hoppFetchHook,
       }),
 
-      postRequestModule({
-        envs: cloneDeep(envs),
-        testRunStack: cloneDeep(testRunStack),
-        request: cloneDeep(request),
-        response: cloneDeep(response),
-        cookies: cookies ? cloneDeep(cookies) : null,
-        handleSandboxResults: ({ envs, testRunStack, cookies }) => {
-          finalEnvs = envs
-          finalTestResults = testRunStack
-          finalCookies = cookies
+      postRequestModule(
+        {
+          envs: cloneDeep(envs),
+          testRunStack: cloneDeep(testRunStack),
+          request: cloneDeep(request),
+          response: cloneDeep(response),
+          cookies: cookies ? cloneDeep(cookies) : null,
+          handleSandboxResults: ({ envs, testRunStack, cookies }) => {
+            finalEnvs = envs
+            finalTestResults = testRunStack
+            finalCookies = cookies
+          },
+          onTestPromise: (promise) => {
+            testPromises.push(promise)
+          },
         },
-        onTestPromise: (promise) => {
-          testPromises.push(promise)
-        },
-      }),
+        captureHook
+      ),
     ])
+
+    // CRITICAL: Capture results AFTER runCode() completes
+    if (captureHook.capture) {
+      captureHook.capture()
+    }
 
     if (result.type === "error") {
       if (

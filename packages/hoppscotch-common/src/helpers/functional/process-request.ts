@@ -90,5 +90,22 @@ export const preProcessRelayRequest = (req: RelayRequest): RelayRequest =>
       : req
   )
 
-export const postProcessRelayRequest = (req: RelayRequest): RelayRequest =>
-  pipe(cloneDeep(req), (req) => superjson.serialize(req).json)
+export const postProcessRelayRequest = (req: RelayRequest): RelayRequest => {
+  console.log('[process-request] postProcessRelayRequest BEFORE:', {
+    hasContent: !!req.content,
+    contentType: req.content?.contentType,
+    bodyType: req.content?.body ? req.content.body.constructor.name : 'N/A',
+    bodyLength: req.content?.body ? (req.content.body as any).length : 0
+  })
+
+  const result = pipe(cloneDeep(req), (req) => superjson.serialize(req).json)
+
+  console.log('[process-request] postProcessRelayRequest AFTER:', {
+    hasContent: !!result.content,
+    contentType: result.content?.contentType,
+    bodyType: result.content?.body ? (typeof result.content.body) : 'N/A',
+    bodyIsArray: Array.isArray(result.content?.body)
+  })
+
+  return result
+}

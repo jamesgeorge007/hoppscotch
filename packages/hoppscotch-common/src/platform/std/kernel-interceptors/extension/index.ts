@@ -232,6 +232,14 @@ export class ExtensionKernelInterceptorService
 
       if (request.content) {
         switch (request.content.kind) {
+          case "text":
+            // Text content - pass string directly
+            requestData =
+              typeof request.content.content === "string"
+                ? request.content.content
+                : String(request.content.content)
+            break
+
           case "json":
             // For JSON, we need to stringify it before sending it to extension,
             // see extension source code for more info on this.
@@ -263,12 +271,42 @@ export class ExtensionKernelInterceptorService
                 console.error("Error converting binary data:", e)
                 requestData = request.content.content
               }
+            } else if (request.content.content instanceof Uint8Array) {
+              // Convert Uint8Array to Blob for extension compatibility
+              requestData = new Blob([request.content.content.buffer])
             } else {
               requestData = request.content.content
             }
             break
 
+          case "urlencoded":
+            // URL-encoded form data - pass string directly
+            requestData =
+              typeof request.content.content === "string"
+                ? request.content.content
+                : String(request.content.content)
+            break
+
+          case "multipart":
+            // FormData for multipart - pass directly (extension should handle FormData)
+            requestData = request.content.content
+            break
+
+          case "xml":
+            // XML content - pass string directly
+            requestData =
+              typeof request.content.content === "string"
+                ? request.content.content
+                : String(request.content.content)
+            break
+
+          case "form":
+            // Form data - pass directly
+            requestData = request.content.content
+            break
+
           default:
+            // Fallback for any other content types
             requestData = request.content.content
         }
       }

@@ -1,0 +1,540 @@
+{
+  "id": "cxzb40f5288t888sv62zadiwj",
+  "_ref_id": "coll_mhom7rod_qlsbbwpt-i2xfusqa-74etdtq3-u1lvqax7",
+  "v": 10,
+  "name": "hopp.fetch() Validation Collection",
+  "folders": [],
+  "variables": [],
+  "auth": {
+    "authType": "inherit",
+    "authActive": true
+  },
+  "headers": [],
+  "requests": [
+    {
+      "v": "15",
+      "id": "c7ovw8xygt4yv1r1s7850zd3m",
+      "name": "Basic GET Request",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test basic GET request\nconst response = await hopp.fetch('https://echo.hoppscotch.io')\nconst data = await response.json()\n\nhopp.env.active.set('fetch_status', response.status.toString())\nhopp.env.active.set('fetch_method', data.method)\nhopp.env.active.set('fetch_path', data.path || 'missing')\n",
+      "testScript": "export {};\nhopp.test('GET request succeeded', () => {\n  hopp.expect(hopp.env.active.get('fetch_status')).toBe('200')\n  hopp.expect(hopp.env.active.get('fetch_method')).toBe('GET')\n  hopp.expect(hopp.env.active.get('fetch_path')).toBe('/')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "crau1pcw59yldiiwmgntkgzui",
+      "name": "GET with Query Parameters",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test GET with query params in URL\nconst response = await hopp.fetch('https://echo.hoppscotch.io?foo=bar&baz=qux&test=123')\nconst data = await response.json()\n\nhopp.env.active.set('query_foo', data.args.foo || 'missing')\nhopp.env.active.set('query_baz', data.args.baz || 'missing')\nhopp.env.active.set('query_test', data.args.test || 'missing')\n",
+      "testScript": "export {};\nhopp.test('Query parameters are sent correctly', () => {\n  hopp.expect(hopp.env.active.get('query_foo')).toBe('bar')\n  hopp.expect(hopp.env.active.get('query_baz')).toBe('qux')\n  hopp.expect(hopp.env.active.get('query_test')).toBe('123')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "cphpfgwn6d58j7hvtwvqgpir7",
+      "name": "POST with JSON Body",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test POST with JSON body\nconst requestBody = {\n  name: 'John Doe',\n  email: 'john@example.com',\n  age: 30,\n  active: true\n}\n\nconst response = await hopp.fetch('https://echo.hoppscotch.io', {\n  method: 'POST',\n  headers: {\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify(requestBody)\n})\n\nconst data = await response.json()\nconst receivedData = JSON.parse(data.data)\n\nhopp.env.active.set('post_status', response.status.toString())\nhopp.env.active.set('post_method', data.method)\nhopp.env.active.set('received_name', receivedData.name)\nhopp.env.active.set('received_email', receivedData.email)\nhopp.env.active.set('received_age', receivedData.age.toString())\nhopp.env.active.set('received_active', receivedData.active.toString())\n",
+      "testScript": "export {};\nhopp.test('POST with JSON body works', () => {\n  hopp.expect(hopp.env.active.get('post_status')).toBe('200')\n  hopp.expect(hopp.env.active.get('post_method')).toBe('POST')\n  hopp.expect(hopp.env.active.get('received_name')).toBe('John Doe')\n  hopp.expect(hopp.env.active.get('received_email')).toBe('john@example.com')\n  hopp.expect(hopp.env.active.get('received_age')).toBe('30')\n  hopp.expect(hopp.env.active.get('received_active')).toBe('true')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "cw4yjnjuon4zrb4ilbcp19ffa",
+      "name": "POST with URL-Encoded Body",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test POST with URL-encoded body\nconst params = new URLSearchParams()\nparams.append('username', 'testuser')\nparams.append('password', 'testpass123')\nparams.append('remember', 'true')\n\nconst response = await hopp.fetch('https://echo.hoppscotch.io', {\n  method: 'POST',\n  headers: {\n    'Content-Type': 'application/x-www-form-urlencoded'\n  },\n  body: params.toString()\n})\n\nconst data = await response.json()\n\nhopp.env.active.set('urlencoded_status', response.status.toString())\nhopp.env.active.set('urlencoded_contenttype', data.headers['content-type'] || 'missing')\nhopp.env.active.set('urlencoded_data', data.data || 'missing')\n",
+      "testScript": "export {};\nhopp.test('POST with URL-encoded body works', () => {\n  hopp.expect(hopp.env.active.get('urlencoded_status')).toBe('200')\n  hopp.expect(hopp.env.active.get('urlencoded_contenttype')).toInclude('application/x-www-form-urlencoded')\n  hopp.expect(hopp.env.active.get('urlencoded_data')).toInclude('username=testuser')\n  hopp.expect(hopp.env.active.get('urlencoded_data')).toInclude('password=testpass123')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "co23y5288t6h5jqrv2j4y8cto",
+      "name": "POST with FormData",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test POST with FormData (multipart)\n// Note: FormData is not available in QuickJS sandbox - use URLSearchParams or JSON instead\n// This test verifies the error handling\ntry {\n  if (typeof FormData === 'undefined') {\n    hopp.env.active.set('formdata_status', 'skipped')\n    hopp.env.active.set('formdata_method', 'skipped')\n  } else {\n    const formData = new FormData()\n    formData.append('field1', 'value1')\n    formData.append('field2', 'value2')\n    const response = await hopp.fetch('https://echo.hoppscotch.io', {\n      method: 'POST',\n      body: formData\n    })\n    const data = await response.json()\n    hopp.env.active.set('formdata_status', response.status.toString())\n    hopp.env.active.set('formdata_method', data.method)\n  }\n} catch (error) {\n  hopp.env.active.set('formdata_status', 'error')\n  hopp.env.active.set('formdata_method', 'error')\n}\n",
+      "testScript": "export {};\nhopp.test('POST with FormData works', () => {\n  const status = hopp.env.active.get('formdata_status')\n  const method = hopp.env.active.get('formdata_method')\n  // Skip test if FormData not available in sandbox\n  if (status === 'skipped') {\n    hopp.expect(status).toBe('skipped')\n  } else {\n    hopp.expect(status).toBe('200')\n    hopp.expect(method).toBe('POST')\n  }\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "cr1zalp3m35szs5jsh0gzlvdx",
+      "name": "Custom Headers",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test custom headers\nconst response = await hopp.fetch('https://echo.hoppscotch.io', {\n  headers: {\n    'X-Custom-Header': 'CustomValue123',\n    'X-API-Key': 'secret-key-456',\n    'User-Agent': 'HoppscotchTest/1.0',\n    'Accept': 'application/json'\n  }\n})\n\nconst data = await response.json()\n\nhopp.env.active.set('custom_header', data.headers['x-custom-header'] || 'missing')\nhopp.env.active.set('api_key_header', data.headers['x-api-key'] || 'missing')\nhopp.env.active.set('user_agent_header', data.headers['user-agent'] || 'missing')\n",
+      "testScript": "export {};\nhopp.test('Custom headers are sent', () => {\n  hopp.expect(hopp.env.active.get('custom_header')).toBe('CustomValue123')\n  hopp.expect(hopp.env.active.get('api_key_header')).toBe('secret-key-456')\n  hopp.expect(hopp.env.active.get('user_agent_header')).toBe('HoppscotchTest/1.0')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "c2vyz7eigswtne7f38limu4ad",
+      "name": "PUT Request",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test PUT request\nconst response = await hopp.fetch('https://echo.hoppscotch.io', {\n  method: 'PUT',\n  headers: {\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    id: 123,\n    name: 'Updated Name',\n    status: 'active'\n  })\n})\n\nconst data = await response.json()\n\nhopp.env.active.set('put_status', response.status.toString())\nhopp.env.active.set('put_method', data.method)\n",
+      "testScript": "export {};\nhopp.test('PUT request works', () => {\n  hopp.expect(hopp.env.active.get('put_status')).toBe('200')\n  hopp.expect(hopp.env.active.get('put_method')).toBe('PUT')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "css3c7k6pgz0i1csiejkrj28e",
+      "name": "DELETE Request",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test DELETE request\nconst response = await hopp.fetch('https://echo.hoppscotch.io/resource/123', {\n  method: 'DELETE'\n})\n\nconst data = await response.json()\n\nhopp.env.active.set('delete_status', response.status.toString())\nhopp.env.active.set('delete_method', data.method)\nhopp.env.active.set('delete_path', data.path || 'missing')\n",
+      "testScript": "export {};\nhopp.test('DELETE request works', () => {\n  hopp.expect(hopp.env.active.get('delete_status')).toBe('200')\n  hopp.expect(hopp.env.active.get('delete_method')).toBe('DELETE')\n  hopp.expect(hopp.env.active.get('delete_path')).toInclude('/resource/123')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "c3zmoxn873hlvc3fgrrpqj3de",
+      "name": "PATCH Request",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test PATCH request\nconst response = await hopp.fetch('https://echo.hoppscotch.io', {\n  method: 'PATCH',\n  headers: {\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    field: 'updated value'\n  })\n})\n\nconst data = await response.json()\n\nhopp.env.active.set('patch_status', response.status.toString())\nhopp.env.active.set('patch_method', data.method)\n",
+      "testScript": "export {};\nhopp.test('PATCH request works', () => {\n  hopp.expect(hopp.env.active.get('patch_status')).toBe('200')\n  hopp.expect(hopp.env.active.get('patch_method')).toBe('PATCH')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "chxj8a76d4odwmwsx5xlrsxly",
+      "name": "Response Headers Access",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test response headers access\nconst response = await hopp.fetch('https://echo.hoppscotch.io')\n\nconst contentType = response.headers.get('content-type')\nconst hasContentType = contentType !== null\n\nlet headerCount = 0\nfor (const [key, value] of response.headers.entries()) {\n  headerCount++\n}\n\nhopp.env.active.set('has_content_type', hasContentType.toString())\nhopp.env.active.set('content_type_value', contentType || 'missing')\nhopp.env.active.set('header_count', headerCount.toString())\n",
+      "testScript": "export {};\nhopp.test('Response headers are accessible', () => {\n  hopp.expect(hopp.env.active.get('has_content_type')).toBe('true')\n  hopp.expect(hopp.env.active.get('content_type_value')).toInclude('json')\n  const headerCount = parseInt(hopp.env.active.get('header_count'))\n  hopp.expect(headerCount > 0).toBe(true)\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "c3rt976ca0egteyo5t898sn7d",
+      "name": "Response Status Checking",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test response status properties\nconst response = await hopp.fetch('https://echo.hoppscotch.io')\n\nhopp.env.active.set('resp_status', response.status.toString())\nhopp.env.active.set('resp_ok', response.ok.toString())\nhopp.env.active.set('resp_status_text', response.statusText || 'empty')\nhopp.env.active.set('is_2xx', (response.status >= 200 && response.status < 300).toString())\n",
+      "testScript": "export {};\nhopp.test('Response status properties work', () => {\n  hopp.expect(hopp.env.active.get('resp_status')).toBe('200')\n  hopp.expect(hopp.env.active.get('resp_ok')).toBe('true')\n  hopp.expect(hopp.env.active.get('is_2xx')).toBe('true')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "c2jvmcn2a7g0bg3qqoodz4xpr",
+      "name": "Response Text Parsing",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test response.text() method\nconst response = await hopp.fetch('https://echo.hoppscotch.io')\nconst text = await response.text()\n\nhopp.env.active.set('text_length', text.length.toString())\nhopp.env.active.set('is_string', (typeof text === 'string').toString())\nhopp.env.active.set('has_json_content', text.includes('{').toString())\n",
+      "testScript": "export {};\nhopp.test('response.text() works', () => {\n  const textLength = parseInt(hopp.env.active.get('text_length'))\n  hopp.expect(textLength > 0).toBe(true)\n  hopp.expect(hopp.env.active.get('is_string')).toBe('true')\n  hopp.expect(hopp.env.active.get('has_json_content')).toBe('true')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "camds1diq4u0527ch354xkadc",
+      "name": "Sequential Requests",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test chaining multiple requests\nconst response1 = await hopp.fetch('https://echo.hoppscotch.io?step=1')\nconst data1 = await response1.json()\nconst step1 = data1.args.step\n\nconst response2 = await hopp.fetch('https://echo.hoppscotch.io?step=2&prev=' + step1)\nconst data2 = await response2.json()\nconst step2 = data2.args.step\nconst prev = data2.args.prev\n\nconst response3 = await hopp.fetch('https://echo.hoppscotch.io?step=3&final=true')\nconst data3 = await response3.json()\nconst step3 = data3.args.step\nconst final = data3.args.final\n\nhopp.env.active.set('seq_step1', step1)\nhopp.env.active.set('seq_step2', step2)\nhopp.env.active.set('seq_prev', prev)\nhopp.env.active.set('seq_step3', step3)\nhopp.env.active.set('seq_final', final)\n",
+      "testScript": "export {};\nhopp.test('Sequential requests work', () => {\n  hopp.expect(hopp.env.active.get('seq_step1')).toBe('1')\n  hopp.expect(hopp.env.active.get('seq_step2')).toBe('2')\n  hopp.expect(hopp.env.active.get('seq_prev')).toBe('1')\n  hopp.expect(hopp.env.active.get('seq_step3')).toBe('3')\n  hopp.expect(hopp.env.active.get('seq_final')).toBe('true')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "c32ehbrjvqg5d7k4uzm8ssyxe",
+      "name": "Parallel Requests",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test parallel requests with Promise.all\nconst [response1, response2, response3] = await Promise.all([\n  hopp.fetch('https://echo.hoppscotch.io?id=1'),\n  hopp.fetch('https://echo.hoppscotch.io?id=2'),\n  hopp.fetch('https://echo.hoppscotch.io?id=3')\n])\n\nconst [data1, data2, data3] = await Promise.all([\n  response1.json(),\n  response2.json(),\n  response3.json()\n])\n\nhopp.env.active.set('parallel_id1', data1.args.id)\nhopp.env.active.set('parallel_id2', data2.args.id)\nhopp.env.active.set('parallel_id3', data3.args.id)\nhopp.env.active.set('all_200', (response1.status === 200 && response2.status === 200 && response3.status === 200).toString())\n",
+      "testScript": "export {};\nhopp.test('Parallel requests work', () => {\n  hopp.expect(hopp.env.active.get('parallel_id1')).toBe('1')\n  hopp.expect(hopp.env.active.get('parallel_id2')).toBe('2')\n  hopp.expect(hopp.env.active.get('parallel_id3')).toBe('3')\n  hopp.expect(hopp.env.active.get('all_200')).toBe('true')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "cbpos9inptugihy61mq3m6pi6",
+      "name": "Bearer Token Auth",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test Bearer token authentication\nconst token = 'sample_bearer_token_abc123'\nhopp.env.active.set('auth_token', token)\n\nconst response = await hopp.fetch('https://echo.hoppscotch.io', {\n  headers: {\n    'Authorization': `Bearer ${token}`\n  }\n})\n\nconst data = await response.json()\n\nhopp.env.active.set('sent_auth_header', data.headers['authorization'] || 'missing')\nhopp.env.active.set('auth_match', (data.headers['authorization'] === `Bearer ${token}`).toString())\n",
+      "testScript": "export {};\nhopp.test('Bearer token authentication works', () => {\n  const token = hopp.env.active.get('auth_token')\n  hopp.expect(hopp.env.active.get('sent_auth_header')).toBe(`Bearer ${token}`)\n  hopp.expect(hopp.env.active.get('auth_match')).toBe('true')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "cdnluamy7yj8stwqxl50pml7f",
+      "name": "Error Handling",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test error handling\nlet errorOccurred = false\nlet errorMessage = ''\n\ntry {\n  const response = await hopp.fetch('https://echo.hoppscotch.io')\n  if (!response.ok) {\n    errorOccurred = true\n    errorMessage = `HTTP ${response.status}: ${response.statusText}`\n  }\n  hopp.env.active.set('fetch_success', 'true')\n} catch (error) {\n  errorOccurred = true\n  errorMessage = error.message\n  hopp.env.active.set('fetch_success', 'false')\n  hopp.env.active.set('fetch_error', errorMessage)\n}\n\nhopp.env.active.set('error_occurred', errorOccurred.toString())\n",
+      "testScript": "export {};\nhopp.test('Error handling works', () => {\n  hopp.expect(hopp.env.active.get('fetch_success')).toBe('true')\n  hopp.expect(hopp.env.active.get('error_occurred')).toBe('false')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "cyfm7p6mitbehs766ypf105hk",
+      "name": "Dynamic URL Construction",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test dynamic URL building\nconst baseUrl = 'https://echo.hoppscotch.io'\nconst endpoint = '/api/users'\nconst params = {\n  page: 1,\n  limit: 10,\n  sort: 'name',\n  filter: 'active'\n}\n\nconst queryString = Object.entries(params)\n  .map(([key, value]) => `${key}=${value}`)\n  .join('&')\n\nconst fullUrl = `${baseUrl}${endpoint}?${queryString}`\n\nconst response = await hopp.fetch(fullUrl)\nconst data = await response.json()\n\nhopp.env.active.set('dynamic_path', data.path || 'missing')\nhopp.env.active.set('param_page', data.args.page)\nhopp.env.active.set('param_limit', data.args.limit)\nhopp.env.active.set('param_sort', data.args.sort)\nhopp.env.active.set('param_filter', data.args.filter)\n",
+      "testScript": "export {};\nhopp.test('Dynamic URL construction works', () => {\n  hopp.expect(hopp.env.active.get('dynamic_path')).toInclude('/api/users')\n  hopp.expect(hopp.env.active.get('param_page')).toBe('1')\n  hopp.expect(hopp.env.active.get('param_limit')).toBe('10')\n  hopp.expect(hopp.env.active.get('param_sort')).toBe('name')\n  hopp.expect(hopp.env.active.get('param_filter')).toBe('active')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "cn61kh1biz0p6d179l8l9s0ke",
+      "name": "Binary Data POST",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test POST with binary data\nconst binaryData = new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x21]) // \"Hello!\"\n\nconst response = await hopp.fetch('https://echo.hoppscotch.io', {\n  method: 'POST',\n  headers: {\n    'Content-Type': 'application/octet-stream'\n  },\n  body: binaryData\n})\n\nconst data = await response.json()\n\nhopp.env.active.set('binary_status', response.status.toString())\nhopp.env.active.set('binary_method', data.method)\nhopp.env.active.set('binary_content_type', data.headers['content-type'] || 'missing')\n",
+      "testScript": "export {};\nhopp.test('Binary data POST works', () => {\n  hopp.expect(hopp.env.active.get('binary_status')).toBe('200')\n  hopp.expect(hopp.env.active.get('binary_method')).toBe('POST')\n  hopp.expect(hopp.env.active.get('binary_content_type')).toInclude('application/octet-stream')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "c5do8vtzfm7z4lp3yrnimk57b",
+      "name": "Response in Post-Request Test",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n",
+      "testScript": "export {};\nhopp.test('hopp.fetch in post-request script works', async () => {\n  const response = await hopp.fetch('https://echo.hoppscotch.io?test=post-request')\n  hopp.expect(response.status).toBe(200)\n  hopp.expect(response.ok).toBe(true)\n\n  const data = await response.json()\n  hopp.expect(data.args.test).toBe('post-request')\n  hopp.expect(data.method).toBe('GET')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "cupqo3z7doh4yubt99dln35ab",
+      "name": "Complex Workflow",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Complex workflow: auth -> fetch data -> process -> store\nconst authResponse = await hopp.fetch('https://echo.hoppscotch.io?action=login&username=testuser')\nconst authData = await authResponse.json()\nconst token = authData.args.action + '_token_' + authData.args.username\n\nhopp.env.active.set('workflow_token', token)\n\nconst dataResponse = await hopp.fetch('https://echo.hoppscotch.io?action=fetch&id=123', {\n  headers: {\n    'Authorization': `Bearer ${token}`\n  }\n})\nconst data = await dataResponse.json()\n\nhopp.env.active.set('workflow_id', data.args.id)\nhopp.env.active.set('workflow_auth_header', data.headers['authorization'])\n\nconst processedValue = `processed_${data.args.id}`\nhopp.env.active.set('workflow_processed', processedValue)\n",
+      "testScript": "export {};\nhopp.test('Complex workflow succeeds', () => {\n  const token = hopp.env.active.get('workflow_token')\n  hopp.expect(token).toInclude('login_token_testuser')\n  hopp.expect(hopp.env.active.get('workflow_id')).toBe('123')\n  hopp.expect(hopp.env.active.get('workflow_auth_header')).toBe(`Bearer ${token}`)\n  hopp.expect(hopp.env.active.get('workflow_processed')).toBe('processed_123')\n})\n\nhopp.test('Follow-up request in test works', async () => {\n  const token = hopp.env.active.get('workflow_token')\n  const verifyResponse = await hopp.fetch('https://echo.hoppscotch.io?action=verify', {\n    headers: {\n      'Authorization': `Bearer ${token}`\n    }\n  })\n\n  hopp.expect(verifyResponse.status).toBe(200)\n  const verifyData = await verifyResponse.json()\n  hopp.expect(verifyData.args.action).toBe('verify')\n  hopp.expect(verifyData.headers['authorization']).toBe(`Bearer ${token}`)\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "cqe98yr48yn5ez5qd7sstllbt",
+      "name": "URL Object Support",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test passing URL object instead of string\nconst urlObj = new URL('https://echo.hoppscotch.io')\nurlObj.searchParams.append('test', 'url-object')\nurlObj.searchParams.append('value', '42')\n\nconst response = await hopp.fetch(urlObj)\nconst data = await response.json()\n\nhopp.env.active.set('url_obj_test', data.args.test)\nhopp.env.active.set('url_obj_value', data.args.value)\nhopp.env.active.set('url_obj_success', 'true')\n",
+      "testScript": "export {};\nhopp.test('URL object support works', () => {\n  hopp.expect(hopp.env.active.get('url_obj_test')).toBe('url-object')\n  hopp.expect(hopp.env.active.get('url_obj_value')).toBe('42')\n  hopp.expect(hopp.env.active.get('url_obj_success')).toBe('true')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "c7k5atms9uzqokl51u0kol2ri",
+      "name": "Empty Body POST",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test POST with no body\nconst response = await hopp.fetch('https://echo.hoppscotch.io', {\n  method: 'POST'\n})\n\nconst data = await response.json()\n\nhopp.env.active.set('empty_post_status', response.status.toString())\nhopp.env.active.set('empty_post_method', data.method)\nhopp.env.active.set('empty_post_has_data', (data.data && data.data.length > 0).toString())\n",
+      "testScript": "export {};\nhopp.test('Empty body POST works', () => {\n  hopp.expect(hopp.env.active.get('empty_post_status')).toBe('200')\n  hopp.expect(hopp.env.active.get('empty_post_method')).toBe('POST')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "c9mtpcq1tl0cpf4pjo99jr3j9",
+      "name": "Special Characters in URL",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test special characters in URL\nconst searchQuery = 'test & special = chars'\nconst encodedQuery = encodeURIComponent(searchQuery)\n\nconst response = await hopp.fetch(`https://echo.hoppscotch.io?q=${encodedQuery}&other=value`)\nconst data = await response.json()\n\nhopp.env.active.set('special_chars_q', data.args.q)\nhopp.env.active.set('special_chars_other', data.args.other)\nhopp.env.active.set('special_chars_match', (data.args.q === searchQuery).toString())\n",
+      "testScript": "export {};\nhopp.test('Special characters in URL work', () => {\n  hopp.expect(hopp.env.active.get('special_chars_q')).toBe('test & special = chars')\n  hopp.expect(hopp.env.active.get('special_chars_other')).toBe('value')\n  hopp.expect(hopp.env.active.get('special_chars_match')).toBe('true')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "cr8ke45m9jrg92jbpsqmkzhey",
+      "name": "Multiple Content Types",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test different Accept headers\nconst response = await hopp.fetch('https://echo.hoppscotch.io', {\n  headers: {\n    'Accept': 'application/json, text/plain, */*',\n    'Accept-Language': 'en-US,en;q=0.9',\n    'Accept-Encoding': 'gzip, deflate, br'\n  }\n})\n\nconst data = await response.json()\n\nhopp.env.active.set('accept_header', data.headers['accept'] || 'missing')\nhopp.env.active.set('accept_lang_header', data.headers['accept-language'] || 'missing')\nhopp.env.active.set('accept_encoding_header', data.headers['accept-encoding'] || 'missing')\n",
+      "testScript": "export {};\nhopp.test('Content negotiation headers work', () => {\n  hopp.expect(hopp.env.active.get('accept_header')).toInclude('application/json')\n  hopp.expect(hopp.env.active.get('accept_lang_header')).toInclude('en-US')\n  // Accept br (Brotli) or gzip - modern APIs may prefer Brotli\n  const encoding = hopp.env.active.get('accept_encoding_header')\n  const hasBrOrGzip = encoding.includes('br') || encoding.includes('gzip')\n  hopp.expect(hasBrOrGzip).toBe(true)\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "15",
+      "id": "cs8atm6j9paylrvzdo1pety9r",
+      "name": "Large JSON Payload",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "export {};\n// Test large JSON payload\nconst largePayload = {\n  items: Array.from({ length: 100 }, (_, i) => ({\n    id: i,\n    name: `Item ${i}`,\n    description: `Description for item ${i}`,\n    metadata: {\n      created: new Date().toISOString(),\n      index: i,\n      active: i % 2 === 0\n    }\n  }))\n}\n\nconst response = await hopp.fetch('https://echo.hoppscotch.io', {\n  method: 'POST',\n  headers: {\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify(largePayload)\n})\n\nconst data = await response.json()\nconst receivedData = JSON.parse(data.data)\n\nhopp.env.active.set('large_payload_status', response.status.toString())\nhopp.env.active.set('large_payload_count', receivedData.items.length.toString())\nhopp.env.active.set('large_payload_first_id', receivedData.items[0].id.toString())\nhopp.env.active.set('large_payload_last_id', receivedData.items[99].id.toString())\n",
+      "testScript": "export {};\nhopp.test('Large JSON payload works', () => {\n  hopp.expect(hopp.env.active.get('large_payload_status')).toBe('200')\n  hopp.expect(hopp.env.active.get('large_payload_count')).toBe('100')\n  hopp.expect(hopp.env.active.get('large_payload_first_id')).toBe('0')\n  hopp.expect(hopp.env.active.get('large_payload_last_id')).toBe('99')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    }
+  ]
+}

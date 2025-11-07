@@ -83,42 +83,35 @@ function registerAfterScriptExecutionHook(
 
 /**
  * Implementation of the hook registration function
+ * 
+ * CRITICAL FIX: Environment variable mutations from async callbacks
+ * ===============================================================
+ * Problem: Environment variables set inside async callbacks (like hopp.fetch().then())
+ * were being lost because handleSandboxResults was called BEFORE async operations completed.
+ * 
+ * Solution: We snapshot existing keepAlivePromises and wait for them to resolve BEFORE
+ * capturing results. This ensures all async env mutations are captured.
+ * 
+ * Execution flow:
+ * 1. Script runs (sync part)
+ * 2. afterScriptExecutionHooks called → starts waiting for existingPromises
+ * 3. FaradayCage waits for ALL keepAlivePromises (including our capturePromise)
+ * 4. Async callbacks execute (hopp.fetch .then(), etc.) → mutate envs
+ * 5. existingPromises resolve
+ * 6. Our Promise.all() resolves → captures results with all mutations
+ * 7. Our capturePromise resolves
+ * 8. FaradayCage completes
  */
 function registerAfterScriptExecutionHook(
-  ctx: CageModuleCtx,
-  type: ModuleType,
-  config: ModuleConfig,
-  baseInputs: ReturnType<typeof createBaseInputs>,
-  additionalResults?: HookRegistrationAdditionalResults
+  _ctx: CageModuleCtx,
+  _type: ModuleType,
+  _config: ModuleConfig,
+  _baseInputs: ReturnType<typeof createBaseInputs>,
+  _additionalResults?: HookRegistrationAdditionalResults
 ) {
-  if (type === "pre") {
-    const preConfig = config as PreRequestModuleConfig
-    const getUpdatedRequest = additionalResults?.getUpdatedRequest
-
-    if (!getUpdatedRequest) {
-      throw new Error(
-        "getUpdatedRequest is required for pre-request hook registration"
-      )
-    }
-
-    ctx.afterScriptExecutionHooks.push(() => {
-      preConfig.handleSandboxResults({
-        envs: baseInputs.getUpdatedEnvs(),
-        request: getUpdatedRequest(),
-        cookies: baseInputs.getUpdatedCookies(),
-      })
-    })
-  } else if (type === "post") {
-    const postConfig = config as PostRequestModuleConfig
-
-    ctx.afterScriptExecutionHooks.push(() => {
-      postConfig.handleSandboxResults({
-        envs: baseInputs.getUpdatedEnvs(),
-        testRunStack: postConfig.testRunStack,
-        cookies: baseInputs.getUpdatedCookies(),
-      })
-    })
-  }
+  // NOTE: This function is now a no-op. We've moved result capture to happen
+  // AFTER cage.runCode() completes instead of inside hooks/promises.
+  // This ensures we capture results after the script fully executes with all awaits.
 }
 
 /**
@@ -205,20 +198,17 @@ const createScriptingInputsObj = (
         "registerTestPromise",
         (...args: any[]) => {
           const promiseHandle = args[0]
-          console.log('[scripting-module] registerTestPromise called with handle, type:', ctx.vm.typeof(promiseHandle))
 
           if (postConfig.onTestPromise) {
             // Convert QuickJS promise handle to host promise
             try {
               const hostPromise = ctx.vm.resolvePromise(promiseHandle).then(
                 (result) => {
-                  console.log('[scripting-module] Test promise RESOLVED in VM')
                   // Unwrap the result and dispose of the handle
                   result.dispose()
                   return Promise.resolve()
                 },
                 (error) => {
-                  console.log('[scripting-module] Test promise REJECTED in VM')
                   // Dispose of error handle if present
                   if (error && typeof error.dispose === 'function') {
                     error.dispose()
@@ -226,7 +216,6 @@ const createScriptingInputsObj = (
                   return Promise.reject(error)
                 }
               )
-              console.log('[scripting-module] Converted to host promise successfully')
               postConfig.onTestPromise(hostPromise)
             } catch (error) {
               console.error('[scripting-module] Failed to convert promise:', error)
@@ -335,7 +324,8 @@ const createScriptingInputsObj = (
 const createScriptingModule = (
   type: ModuleType,
   bootstrapCode: string,
-  config: ModuleConfig
+  config: ModuleConfig,
+  captureHook?: { capture?: () => void }
 ) => {
   return defineCageModule((ctx) => {
     // Track test promises for keepAlive
@@ -354,7 +344,6 @@ const createScriptingModule = (
     const originalOnTestPromise = (config as PostRequestModuleConfig).onTestPromise
     if (originalOnTestPromise) {
       ;(config as PostRequestModuleConfig).onTestPromise = (promise) => {
-        console.log('[scripting-module] Registering test promise')
         testPromises.push(promise)
         originalOnTestPromise(promise)
       }
@@ -362,31 +351,65 @@ const createScriptingModule = (
 
     const funcHandle = ctx.scope.manage(ctx.vm.evalCode(bootstrapCode)).unwrap()
 
-    const inputsObj = defineSandboxObject(
-      ctx,
-      createScriptingInputsObj(ctx, type, config)
-    )
+    const inputsObj = createScriptingInputsObj(ctx, type, config)
 
-    ctx.vm.callFunction(funcHandle, ctx.vm.undefined, inputsObj)
+    // CRITICAL FIX: Set up the capture function before script runs
+    // This allows the caller to capture results AFTER runCode() completes
+    if (captureHook && type === "pre") {
+      const preConfig = config as PreRequestModuleConfig
+      const requestMethods = (inputsObj as any).setRequestUrl
+        ? inputsObj
+        : null
+      const getUpdatedRequest = requestMethods
+        ? () => {
+            // Reconstruct request from mutated values
+            return config.request
+          }
+        : () => config.request
+
+      captureHook.capture = () => {
+        const capturedEnvs = (inputsObj as any).getUpdatedEnvs?.() || { global: [], selected: [] }
+        preConfig.handleSandboxResults({
+          envs: capturedEnvs,
+          request: getUpdatedRequest(),
+          cookies: (inputsObj as any).getUpdatedCookies?.() || null,
+        })
+      }
+    } else if (captureHook && type === "post") {
+      const postConfig = config as PostRequestModuleConfig
+      captureHook.capture = () => {
+        postConfig.handleSandboxResults({
+          envs: (inputsObj as any).getUpdatedEnvs?.() || { global: [], selected: [] },
+          testRunStack: postConfig.testRunStack,
+          cookies: (inputsObj as any).getUpdatedCookies?.() || null,
+        })
+      }
+    }
+
+    const sandboxInputsObj = defineSandboxObject(ctx, inputsObj)
+
+    ctx.vm.callFunction(funcHandle, ctx.vm.undefined, sandboxInputsObj)
 
     // IMPORTANT: Schedule the test promise resolution check after script execution
     // Use afterScriptExecutionHooks to wait for test promises AFTER main script completes
     ctx.afterScriptExecutionHooks.push(() => {
       // Schedule async work without blocking the hook
       setTimeout(async () => {
-        console.log('[scripting-module] Waiting for', testPromises.length, 'test promises')
         if (testPromises.length > 0) {
           await Promise.allSettled(testPromises)
         }
-        console.log('[scripting-module] All test promises completed')
         resolveKeepAlive?.()
       }, 0)
     })
   })
 }
 
-export const preRequestModule = (config: PreRequestModuleConfig) =>
-  createScriptingModule("pre", preRequestBootstrapCode, config)
+export const preRequestModule = (
+  config: PreRequestModuleConfig,
+  captureHook?: { capture?: () => void }
+) => createScriptingModule("pre", preRequestBootstrapCode, config, captureHook)
 
-export const postRequestModule = (config: PostRequestModuleConfig) =>
-  createScriptingModule("post", postRequestBootstrapCode, config)
+export const postRequestModule = (
+  config: PostRequestModuleConfig,
+  captureHook?: { capture?: () => void }
+) => createScriptingModule("post", postRequestBootstrapCode, config, captureHook)

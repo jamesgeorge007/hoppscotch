@@ -40,39 +40,32 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     // Register async hook to wait for all fetch operations
     // NOTE: Type says (() => void) but faraday-cage's own fetch module uses async functions
     ctx.afterScriptExecutionHooks.push((async () => {
-      console.log('[custom-fetch] afterScriptExecutionHook started, pending operations:', pendingOperations.length)
-
       // Poll until all operations are complete with grace period
       let emptyRounds = 0
       const maxEmptyRounds = 5
 
       while (emptyRounds < maxEmptyRounds) {
         if (pendingOperations.length > 0) {
-          console.log('[custom-fetch] Waiting for', pendingOperations.length, 'operations')
           emptyRounds = 0
           await Promise.allSettled(pendingOperations)
           await new Promise((r) => setTimeout(r, 10))
         } else {
           emptyRounds++
-          console.log('[custom-fetch] Grace period round', emptyRounds, '/', maxEmptyRounds)
           // Grace period: wait for VM to process jobs
           await new Promise((r) => setTimeout(r, 10))
         }
       }
-      console.log('[custom-fetch] afterScriptExecutionHook completed, resolving keepAlive')
       resolveKeepAlive?.()
     }) as any) // Cast needed because types say (() => void) but runtime supports async
 
     // Track async operations
     const trackAsyncOperation = <T>(promise: Promise<T>): Promise<T> => {
-      console.log('[custom-fetch] Tracking async operation, total pending:', pendingOperations.length + 1)
       pendingOperations.push(promise)
       return promise.finally(() => {
         const index = pendingOperations.indexOf(promise)
         if (index > -1) {
           pendingOperations.splice(index, 1)
         }
-        console.log('[custom-fetch] Async operation completed, remaining:', pendingOperations.length)
       })
     }
 
@@ -105,7 +98,6 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     // Define fetch function in the sandbox
     const fetchFn = defineSandboxFunctionRaw(ctx, "fetch", (...args) => {
       const [input, init] = args.map((arg) => ctx.vm.dump(arg))
-      console.log('[custom-fetch] fetch() called with URL:', input)
 
       const promiseHandle = ctx.scope.manage(
         ctx.vm.newPromise((resolve, reject) => {
@@ -113,12 +105,6 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
           fetchPromise
             .then((response) => {
-              console.log('[custom-fetch] fetchImpl resolved, response:', {
-                status: response.status,
-                ok: response.ok,
-                hasBodyBytes: !!(response as any)._bodyBytes,
-                bodyBytesLength: (response as any)._bodyBytes?.length
-              })
               // Cast to SerializableResponse to access _bodyBytes
               const serializableResponse = response as SerializableResponse
 
@@ -144,7 +130,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
               // Create headers object with Headers-like interface
               const headersObj = ctx.scope.manage(ctx.vm.newObject())
-              const headersMap = (serializableResponse.headers as unknown as Record<string, string>) || {}
+              // Use _headersData which contains only header key-value pairs (no methods)
+              const headersMap = ((serializableResponse as any)._headersData as Record<string, string>) || {}
 
               // Set individual header properties
               for (const [key, value] of Object.entries(headersMap)) {
@@ -156,13 +143,23 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
               }
 
               // Add entries() method for Headers compatibility
+              // Returns an array of [key, value] pairs
+              // QuickJS arrays are iterable by default, so for...of will work
               const entriesFn = defineSandboxFunctionRaw(ctx, "entries", () => {
                 const entriesArray = ctx.scope.manage(ctx.vm.newArray())
                 let index = 0
                 for (const [key, value] of Object.entries(headersMap)) {
                   const entry = ctx.scope.manage(ctx.vm.newArray())
-                  ctx.vm.setProp(entry, 0, ctx.scope.manage(ctx.vm.newString(key)))
-                  ctx.vm.setProp(entry, 1, ctx.scope.manage(ctx.vm.newString(String(value))))
+                  ctx.vm.setProp(
+                    entry,
+                    0,
+                    ctx.scope.manage(ctx.vm.newString(key))
+                  )
+                  ctx.vm.setProp(
+                    entry,
+                    1,
+                    ctx.scope.manage(ctx.vm.newString(String(value)))
+                  )
                   ctx.vm.setProp(entriesArray, index++, entry)
                 }
                 return entriesArray
@@ -191,27 +188,19 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
               // Add json() method - returns promise
               const jsonFn = defineSandboxFunctionRaw(ctx, "json", () => {
-                console.log('[custom-fetch] json() method called')
-
                 // Parse synchronously and create a VM promise that resolves immediately
                 const vmPromise = ctx.vm.newPromise((resolve, reject) => {
                   try {
-                    console.log('[custom-fetch] json() parsing data, bodyBytes length:', bodyBytes.length)
-
                     // Filter out null bytes (some interceptors add trailing null bytes)
                     // Find the first null byte and truncate there, or use all bytes if no null
                     const nullByteIndex = bodyBytes.indexOf(0)
                     const cleanBytes = nullByteIndex >= 0 ? bodyBytes.slice(0, nullByteIndex) : bodyBytes
 
-                    console.log('[custom-fetch] After null byte cleanup, length:', cleanBytes.length)
-
                     const text = new TextDecoder().decode(new Uint8Array(cleanBytes))
                     const parsed = JSON.parse(text)
                     const marshalledResult = marshalValue(parsed)
-                    console.log('[custom-fetch] json() parsing complete, resolving VM promise')
                     resolve(marshalledResult)
                   } catch (error) {
-                    console.error('[custom-fetch] json() ERROR:', error)
                     reject(
                       ctx.scope.manage(
                         ctx.vm.newError({
@@ -257,11 +246,9 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
               ctx.vm.setProp(responseObj, "text", textFn)
 
-              console.log('[custom-fetch] Resolving VM promise with response object')
               resolve(responseObj)
             })
             .catch((error) => {
-              console.error('[custom-fetch] fetchImpl rejected:', error)
               reject(
                 ctx.scope.manage(
                   ctx.vm.newError({

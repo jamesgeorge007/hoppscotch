@@ -28,27 +28,36 @@ export const runPostRequestScriptWithFaradayCage = (
         const cage = await FaradayCage.create()
 
         try {
+          const captureHook: { capture?: () => void } = {}
+
           const result = await cage.runCode(testScript, [
             ...defaultModules({
               hoppFetchHook,
             }),
 
-            postRequestModule({
-              envs: cloneDeep(envs),
-              testRunStack: cloneDeep(testRunStack),
-              request: cloneDeep(request),
-              response: cloneDeep(response),
-              // TODO: Post type update, accommodate for cookies although platform support is limited
-              cookies: null,
-              handleSandboxResults: ({ envs, testRunStack }) => {
-                finalEnvs = envs
-                finalTestResults = testRunStack
+            postRequestModule(
+              {
+                envs: cloneDeep(envs),
+                testRunStack: cloneDeep(testRunStack),
+                request: cloneDeep(request),
+                response: cloneDeep(response),
+                // TODO: Post type update, accommodate for cookies although platform support is limited
+                cookies: null,
+                handleSandboxResults: ({ envs, testRunStack }) => {
+                  finalEnvs = envs
+                  finalTestResults = testRunStack
+                },
+                onTestPromise: (promise) => {
+                  testPromises.push(promise)
+                },
               },
-              onTestPromise: (promise) => {
-                testPromises.push(promise)
-              },
-            }),
+              captureHook
+            ),
           ])
+
+          if (captureHook.capture) {
+            captureHook.capture()
+          }
 
           if (result.type === "error") {
             throw result.err
