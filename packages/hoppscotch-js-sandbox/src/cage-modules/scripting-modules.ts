@@ -3,6 +3,7 @@ import {
   CageModuleCtx,
   defineCageModule,
   defineSandboxFn,
+  defineSandboxFunctionRaw,
   defineSandboxObject,
 } from "faraday-cage/modules"
 
@@ -199,13 +200,40 @@ const createScriptingInputsObj = (
           postConfig.testRunStack.length - 1
         ].children.push(child)
       }),
-      registerTestPromise: defineSandboxFn(
+      registerTestPromise: defineSandboxFunctionRaw(
         ctx,
         "registerTestPromise",
-        function registerTestPromise(promise: unknown) {
-          if (postConfig.onTestPromise && typeof promise === "object" && promise !== null) {
-            postConfig.onTestPromise(promise as Promise<void>)
+        (...args: any[]) => {
+          const promiseHandle = args[0]
+          console.log('[scripting-module] registerTestPromise called with handle, type:', ctx.vm.typeof(promiseHandle))
+
+          if (postConfig.onTestPromise) {
+            // Convert QuickJS promise handle to host promise
+            try {
+              const hostPromise = ctx.vm.resolvePromise(promiseHandle).then(
+                (result) => {
+                  console.log('[scripting-module] Test promise RESOLVED in VM')
+                  // Unwrap the result and dispose of the handle
+                  result.dispose()
+                  return Promise.resolve()
+                },
+                (error) => {
+                  console.log('[scripting-module] Test promise REJECTED in VM')
+                  // Dispose of error handle if present
+                  if (error && typeof error.dispose === 'function') {
+                    error.dispose()
+                  }
+                  return Promise.reject(error)
+                }
+              )
+              console.log('[scripting-module] Converted to host promise successfully')
+              postConfig.onTestPromise(hostPromise)
+            } catch (error) {
+              console.error('[scripting-module] Failed to convert promise:', error)
+            }
           }
+
+          return ctx.vm.undefined
         }
       ),
       getResponse: defineSandboxFn(ctx, "getResponse", function getResponse() {
@@ -310,6 +338,28 @@ const createScriptingModule = (
   config: ModuleConfig
 ) => {
   return defineCageModule((ctx) => {
+    // Track test promises for keepAlive
+    const testPromises: Promise<unknown>[] = []
+    let resolveKeepAlive: (() => void) | null = null
+
+    // Create keepAlive promise that waits for all test promises
+    // This promise is created BEFORE the script runs, but only resolves after tests complete
+    const testPromiseKeepAlive = new Promise<void>((resolve) => {
+      resolveKeepAlive = resolve
+    })
+
+    ctx.keepAlivePromises.push(testPromiseKeepAlive)
+
+    // Wrap onTestPromise to track in testPromises array
+    const originalOnTestPromise = (config as PostRequestModuleConfig).onTestPromise
+    if (originalOnTestPromise) {
+      ;(config as PostRequestModuleConfig).onTestPromise = (promise) => {
+        console.log('[scripting-module] Registering test promise')
+        testPromises.push(promise)
+        originalOnTestPromise(promise)
+      }
+    }
+
     const funcHandle = ctx.scope.manage(ctx.vm.evalCode(bootstrapCode)).unwrap()
 
     const inputsObj = defineSandboxObject(
@@ -318,6 +368,20 @@ const createScriptingModule = (
     )
 
     ctx.vm.callFunction(funcHandle, ctx.vm.undefined, inputsObj)
+
+    // IMPORTANT: Schedule the test promise resolution check after script execution
+    // Use afterScriptExecutionHooks to wait for test promises AFTER main script completes
+    ctx.afterScriptExecutionHooks.push(() => {
+      // Schedule async work without blocking the hook
+      setTimeout(async () => {
+        console.log('[scripting-module] Waiting for', testPromises.length, 'test promises')
+        if (testPromises.length > 0) {
+          await Promise.allSettled(testPromises)
+        }
+        console.log('[scripting-module] All test promises completed')
+        resolveKeepAlive?.()
+      }, 0)
+    })
   })
 }
 

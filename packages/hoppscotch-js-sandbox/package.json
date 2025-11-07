@@ -54,13 +54,14 @@
     "@hoppscotch/data": "workspace:^",
     "@types/lodash-es": "4.17.12",
     "chai": "6.2.0",
-    "faraday-cage": "^0.1.0",
+    "faraday-cage": "file:../../../faraday-cage",
     "fp-ts": "2.16.11",
     "lodash": "4.17.21",
     "lodash-es": "4.17.21"
   },
   "devDependencies": {
     "@digitak/esrun": "3.2.26",
+    "@playwright/test": "1.56.1",
     "@relmify/jest-fp-ts": "2.1.1",
     "@types/chai": "5.2.2",
     "@types/jest": "30.0.0",
@@ -72,6 +73,7 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.4",
     "io-ts": "2.2.22",
+    "playwright": "1.56.1",
     "prettier": "3.6.2",
     "typescript": "5.9.3",
     "vite": "6.3.6",

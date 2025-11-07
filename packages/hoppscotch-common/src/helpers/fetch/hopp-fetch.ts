@@ -180,11 +180,15 @@ function convertRelayResponseToSerializableResponse(
 
   // Extract the actual body data - it's nested inside relayResponse.body.body
   const actualBody = relayResponse.body?.body || relayResponse.body
+  console.log('[hopp-fetch] actualBody type:', actualBody?.constructor?.name, 'isArray:', Array.isArray(actualBody))
 
   if (actualBody) {
     if (Array.isArray(actualBody)) {
       // Already an array
       bodyBytes = actualBody
+    } else if (actualBody instanceof ArrayBuffer) {
+      // ArrayBuffer (used by Agent interceptor) - convert to plain array
+      bodyBytes = Array.from(new Uint8Array(actualBody))
     } else if (actualBody instanceof Uint8Array) {
       // Uint8Array - convert to plain array
       bodyBytes = Array.from(actualBody)
@@ -205,6 +209,8 @@ function convertRelayResponseToSerializableResponse(
       }
     }
   }
+
+  console.log('[hopp-fetch] Final bodyBytes length:', bodyBytes.length, 'first 20 bytes:', bodyBytes.slice(0, 20))
 
   // Create Response-like object with all methods implemented using stored data
   const serializableResponse = {
@@ -240,13 +246,9 @@ function convertRelayResponseToSerializableResponse(
     },
     _bodyBytes: bodyBytes,
 
-    // Implement Response body methods
-    async arrayBuffer(): Promise<ArrayBuffer> {
-      return new Uint8Array(this._bodyBytes).buffer
-    },
-
+    // Body methods - will be overridden by custom fetch module with VM-native versions
     async text(): Promise<string> {
-      return new TextDecoder().decode(new Uint8Array(this._bodyBytes))
+      return new TextDecoder().decode(new Uint8Array(bodyBytes))
     },
 
     async json(): Promise<any> {
@@ -254,12 +256,12 @@ function convertRelayResponseToSerializableResponse(
       return JSON.parse(text)
     },
 
-    async blob(): Promise<Blob> {
-      return new Blob([new Uint8Array(this._bodyBytes)])
+    async arrayBuffer(): Promise<ArrayBuffer> {
+      return new Uint8Array(bodyBytes).buffer
     },
 
-    async formData(): Promise<FormData> {
-      throw new Error("FormData parsing not implemented in hopp.fetch()")
+    async blob(): Promise<Blob> {
+      return new Blob([new Uint8Array(bodyBytes)])
     },
 
     // Required Response properties
@@ -267,11 +269,6 @@ function convertRelayResponseToSerializableResponse(
     url: "",
     redirected: false,
     bodyUsed: false,
-
-    // Clone method
-    clone(): Response {
-      return { ...this, _bodyBytes: [...this._bodyBytes] } as unknown as Response
-    },
   }
 
   // Cast to Response for type compatibility
