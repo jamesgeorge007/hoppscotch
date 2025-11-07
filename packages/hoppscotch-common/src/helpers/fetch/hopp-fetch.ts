@@ -25,6 +25,8 @@ export const createHoppFetchHook = (
           : input.url
     const method = (init?.method || "GET").toUpperCase()
 
+    console.log('[hopp-fetch] Called with URL:', urlStr, 'method:', method)
+
     // Track the fetch call for inspector warnings
     onFetchCall?.({
       url: urlStr,
@@ -34,13 +36,26 @@ export const createHoppFetchHook = (
 
     // Convert Fetch API request to RelayRequest
     const relayRequest = await convertFetchToRelayRequest(input, init)
+    console.log('[hopp-fetch] RelayRequest created:', {
+      id: relayRequest.id,
+      url: relayRequest.url,
+      method: relayRequest.method,
+      hasParams: !!relayRequest.params,
+      hasAuth: !!relayRequest.auth
+    })
 
     // Execute via interceptor
     const execution = kernelInterceptor.execute(relayRequest)
+    console.log('[hopp-fetch] Waiting for interceptor response...')
     const result = await execution.response
+    console.log('[hopp-fetch] Got result, isLeft:', E.isLeft(result), 'isRight:', E.isRight(result))
 
     if (E.isLeft(result)) {
       const error = result.left
+      console.error('[hopp-fetch] Interceptor returned error:', error)
+      console.error('[hopp-fetch] Error type:', typeof error)
+      console.error('[hopp-fetch] Error keys:', error && typeof error === 'object' ? Object.keys(error) : 'N/A')
+
       const errorMessage =
         typeof error === "string"
           ? error
@@ -55,7 +70,9 @@ export const createHoppFetchHook = (
     // Convert RelayResponse to serializable Response-like object
     // CRITICAL: Cannot return native Response - it cannot cross QuickJS boundary
     // Native Response has internal state that becomes invalid after cage disposal
-    return convertRelayResponseToSerializableResponse(result.right)
+    const serializableResponse = convertRelayResponseToSerializableResponse(result.right)
+    console.log('[hopp-fetch] Returning response, status:', serializableResponse.status, '_bodyBytes length:', (serializableResponse as any)._bodyBytes?.length)
+    return serializableResponse
   }
 }
 
@@ -140,8 +157,10 @@ async function convertFetchToRelayRequest(
     id: Math.floor(Math.random() * 1000000), // Random ID for tracking
     url: urlStr,
     method,
-    version: "1", // Relay version
+    version: "HTTP/1.1", // HTTP version
     headers: Object.keys(headers).length > 0 ? headers : undefined,
+    params: undefined, // Undefined so preProcessRelayRequest doesn't try to process it
+    auth: { kind: "none" }, // Required field - no auth for fetch()
     content,
     // Note: auth, proxy, security are inherited from interceptor configuration
   }

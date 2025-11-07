@@ -37,32 +37,31 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
     ctx.keepAlivePromises.push(keepAlivePromise)
 
-    // Register SYNCHRONOUS hook that schedules async work
-    ctx.afterScriptExecutionHooks.push(() => {
-      // Schedule async work with setTimeout to avoid blocking the hook
-      setTimeout(async () => {
-        console.log('[custom-fetch] afterScriptExecutionHook started, pending operations:', pendingOperations.length)
-        // Poll until all operations are complete with grace period
-        let emptyRounds = 0
-        const maxEmptyRounds = 5
+    // Register async hook to wait for all fetch operations
+    // NOTE: Type says (() => void) but faraday-cage's own fetch module uses async functions
+    ctx.afterScriptExecutionHooks.push((async () => {
+      console.log('[custom-fetch] afterScriptExecutionHook started, pending operations:', pendingOperations.length)
 
-        while (emptyRounds < maxEmptyRounds) {
-          if (pendingOperations.length > 0) {
-            console.log('[custom-fetch] Waiting for', pendingOperations.length, 'operations')
-            emptyRounds = 0
-            await Promise.allSettled(pendingOperations)
-            await new Promise((r) => setTimeout(r, 10))
-          } else {
-            emptyRounds++
-            console.log('[custom-fetch] Grace period round', emptyRounds, '/', maxEmptyRounds)
-            // Grace period: wait for VM to process jobs
-            await new Promise((r) => setTimeout(r, 10))
-          }
+      // Poll until all operations are complete with grace period
+      let emptyRounds = 0
+      const maxEmptyRounds = 5
+
+      while (emptyRounds < maxEmptyRounds) {
+        if (pendingOperations.length > 0) {
+          console.log('[custom-fetch] Waiting for', pendingOperations.length, 'operations')
+          emptyRounds = 0
+          await Promise.allSettled(pendingOperations)
+          await new Promise((r) => setTimeout(r, 10))
+        } else {
+          emptyRounds++
+          console.log('[custom-fetch] Grace period round', emptyRounds, '/', maxEmptyRounds)
+          // Grace period: wait for VM to process jobs
+          await new Promise((r) => setTimeout(r, 10))
         }
-        console.log('[custom-fetch] afterScriptExecutionHook completed, resolving keepAlive')
-        resolveKeepAlive?.()
-      }, 0)
-    })
+      }
+      console.log('[custom-fetch] afterScriptExecutionHook completed, resolving keepAlive')
+      resolveKeepAlive?.()
+    }) as any) // Cast needed because types say (() => void) but runtime supports async
 
     // Track async operations
     const trackAsyncOperation = <T>(promise: Promise<T>): Promise<T> => {
@@ -106,6 +105,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     // Define fetch function in the sandbox
     const fetchFn = defineSandboxFunctionRaw(ctx, "fetch", (...args) => {
       const [input, init] = args.map((arg) => ctx.vm.dump(arg))
+      console.log('[custom-fetch] fetch() called with URL:', input)
 
       const promiseHandle = ctx.scope.manage(
         ctx.vm.newPromise((resolve, reject) => {
@@ -113,6 +113,12 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
           fetchPromise
             .then((response) => {
+              console.log('[custom-fetch] fetchImpl resolved, response:', {
+                status: response.status,
+                ok: response.ok,
+                hasBodyBytes: !!(response as any)._bodyBytes,
+                bodyBytesLength: (response as any)._bodyBytes?.length
+              })
               // Cast to SerializableResponse to access _bodyBytes
               const serializableResponse = response as SerializableResponse
 
@@ -251,9 +257,11 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
               ctx.vm.setProp(responseObj, "text", textFn)
 
+              console.log('[custom-fetch] Resolving VM promise with response object')
               resolve(responseObj)
             })
             .catch((error) => {
+              console.error('[custom-fetch] fetchImpl rejected:', error)
               reject(
                 ctx.scope.manage(
                   ctx.vm.newError({
