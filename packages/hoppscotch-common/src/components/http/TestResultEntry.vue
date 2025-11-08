@@ -1,14 +1,16 @@
 <template>
-  <div>
+  <!-- Only render the entire test entry if it has expect results
+       This prevents showing test descriptors with no assertions -->
+  <div v-if="hasResults">
     <span
       v-if="testResults.description"
       class="flex items-center px-4 py-2 font-bold text-secondaryDark"
     >
       {{ testResults.description }}
     </span>
-    <div v-if="testResults.expectResults" class="divide-y divide-dividerLight">
+    <div class="divide-y divide-dividerLight">
       <HttpTestResultReport
-        v-if="testResults.expectResults.length && !shouldHideResultReport"
+        v-if="!shouldHideResultReport"
         :test-results="testResults"
       />
 
@@ -90,5 +92,13 @@ const shouldHideResultReport = computed(() => {
   return props.testResults.expectResults.some(
     (result) => result.status === "pass" || result.status === "fail"
   )
+})
+
+/**
+ * Only show test entry if it has expect results
+ * This prevents showing empty test descriptors during async operations
+ */
+const hasResults = computed(() => {
+  return props.testResults.expectResults && props.testResults.expectResults.length > 0
 })
 </script>

@@ -89,11 +89,7 @@ const runPostRequestScriptWithFaradayCage = async (
       ),
     ])
 
-    // CRITICAL: Capture results AFTER runCode() completes
-    if (captureHook.capture) {
-      captureHook.capture()
-    }
-
+    // Check for script execution errors first
     if (result.type === "error") {
       if (
         result.err !== null &&
@@ -106,9 +102,16 @@ const runPostRequestScriptWithFaradayCage = async (
       return E.left(`Script execution failed: ${String(result.err)}`)
     }
 
-    // Wait for any async test functions to complete
+    // CRITICAL: Wait for async test functions BEFORE capturing results
+    // This ensures test assertions in async callbacks complete before we return results
     if (testPromises.length > 0) {
       await Promise.all(testPromises)
+    }
+
+    // Capture results AFTER all async tests complete
+    // This prevents showing intermediate/failed state in UI
+    if (captureHook.capture) {
+      captureHook.capture()
     }
 
     return E.right(<SandboxTestResult>{

@@ -55,17 +55,20 @@ export const runPostRequestScriptWithFaradayCage = (
             ),
           ])
 
-          if (captureHook.capture) {
-            captureHook.capture()
-          }
-
           if (result.type === "error") {
             throw result.err
           }
 
-          // Wait for any async test functions to complete
+          // CRITICAL: Wait for async test functions BEFORE capturing results
+          // This ensures test assertions in async callbacks complete before we return results
           if (testPromises.length > 0) {
             await Promise.all(testPromises)
+          }
+
+          // Capture results AFTER all async tests complete
+          // This prevents showing intermediate/failed state
+          if (captureHook.capture) {
+            captureHook.capture()
           }
 
           return {

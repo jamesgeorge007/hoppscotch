@@ -243,7 +243,7 @@ import { useReadonlyStream, useStreamSubscriber } from "@composables/stream"
 import { useToast } from "@composables/toast"
 import { useVModel } from "@vueuse/core"
 import * as E from "fp-ts/Either"
-import { computed, ref, onUnmounted } from "vue"
+import { computed, nextTick, ref, onUnmounted } from "vue"
 import { defineActionHandler, invokeAction } from "~/helpers/actions"
 import { runMutation } from "~/helpers/backend/GQLClient"
 import { UpdateRequestDocument } from "~/helpers/backend/graphql"
@@ -344,9 +344,28 @@ const newSendRequest = async () => {
     return
   }
 
-  ensureMethodInEndpoint()
+  // Set response to loading type IMMEDIATELY - this changes Send -> Cancel button
+  // This must be synchronous for instant UI feedback
+  tab.value.document.response = {
+    type: "loading" as const,
+    req: tab.value.document.request
+  }
 
+  // Also set loading ref for internal state
   loading.value = true
+
+  // Force Vue to flush DOM updates AND wait for browser to paint
+  // Double RAF ensures the loading state is actually visible before any blocking work
+  await nextTick()
+  await new Promise(resolve => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        resolve(undefined)
+      })
+    })
+  })
+
+  ensureMethodInEndpoint()
 
   // Log the request run into analytics
   platform.analytics?.logEvent({

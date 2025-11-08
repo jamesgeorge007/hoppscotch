@@ -7,7 +7,7 @@ import {
 import { Service } from "dioc"
 import * as E from "fp-ts/Either"
 import { cloneDeep } from "lodash-es"
-import { Ref } from "vue"
+import { nextTick, Ref } from "vue"
 import {
   captureInitialEnvironmentState,
   runTestRunnerRequest,
@@ -290,6 +290,10 @@ export class TestRunnerService extends Service {
         isLoading: true,
         error: undefined,
       })
+
+      // Force Vue to flush DOM updates before starting async work
+      // This ensures the loading state (Send -> Cancel button) appears immediately
+      await nextTick()
 
       // Capture the initial environment state for a test run so that it remains consistent and unchanged when current environment changes
       const initialEnvironmentState = captureInitialEnvironmentState()

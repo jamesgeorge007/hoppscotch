@@ -115,9 +115,13 @@
             </div>
           </details>
         </div>
-        <div v-if="testResults.tests" class="divide-y-4 divide-dividerLight">
+        <!-- Only show nested tests if they have content
+             This prevents showing empty test descriptors during async operations -->
+        <div v-if="testResults.tests && testResults.tests.length > 0" class="divide-y-4 divide-dividerLight">
           <HttpTestResultEntry
-            v-for="(result, index) in testResults.tests"
+            v-for="(result, index) in testResults.tests.filter(test =>
+              test.expectResults && test.expectResults.length > 0
+            )"
             :key="`result-${index}`"
             :test-results="result"
           />

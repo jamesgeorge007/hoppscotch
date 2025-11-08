@@ -125,14 +125,16 @@ export class ProxyKernelInterceptorService
               for (let i = 0; i < binaryString.length; i++) {
                 bytes[i] = binaryString.charCodeAt(i)
               }
-              requestData = new Blob([bytes.buffer])
+              // Pass the Uint8Array directly, not .buffer, to avoid offset issues
+              requestData = new Blob([bytes])
             } catch (e) {
               console.error("Error converting binary data:", e)
               requestData = request.content.content
             }
           } else if (request.content.content instanceof Uint8Array) {
             // Convert Uint8Array to Blob for proxy compatibility
-            requestData = new Blob([request.content.content.buffer])
+            // Pass the Uint8Array directly, not .buffer, to avoid offset issues
+            requestData = new Blob([request.content.content])
           } else {
             requestData = request.content.content
           }

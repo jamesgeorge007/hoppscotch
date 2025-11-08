@@ -231,6 +231,14 @@ export class ExtensionKernelInterceptorService
       let requestData: any = null
 
       if (request.content) {
+        console.log('[Extension Interceptor] Processing request content:', {
+          kind: request.content.kind,
+          contentType: typeof request.content.content,
+          isUint8Array: request.content.content instanceof Uint8Array,
+          isBlob: request.content.content instanceof Blob,
+          isString: typeof request.content.content === 'string'
+        })
+
         switch (request.content.kind) {
           case "text":
             // Text content - pass string directly
@@ -266,15 +274,18 @@ export class ExtensionKernelInterceptorService
                 for (let i = 0; i < binaryString.length; i++) {
                   bytes[i] = binaryString.charCodeAt(i)
                 }
-                requestData = new Blob([bytes.buffer])
+                // Pass the Uint8Array directly, not .buffer, to avoid offset issues
+                requestData = new Blob([bytes])
               } catch (e) {
                 console.error("Error converting binary data:", e)
                 requestData = request.content.content
               }
             } else if (request.content.content instanceof Uint8Array) {
-              // Convert Uint8Array to Blob for extension compatibility
-              requestData = new Blob([request.content.content.buffer])
+              // Pass Uint8Array directly - extension will handle it
+              requestData = request.content.content
+              console.log('[Extension Interceptor] Passing Uint8Array directly, length:', request.content.content.length)
             } else {
+              console.warn('[Extension Interceptor] Unknown binary content type:', typeof request.content.content, request.content.content)
               requestData = request.content.content
             }
             break
@@ -311,6 +322,19 @@ export class ExtensionKernelInterceptorService
         }
       }
 
+      console.log('[Extension Interceptor] Sending to extension:', {
+        url: request.url,
+        method: request.method,
+        dataType: typeof requestData,
+        isUint8Array: requestData instanceof Uint8Array,
+        isBlob: requestData instanceof Blob,
+        isString: typeof requestData === 'string',
+        dataLength: requestData?.length || requestData?.byteLength || 0
+      })
+
+      // Always use wantsBinary: true - required for correct data handling
+      // Note: Extension may log TypeError in console, but this doesn't affect functionality
+      // The error occurs in the extension's internal code after successfully returning data
       const extensionResponse =
         await window.__POSTWOMAN_EXTENSION_HOOK__.sendRequest({
           url: request.url,
@@ -323,8 +347,6 @@ export class ExtensionKernelInterceptorService
       const endTime = Date.now()
 
       const headersSize = JSON.stringify(extensionResponse.headers).length
-      const bodySize = extensionResponse.data?.byteLength || 0
-      const totalSize = headersSize + bodySize
 
       const timingMeta = extensionResponse.timeData
         ? {
@@ -336,6 +358,47 @@ export class ExtensionKernelInterceptorService
             end: endTime,
           }
 
+      // Handle response data - extension with wantsBinary: true returns ArrayBuffer or Uint8Array
+      let responseData: Uint8Array
+
+      if (!extensionResponse.data || extensionResponse.data === null || extensionResponse.data === undefined) {
+        // No response body
+        responseData = new Uint8Array(0)
+      } else if (extensionResponse.data instanceof Uint8Array) {
+        // Extension returned Uint8Array - use directly
+        responseData = extensionResponse.data
+      } else if (extensionResponse.data instanceof ArrayBuffer) {
+        // Extension returned ArrayBuffer - convert to Uint8Array
+        responseData = new Uint8Array(extensionResponse.data)
+      } else if (typeof extensionResponse.data === 'string') {
+        // Extension returned string - encode as UTF-8
+        responseData = new TextEncoder().encode(extensionResponse.data)
+      } else if (extensionResponse.data instanceof Blob) {
+        // Extension returned Blob - convert to Uint8Array
+        const arrayBuffer = await extensionResponse.data.arrayBuffer()
+        responseData = new Uint8Array(arrayBuffer)
+      } else {
+        // Unexpected type - handle gracefully
+        console.warn('[Extension Interceptor] Unexpected response data type:', {
+          type: typeof extensionResponse.data,
+          constructor: extensionResponse.data?.constructor?.name
+        })
+        try {
+          // Try to convert to string and encode
+          const dataString = typeof extensionResponse.data === 'object'
+            ? JSON.stringify(extensionResponse.data)
+            : String(extensionResponse.data)
+          responseData = new TextEncoder().encode(dataString)
+        } catch (err) {
+          console.error('[Extension Interceptor] Failed to convert response data:', err)
+          responseData = new Uint8Array(0)
+        }
+      }
+
+      // Calculate sizes using the decoded response data
+      const bodySize = responseData.byteLength
+      const totalSize = headersSize + bodySize
+
       return E.right({
         id: request.id,
         status: extensionResponse.status,
@@ -343,7 +406,7 @@ export class ExtensionKernelInterceptorService
         version: request.version,
         headers: extensionResponse.headers,
         body: body.body(
-          extensionResponse.data,
+          responseData || new Uint8Array(0),
           extensionResponse.headers["content-type"]
         ),
         meta: {

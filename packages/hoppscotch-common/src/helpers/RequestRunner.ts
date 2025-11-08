@@ -742,7 +742,7 @@ const getCookieJarEntries = () => {
  * @returns The response and the test result
  */
 
-export function runTestRunnerRequest(
+export async function runTestRunnerRequest(
   request: HoppRESTRequest,
   persistEnv = true,
   inheritedVariables: HoppCollectionVariable[] = [],
@@ -767,6 +767,17 @@ export function runTestRunnerRequest(
     initialEnvs,
     initialEnvsForComparison,
   } = initialEnvironmentState
+
+  // Give browser time to paint the loading state before starting pre-request script
+  // Double RAF ensures browser has actually rendered the DOM update
+  // This is critical for requests with async pre-request scripts
+  await new Promise(resolve => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        resolve(undefined)
+      })
+    })
+  })
 
   return delegatePreRequestScriptRunner(
     request,
@@ -983,14 +994,17 @@ function translateToSandboxTestResults(
   const translateChildTests = (child: TestDescriptor): HoppTestData => {
     return {
       description: child.descriptor,
-      expectResults: child.expectResults,
+      // Deep clone expectResults to prevent reactive updates during async test execution
+      // Without this, Vue would show intermediate states as the test runner mutates the arrays
+      expectResults: [...child.expectResults],
       tests: child.children.map(translateChildTests),
     }
   }
 
   return {
     description: "",
-    expectResults: testDesc.tests.expectResults,
+    // Deep clone expectResults to prevent reactive updates during async test execution
+    expectResults: [...testDesc.tests.expectResults],
     tests: testDesc.tests.children.map(translateChildTests),
     scriptError: false,
     envDiff: {

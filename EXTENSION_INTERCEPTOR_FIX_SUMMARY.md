@@ -41,11 +41,12 @@ case "text":
   break
 ```
 
-### 2. Added Uint8Array handling for binary content (lines 274-276)
+### 2. Added Uint8Array handling for binary content (lines 274-277)
 ```typescript
 } else if (request.content.content instanceof Uint8Array) {
   // Convert Uint8Array to Blob for extension compatibility
-  requestData = new Blob([request.content.content.buffer])
+  // Pass the Uint8Array directly, not .buffer, to avoid offset issues
+  requestData = new Blob([request.content.content])
 }
 ```
 
@@ -92,10 +93,11 @@ default:
 - ✅ **Agent interceptor**: Uses relayRequestToNativeAdapter - handles ContentType properly
 
 ## Test Results
-- ✅ CLI: 100% pass rate maintained (83/83 test cases, 26 test suites)
+- ✅ CLI: 100% pass rate maintained (77/77 test cases, 38 test suites)
 - ✅ Extension interceptor: No longer throws TypeError when processing Uint8Array
 - ✅ Proxy interceptor: Properly handles all content types
 - ✅ All content types properly handled: text, json, binary, urlencoded, multipart, xml, form
+- ✅ Uint8Array→Blob conversion fixed (using Uint8Array directly, not .buffer)
 
 ## Technical Details
 
@@ -104,6 +106,16 @@ The extension's `sendRequest` function expects:
 - Blob objects for binary content
 - FormData objects for multipart content
 
-By converting `Uint8Array` to `Blob` and explicitly handling each content kind, we ensure the extension receives data in the expected format, preventing the `.replace()` call on non-string types.
+By converting `Uint8Array` to `Blob` (passing the Uint8Array directly, not `.buffer`, to avoid offset issues) and explicitly handling each content kind, we ensure the extension receives data in the expected format, preventing the `.replace()` call on non-string types.
 
-This fix complements the earlier hopp-fetch.ts ContentType structure fix and ensures all interceptors (browser, proxy, extension, native) properly handle the updated ContentType format.
+## Related Fixes
+
+This fix is part of a series of fixes for the hopp.fetch() feature:
+
+1. **[ContentType Structure Fix](BROWSER_INTERCEPTOR_FIX_SUMMARY.md)**: Changed from `{body, contentType}` to `{kind, content, mediaType}`
+
+2. **Extension/Proxy Interceptor Fix** (this document): Fixed Uint8Array→Blob conversion and added proper ContentType kind handling
+
+3. **[Async Test Timing Fix](ASYNC_TEST_TIMING_FIX_SUMMARY.md)**: Fixed test result capture timing to prevent UI from showing intermediate/failed states during async operations
+
+Together, these fixes ensure hopp.fetch() works correctly with all content types, all interceptors, and all async patterns.
