@@ -114,18 +114,23 @@ const runPostRequestScriptWithFaradayCage = async (
       captureHook.capture()
     }
 
+    // CRITICAL FIX: Deep clone ALL results before disposing cage
+    // This ensures no QuickJS handles remain in the returned data
+    const safeTestResults = cloneDeep(finalTestResults[0])
+    const safeEnvs = cloneDeep(finalEnvs)
+    const safeConsoleEntries = cloneDeep(consoleEntries)
+    const safeCookies = finalCookies ? cloneDeep(finalCookies) : null
+
     return E.right(<SandboxTestResult>{
-      tests: finalTestResults[0],
-      envs: finalEnvs,
-      consoleEntries,
-      updatedCookies: finalCookies,
+      tests: safeTestResults,
+      envs: safeEnvs,
+      consoleEntries: safeConsoleEntries,
+      updatedCookies: safeCookies,
     })
   } finally{
-    // NOTE: Do NOT dispose the cage here - it causes QuickJS lifetime errors
-    // because returned objects (like Response from hopp.fetch()) may still be
-    // accessed after script execution completes.
-    // Rely on garbage collection to clean up the cage when no longer referenced.
-    // TODO: Investigate proper disposal timing or cage pooling/reuse strategy
+    // NOTE: FaradayCage doesn't expose a dispose() method
+    // Rely on garbage collection to clean up when no longer referenced
+    // The deep cloning above ensures no mutable references are returned
   }
 }
 

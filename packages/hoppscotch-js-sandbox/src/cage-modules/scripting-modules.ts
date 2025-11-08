@@ -6,6 +6,7 @@ import {
   defineSandboxFunctionRaw,
   defineSandboxObject,
 } from "faraday-cage/modules"
+import { cloneDeep } from "lodash-es"
 
 import { getStatusReason } from "~/constants/http-status-codes"
 import { TestDescriptor, TestResponse, TestResult } from "~/types"
@@ -378,9 +379,12 @@ const createScriptingModule = (
     } else if (captureHook && type === "post") {
       const postConfig = config as PostRequestModuleConfig
       captureHook.capture = () => {
+        // CRITICAL FIX: Deep clone testRunStack to prevent UI reactivity to async mutations
+        // Without this, async test callbacks that complete after capture will mutate
+        // the same object being displayed in the UI, causing flickering test results
         postConfig.handleSandboxResults({
           envs: (inputsObj as any).getUpdatedEnvs?.() || { global: [], selected: [] },
-          testRunStack: postConfig.testRunStack,
+          testRunStack: cloneDeep(postConfig.testRunStack),
           cookies: (inputsObj as any).getUpdatedCookies?.() || null,
         })
       }

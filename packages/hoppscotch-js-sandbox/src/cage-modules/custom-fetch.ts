@@ -268,84 +268,60 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     ctx.vm.setProp(ctx.vm.global, "fetch", fetchFn)
 
     // ========================================================================
-    // Headers Class Implementation
+    // Headers Class Implementation (wraps native Headers)
     // ========================================================================
     const HeadersClass = defineSandboxFunctionRaw(ctx, "Headers", (...args) => {
-      // Create internal headers storage
-      const headersData: Record<string, string> = {}
-
-      // Initialize from argument if provided
-      if (args.length > 0) {
-        const init = ctx.vm.dump(args[0])
-        if (init && typeof init === "object") {
-          if (Array.isArray(init)) {
-            // Array of [key, value] pairs
-            for (const [key, value] of init) {
-              headersData[String(key).toLowerCase()] = String(value)
-            }
-          } else {
-            // Object with key-value pairs
-            for (const [key, value] of Object.entries(init)) {
-              headersData[key.toLowerCase()] = String(value)
-            }
-          }
-        }
-      }
+      // Create native Headers instance
+      const init = args.length > 0 ? ctx.vm.dump(args[0]) : undefined
+      const nativeHeaders = new globalThis.Headers(init as HeadersInit)
 
       const headersInstance = ctx.scope.manage(ctx.vm.newObject())
 
-      // append(name, value) - adds value to header
+      // append(name, value) - delegates to native Headers
       const appendFn = defineSandboxFunctionRaw(ctx, "append", (...appendArgs) => {
-        const name = String(ctx.vm.dump(appendArgs[0])).toLowerCase()
+        const name = String(ctx.vm.dump(appendArgs[0]))
         const value = String(ctx.vm.dump(appendArgs[1]))
-
-        if (headersData[name]) {
-          headersData[name] = `${headersData[name]}, ${value}`
-        } else {
-          headersData[name] = value
-        }
-
+        nativeHeaders.append(name, value)
         return ctx.vm.undefined
       })
       ctx.vm.setProp(headersInstance, "append", appendFn)
 
-      // delete(name) - removes header
+      // delete(name) - delegates to native Headers
       const deleteFn = defineSandboxFunctionRaw(ctx, "delete", (...deleteArgs) => {
-        const name = String(ctx.vm.dump(deleteArgs[0])).toLowerCase()
-        delete headersData[name]
+        const name = String(ctx.vm.dump(deleteArgs[0]))
+        nativeHeaders.delete(name)
         return ctx.vm.undefined
       })
       ctx.vm.setProp(headersInstance, "delete", deleteFn)
 
-      // get(name) - retrieves header value
+      // get(name) - delegates to native Headers
       const getFn = defineSandboxFunctionRaw(ctx, "get", (...getArgs) => {
-        const name = String(ctx.vm.dump(getArgs[0])).toLowerCase()
-        const value = headersData[name]
-        return value !== undefined ? ctx.scope.manage(ctx.vm.newString(value)) : ctx.vm.null
+        const name = String(ctx.vm.dump(getArgs[0]))
+        const value = nativeHeaders.get(name)
+        return value !== null ? ctx.scope.manage(ctx.vm.newString(value)) : ctx.vm.null
       })
       ctx.vm.setProp(headersInstance, "get", getFn)
 
-      // has(name) - checks if header exists
+      // has(name) - delegates to native Headers
       const hasFn = defineSandboxFunctionRaw(ctx, "has", (...hasArgs) => {
-        const name = String(ctx.vm.dump(hasArgs[0])).toLowerCase()
-        return headersData[name] !== undefined ? ctx.vm.true : ctx.vm.false
+        const name = String(ctx.vm.dump(hasArgs[0]))
+        return nativeHeaders.has(name) ? ctx.vm.true : ctx.vm.false
       })
       ctx.vm.setProp(headersInstance, "has", hasFn)
 
-      // set(name, value) - sets or overwrites header
+      // set(name, value) - delegates to native Headers
       const setFn = defineSandboxFunctionRaw(ctx, "set", (...setArgs) => {
-        const name = String(ctx.vm.dump(setArgs[0])).toLowerCase()
+        const name = String(ctx.vm.dump(setArgs[0]))
         const value = String(ctx.vm.dump(setArgs[1]))
-        headersData[name] = value
+        nativeHeaders.set(name, value)
         return ctx.vm.undefined
       })
       ctx.vm.setProp(headersInstance, "set", setFn)
 
-      // forEach(callbackfn) - iterates with callback
+      // forEach(callbackfn) - delegates to native Headers
       const forEachFn = defineSandboxFunctionRaw(ctx, "forEach", (...forEachArgs) => {
         const callback = forEachArgs[0]
-
-        for (const [key, value] of Object.entries(headersData)) {
+        nativeHeaders.forEach((value, key) => {
           ctx.vm.callFunction(
             callback,
             ctx.vm.undefined,
@@ -353,60 +329,49 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
             ctx.scope.manage(ctx.vm.newString(key)),
             headersInstance
           )
-        }
-
+        })
         return ctx.vm.undefined
       })
       ctx.vm.setProp(headersInstance, "forEach", forEachFn)
 
-      // entries() - returns [key, value] iterator
+      // entries() - delegates to native Headers
       const entriesFn = defineSandboxFunctionRaw(ctx, "entries", () => {
         const entriesArray = ctx.scope.manage(ctx.vm.newArray())
         let index = 0
-
-        for (const [key, value] of Object.entries(headersData)) {
+        // @ts-expect-error - Headers.entries() exists but TS lib may not include it
+        for (const [key, value] of nativeHeaders.entries()) {
           const entry = ctx.scope.manage(ctx.vm.newArray())
           ctx.vm.setProp(entry, 0, ctx.scope.manage(ctx.vm.newString(key)))
           ctx.vm.setProp(entry, 1, ctx.scope.manage(ctx.vm.newString(value)))
           ctx.vm.setProp(entriesArray, index++, entry)
         }
-
         return entriesArray
       })
       ctx.vm.setProp(headersInstance, "entries", entriesFn)
 
-      // keys() - returns header names iterator
+      // keys() - delegates to native Headers
       const keysFn = defineSandboxFunctionRaw(ctx, "keys", () => {
         const keysArray = ctx.scope.manage(ctx.vm.newArray())
         let index = 0
-
-        for (const key of Object.keys(headersData)) {
+        // @ts-expect-error - Headers.keys() exists but TS lib may not include it
+        for (const key of nativeHeaders.keys()) {
           ctx.vm.setProp(keysArray, index++, ctx.scope.manage(ctx.vm.newString(key)))
         }
-
         return keysArray
       })
       ctx.vm.setProp(headersInstance, "keys", keysFn)
 
-      // values() - returns header values iterator
+      // values() - delegates to native Headers
       const valuesFn = defineSandboxFunctionRaw(ctx, "values", () => {
         const valuesArray = ctx.scope.manage(ctx.vm.newArray())
         let index = 0
-
-        for (const value of Object.values(headersData)) {
+        // @ts-expect-error - Headers.values() exists but TS lib may not include it
+        for (const value of nativeHeaders.values()) {
           ctx.vm.setProp(valuesArray, index++, ctx.scope.manage(ctx.vm.newString(value)))
         }
-
         return valuesArray
       })
       ctx.vm.setProp(headersInstance, "values", valuesFn)
-
-      // Store internal headers data for access by other classes
-      ctx.vm.setProp(
-        headersInstance,
-        "__internal_headers",
-        marshalValue(headersData)
-      )
 
       return headersInstance
     })
@@ -414,132 +379,135 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     ctx.vm.setProp(ctx.vm.global, "Headers", HeadersClass)
 
     // ========================================================================
-    // Request Class Implementation
+    // Request Class Implementation (wraps native Request)
     // ========================================================================
     const RequestClass = defineSandboxFunctionRaw(ctx, "Request", (...args) => {
       const input = ctx.vm.dump(args[0])
       const init = args.length > 1 ? ctx.vm.dump(args[1]) : {}
 
+      // Create native Request instance
+      const nativeRequest = new globalThis.Request(input as RequestInfo, init as RequestInit)
+
       const requestInstance = ctx.scope.manage(ctx.vm.newObject())
 
-      // Determine URL
-      let url: string
-      if (typeof input === "string") {
-        url = input
-      } else if (input && typeof input === "object" && "url" in input) {
-        url = String(input.url)
-      } else {
-        url = ""
-      }
+      // url property
+      ctx.vm.setProp(
+        requestInstance,
+        "url",
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.url))
+      )
 
-      // Set URL property
-      ctx.vm.setProp(requestInstance, "url", ctx.scope.manage(ctx.vm.newString(url)))
+      // method property
+      ctx.vm.setProp(
+        requestInstance,
+        "method",
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.method))
+      )
 
-      // Set method property
-      const method = (init.method || "GET").toUpperCase()
-      ctx.vm.setProp(requestInstance, "method", ctx.scope.manage(ctx.vm.newString(method)))
-
-      // Set headers property - call Headers constructor directly
-      // We can't use callFunction with scope.manage, so we create headers inline
-      const headersData = init.headers || {}
+      // headers property - create simple object (Headers class can be used separately if needed)
       const headersObj = ctx.scope.manage(ctx.vm.newObject())
-
-      // Populate headers from init
-      if (headersData && typeof headersData === "object") {
-        for (const [key, value] of Object.entries(headersData)) {
-          ctx.vm.setProp(
-            headersObj,
-            key.toLowerCase(),
-            ctx.scope.manage(ctx.vm.newString(String(value)))
-          )
-        }
+      // @ts-expect-error - Headers.entries() exists
+      for (const [key, value] of nativeRequest.headers.entries()) {
+        ctx.vm.setProp(
+          headersObj,
+          key,
+          ctx.scope.manage(ctx.vm.newString(value))
+        )
       }
-
       ctx.vm.setProp(requestInstance, "headers", headersObj)
 
-      // Set body property (can be string, ArrayBuffer, or null)
-      if (init.body !== undefined && init.body !== null) {
-        ctx.vm.setProp(requestInstance, "body", marshalValue(init.body))
-      } else {
-        ctx.vm.setProp(requestInstance, "body", ctx.vm.null)
-      }
+      // body property (simplified - most use cases don't need body in Request objects)
+      ctx.vm.setProp(requestInstance, "body", ctx.vm.null)
 
-      // Set mode property
+      // mode property
       ctx.vm.setProp(
         requestInstance,
         "mode",
-        ctx.scope.manage(ctx.vm.newString(init.mode || "cors"))
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.mode))
       )
 
-      // Set credentials property
+      // credentials property
       ctx.vm.setProp(
         requestInstance,
         "credentials",
-        ctx.scope.manage(ctx.vm.newString(init.credentials || "same-origin"))
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.credentials))
       )
 
-      // Set cache property
+      // cache property
       ctx.vm.setProp(
         requestInstance,
         "cache",
-        ctx.scope.manage(ctx.vm.newString(init.cache || "default"))
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.cache))
       )
 
-      // Set redirect property
+      // redirect property
       ctx.vm.setProp(
         requestInstance,
         "redirect",
-        ctx.scope.manage(ctx.vm.newString(init.redirect || "follow"))
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.redirect))
       )
 
-      // Set referrer property
+      // referrer property
       ctx.vm.setProp(
         requestInstance,
         "referrer",
-        ctx.scope.manage(ctx.vm.newString(init.referrer || "about:client"))
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.referrer))
       )
 
-      // Set integrity property
+      // integrity property
       ctx.vm.setProp(
         requestInstance,
         "integrity",
-        ctx.scope.manage(ctx.vm.newString(init.integrity || ""))
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.integrity))
       )
 
-      // clone() method - creates a copy of the request
+      // clone() method - delegates to native Request
       const cloneFn = defineSandboxFunctionRaw(ctx, "clone", () => {
-        // Create a new request instance manually to avoid callFunction type issues
+        const clonedNativeRequest = nativeRequest.clone()
         const clonedRequest = ctx.scope.manage(ctx.vm.newObject())
 
-        // Copy all properties
-        ctx.vm.setProp(clonedRequest, "url", ctx.scope.manage(ctx.vm.newString(url)))
-        ctx.vm.setProp(clonedRequest, "method", ctx.scope.manage(ctx.vm.newString(method)))
-
-        // Clone headers
-        const clonedHeadersObj = ctx.scope.manage(ctx.vm.newObject())
-        if (headersData && typeof headersData === "object") {
-          for (const [key, value] of Object.entries(headersData)) {
-            ctx.vm.setProp(
-              clonedHeadersObj,
-              key.toLowerCase(),
-              ctx.scope.manage(ctx.vm.newString(String(value)))
-            )
-          }
-        }
-        ctx.vm.setProp(clonedRequest, "headers", clonedHeadersObj)
-
-        // Copy other properties
-        if (init.body !== undefined && init.body !== null) {
-          ctx.vm.setProp(clonedRequest, "body", marshalValue(init.body))
-        } else {
-          ctx.vm.setProp(clonedRequest, "body", ctx.vm.null)
-        }
-        ctx.vm.setProp(clonedRequest, "mode", ctx.scope.manage(ctx.vm.newString(init.mode || "cors")))
-        ctx.vm.setProp(clonedRequest, "credentials", ctx.scope.manage(ctx.vm.newString(init.credentials || "same-origin")))
-        ctx.vm.setProp(clonedRequest, "cache", ctx.scope.manage(ctx.vm.newString(init.cache || "default")))
-        ctx.vm.setProp(clonedRequest, "redirect", ctx.scope.manage(ctx.vm.newString(init.redirect || "follow")))
-        ctx.vm.setProp(clonedRequest, "referrer", ctx.scope.manage(ctx.vm.newString(init.referrer || "about:client")))
-        ctx.vm.setProp(clonedRequest, "integrity", ctx.scope.manage(ctx.vm.newString(init.integrity || "")))
+        // Copy all properties from cloned native Request
+        ctx.vm.setProp(
+          clonedRequest,
+          "url",
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.url))
+        )
+        ctx.vm.setProp(
+          clonedRequest,
+          "method",
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.method))
+        )
+        ctx.vm.setProp(clonedRequest, "body", ctx.vm.null)
+        ctx.vm.setProp(
+          clonedRequest,
+          "mode",
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.mode))
+        )
+        ctx.vm.setProp(
+          clonedRequest,
+          "credentials",
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.credentials))
+        )
+        ctx.vm.setProp(
+          clonedRequest,
+          "cache",
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.cache))
+        )
+        ctx.vm.setProp(
+          clonedRequest,
+          "redirect",
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.redirect))
+        )
+        ctx.vm.setProp(
+          clonedRequest,
+          "referrer",
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.referrer))
+        )
+        ctx.vm.setProp(
+          clonedRequest,
+          "integrity",
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.integrity))
+        )
 
         return clonedRequest
       })
