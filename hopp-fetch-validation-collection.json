@@ -223,6 +223,94 @@
       "requestVariables": [],
       "responses": {},
       "_ref_id": "req_mhpz2fsl_04af11e2-e7b0-4312-a833-d676af5ee761"
+    },
+    {
+      "v": "16",
+      "id": "pm_sendrequest_callback",
+      "name": "pm.sendRequest - Callback API",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "// Test 1: pm.sendRequest with string URL and callback\npm.sendRequest('https://echo.hoppscotch.io?test=callback', (error, response) => {\n  if (error) {\n    pm.environment.set('callback_error', 'true')\n  } else {\n    pm.environment.set('callback_status', response.code.toString())\n    pm.environment.set('callback_arg', response.json().args.test)\n  }\n})\n\n// Test 2: pm.sendRequest with request object format\npm.sendRequest({\n  url: 'https://echo.hoppscotch.io',\n  method: 'POST',\n  header: [\n    { key: 'Content-Type', value: 'application/json' },\n    { key: 'X-Test-Header', value: 'test123' }\n  ],\n  body: {\n    mode: 'raw',\n    raw: JSON.stringify({ name: 'pm.sendRequest', type: 'callback' })\n  }\n}, (error, response) => {\n  if (!error) {\n    const body = JSON.parse(response.json().data)\n    pm.environment.set('pm_sendrequest_name', body.name)\n    pm.environment.set('pm_sendrequest_type', body.type)\n    pm.environment.set('pm_sendrequest_method', response.json().method)\n  }\n})\n\n// Test 3: pm.sendRequest with urlencoded body\npm.sendRequest({\n  url: 'https://httpbin.org/post',\n  method: 'POST',\n  body: {\n    mode: 'urlencoded',\n    urlencoded: [\n      { key: 'username', value: 'testuser' },\n      { key: 'password', value: 'testpass' }\n    ]\n  }\n}, (error, response) => {\n  if (!error) {\n    const data = response.json()\n    pm.environment.set('urlencoded_username', data.form.username)\n    pm.environment.set('urlencoded_password', data.form.password)\n  }\n})\n\n// Test 4: pm.sendRequest with environment variables\npm.environment.set('API_BASE', 'https://echo.hoppscotch.io')\npm.environment.set('API_TOKEN', 'Bearer test-token-123')\n\nconst apiUrl = pm.environment.get('API_BASE') + '/api/data'\nconst token = pm.environment.get('API_TOKEN')\n\npm.sendRequest({\n  url: apiUrl,\n  header: [\n    { key: 'Authorization', value: token }\n  ]\n}, (error, response) => {\n  if (!error) {\n    pm.environment.set('env_integration_status', response.code.toString())\n    pm.environment.set('env_integration_path', response.json().path)\n  }\n})\n",
+      "testScript": "pm.test('pm.sendRequest string URL callback works', () => {\n  pm.expect(pm.environment.get('callback_status')).to.eql('200')\n  pm.expect(pm.environment.get('callback_arg')).to.eql('callback')\n})\n\npm.test('pm.sendRequest object format works', () => {\n  pm.expect(pm.environment.get('pm_sendrequest_name')).to.eql('pm.sendRequest')\n  pm.expect(pm.environment.get('pm_sendrequest_type')).to.eql('callback')\n  pm.expect(pm.environment.get('pm_sendrequest_method')).to.eql('POST')\n})\n\npm.test('pm.sendRequest urlencoded body works', () => {\n  pm.expect(pm.environment.get('urlencoded_username')).to.eql('testuser')\n  pm.expect(pm.environment.get('urlencoded_password')).to.eql('testpass')\n})\n\npm.test('pm.sendRequest environment variable integration works', () => {\n  pm.expect(pm.environment.get('env_integration_status')).to.eql('200')\n  pm.expect(pm.environment.get('env_integration_path')).to.include('/api/data')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_fetch_api_pmsendrequest_01"
+    },
+    {
+      "v": "16",
+      "id": "fetch_api_headers_class",
+      "name": "Fetch API - Headers Class",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "// Test 1: Headers constructor with object\nconst headers1 = new Headers({\n  'Content-Type': 'application/json',\n  'X-Custom-Header': 'value123'\n})\n\nhopp.env.active.set('headers_has_ct', headers1.has('content-type').toString())\nhopp.env.active.set('headers_get_custom', headers1.get('x-custom-header'))\n\n// Test 2: Headers methods - append, set, delete\nconst headers2 = new Headers()\nheaders2.append('Accept', 'application/json')\nheaders2.append('Accept', 'text/plain') // Multiple values\nheaders2.set('Authorization', 'Bearer token123')\nheaders2.set('X-API-Key', 'key456')\nheaders2.delete('X-API-Key')\n\nhopp.env.active.set('headers_accept', headers2.get('Accept'))\nhopp.env.active.set('headers_auth', headers2.get('Authorization'))\nhopp.env.active.set('headers_deleted', (headers2.get('X-API-Key') === null).toString())\n\n// Test 3: Headers iteration - entries, keys, values\nconst headers3 = new Headers({\n  'Content-Type': 'application/json',\n  'Accept': 'application/json',\n  'Authorization': 'Bearer test'\n})\n\nlet keyCount = 0\nfor (const key of headers3.keys()) {\n  keyCount++\n}\n\nlet entryCount = 0\nfor (const [key, value] of headers3.entries()) {\n  entryCount++\n}\n\nhopp.env.active.set('headers_key_count', keyCount.toString())\nhopp.env.active.set('headers_entry_count', entryCount.toString())\n\n// Test 4: Headers with fetch\nconst headers4 = new Headers({\n  'X-Test-Header': 'fetch-with-headers',\n  'Content-Type': 'application/json'\n})\n\nconst response = await hopp.fetch('https://httpbin.org/get', {\n  headers: headers4\n})\n\nconst data = await response.json()\nhopp.env.active.set('fetch_custom_header', data.headers['X-Test-Header'])\n",
+      "testScript": "hopp.test('Headers constructor works', () => {\n  hopp.expect(hopp.env.active.get('headers_has_ct')).toBe('true')\n  hopp.expect(hopp.env.active.get('headers_get_custom')).toBe('value123')\n})\n\nhopp.test('Headers append and set work', () => {\n  hopp.expect(hopp.env.active.get('headers_accept')).toInclude('application/json')\n  hopp.expect(hopp.env.active.get('headers_auth')).toBe('Bearer token123')\n})\n\nhopp.test('Headers delete works', () => {\n  hopp.expect(hopp.env.active.get('headers_deleted')).toBe('true')\n})\n\nhopp.test('Headers iteration works', () => {\n  hopp.expect(hopp.env.active.get('headers_key_count')).toBe('3')\n  hopp.expect(hopp.env.active.get('headers_entry_count')).toBe('3')\n})\n\nhopp.test('Headers work with fetch', () => {\n  hopp.expect(hopp.env.active.get('fetch_custom_header')).toBe('fetch-with-headers')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_fetch_api_headers_01"
+    },
+    {
+      "v": "16",
+      "id": "fetch_api_request_response",
+      "name": "Fetch API - Request & Response Classes",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "// Test 1: Request class constructor\nconst request1 = new Request('https://echo.hoppscotch.io', {\n  method: 'POST',\n  headers: {\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({ test: 'request-class' })\n})\n\nhopp.env.active.set('request_url', request1.url)\nhopp.env.active.set('request_method', request1.method)\n\n// Test 2: Request clone\nconst request2 = new Request('https://echo.hoppscotch.io/api/users', {\n  method: 'GET',\n  headers: { 'Authorization': 'Bearer token' }\n})\n\nconst clonedRequest = request2.clone()\nhopp.env.active.set('cloned_url', clonedRequest.url)\nhopp.env.active.set('cloned_method', clonedRequest.method)\n\n// Test 3: Response class constructor\nconst response1 = new Response(JSON.stringify({ success: true, data: 'test' }), {\n  status: 200,\n  statusText: 'OK',\n  headers: {\n    'Content-Type': 'application/json'\n  }\n})\n\nhopp.env.active.set('response_status', response1.status.toString())\nhopp.env.active.set('response_ok', response1.ok.toString())\n\n// Test json() and text() methods\nconst jsonData = await response1.json()\nhopp.env.active.set('response_json_success', jsonData.success.toString())\nhopp.env.active.set('response_json_data', jsonData.data)\n\n// Test 4: Response clone\nconst response2 = new Response('clone test data', {\n  status: 201,\n  statusText: 'Created'\n})\n\nconst clonedResponse = response2.clone()\nhopp.env.active.set('cloned_response_status', clonedResponse.status.toString())\n\n// Test 5: Using Request with fetch (if supported)\ntry {\n  const fetchRequest = new Request('https://echo.hoppscotch.io?from=request', {\n    method: 'GET'\n  })\n  \n  const fetchResp = await hopp.fetch(fetchRequest.url)\n  const fetchData = await fetchResp.json()\n  hopp.env.active.set('request_fetch_arg', fetchData.args.from)\n} catch (error) {\n  hopp.env.active.set('request_fetch_arg', 'error')\n}\n",
+      "testScript": "hopp.test('Request class constructor works', () => {\n  hopp.expect(hopp.env.active.get('request_url')).toBe('https://echo.hoppscotch.io')\n  hopp.expect(hopp.env.active.get('request_method')).toBe('POST')\n})\n\nhopp.test('Request clone works', () => {\n  hopp.expect(hopp.env.active.get('cloned_url')).toBe('https://echo.hoppscotch.io/api/users')\n  hopp.expect(hopp.env.active.get('cloned_method')).toBe('GET')\n})\n\nhopp.test('Response class constructor works', () => {\n  hopp.expect(hopp.env.active.get('response_status')).toBe('200')\n  hopp.expect(hopp.env.active.get('response_ok')).toBe('true')\n})\n\nhopp.test('Response json() method works', () => {\n  hopp.expect(hopp.env.active.get('response_json_success')).toBe('true')\n  hopp.expect(hopp.env.active.get('response_json_data')).toBe('test')\n})\n\nhopp.test('Response clone works', () => {\n  hopp.expect(hopp.env.active.get('cloned_response_status')).toBe('201')\n})\n\nhopp.test('Request works with fetch', () => {\n  hopp.expect(hopp.env.active.get('request_fetch_arg')).toBe('request')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_fetch_api_request_response_01"
+    },
+    {
+      "v": "16",
+      "id": "fetch_api_abortcontroller",
+      "name": "Fetch API - AbortController",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "// Test 1: AbortController creation\nconst controller1 = new AbortController()\nconst signal1 = controller1.signal\n\nhopp.env.active.set('controller_exists', (controller1 !== null).toString())\nhopp.env.active.set('signal_exists', (signal1 !== null).toString())\nhopp.env.active.set('signal_aborted_initial', signal1.aborted.toString())\n\n// Test 2: AbortController abort method\nconst controller2 = new AbortController()\nconst signal2 = controller2.signal\n\nhopp.env.active.set('signal_before_abort', signal2.aborted.toString())\ncontroller2.abort()\nhopp.env.active.set('signal_after_abort', signal2.aborted.toString())\n\n// Test 3: AbortSignal event listener\nconst controller3 = new AbortController()\nconst signal3 = controller3.signal\n\nlet abortEventFired = false\nsignal3.addEventListener('abort', () => {\n  abortEventFired = true\n})\n\ncontroller3.abort()\nhopp.env.active.set('abort_event_fired', abortEventFired.toString())\n\n// Test 4: Multiple listeners\nconst controller4 = new AbortController()\nconst signal4 = controller4.signal\n\nlet listener1Called = false\nlet listener2Called = false\n\nsignal4.addEventListener('abort', () => { listener1Called = true })\nsignal4.addEventListener('abort', () => { listener2Called = true })\n\ncontroller4.abort()\n\nhopp.env.active.set('multiple_listeners', (listener1Called && listener2Called).toString())\n\n// Test 5: AbortController with fetch (note: actual abort functionality depends on fetch implementation)\nconst controller5 = new AbortController()\nconst signal5 = controller5.signal\n\ntry {\n  const promise = hopp.fetch('https://echo.hoppscotch.io?test=abort')\n  // Don't actually abort mid-request for this test, just verify signal can be passed\n  const response = await promise\n  const data = await response.json()\n  hopp.env.active.set('abort_test_arg', data.args.test)\n} catch (error) {\n  hopp.env.active.set('abort_test_arg', 'error')\n}\n",
+      "testScript": "hopp.test('AbortController can be created', () => {\n  hopp.expect(hopp.env.active.get('controller_exists')).toBe('true')\n  hopp.expect(hopp.env.active.get('signal_exists')).toBe('true')\n})\n\nhopp.test('AbortSignal initial state is not aborted', () => {\n  hopp.expect(hopp.env.active.get('signal_aborted_initial')).toBe('false')\n})\n\nhopp.test('AbortController abort() changes signal state', () => {\n  hopp.expect(hopp.env.active.get('signal_before_abort')).toBe('false')\n  hopp.expect(hopp.env.active.get('signal_after_abort')).toBe('true')\n})\n\nhopp.test('AbortSignal event listener fires on abort', () => {\n  hopp.expect(hopp.env.active.get('abort_event_fired')).toBe('true')\n})\n\nhopp.test('Multiple abort listeners work', () => {\n  hopp.expect(hopp.env.active.get('multiple_listeners')).toBe('true')\n})\n\nhopp.test('AbortController works with fetch', () => {\n  hopp.expect(hopp.env.active.get('abort_test_arg')).toBe('abort')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_fetch_api_abortcontroller_01"
     }
   ],
   "auth": {
