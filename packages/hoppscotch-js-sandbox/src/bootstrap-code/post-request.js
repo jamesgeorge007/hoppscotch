@@ -3,6 +3,10 @@
   // Keep strict mode scoped to this IIFE to avoid leaking strictness to concatenated/bootstrapped code
   "use strict"
 
+  // Sequential test execution promise chain
+  // Initialize with a resolved promise to start the chain
+  let __testExecutionChain = Promise.resolve()
+
   // Chai proxy builder - creates a Chai-like API using actual Chai SDK
   if (!globalThis.__createChaiProxy) {
     globalThis.__createChaiProxy = function (
@@ -2154,25 +2158,27 @@
       return expectation
     },
     test: (descriptor, testFn) => {
-      inputs.preTest(descriptor)
-      const result = testFn()
+      // Execute test IMMEDIATELY but chain sequentially
+      // This keeps QuickJS handles alive during execution
 
-      // Handle async test functions
-      if (result && typeof result.then === 'function') {
-        const promise = result.then(
-          () => inputs.postTest(),
-          (error) => {
-            inputs.postTest()
-            throw error
-          }
-        )
-        // Register promise with module so runner can await it
-        inputs.registerTestPromise(promise)
-        return promise
-      }
+      // Create test descriptor metadata
+      const testDescriptor = inputs.preTest(descriptor)
 
-      // Synchronous test
-      inputs.postTest()
+      // Chain this test to execute after previous tests
+      __testExecutionChain = __testExecutionChain.then(async () => {
+        // Set current test context
+        inputs.setCurrentTest(testDescriptor)
+
+        try {
+          // Execute test callback immediately (while handles are alive)
+          await testFn()
+        } catch (error) {
+          // Error is already recorded via inputs.chaiFail
+        } finally {
+          // Clear current test context
+          inputs.clearCurrentTest()
+        }
+      })
     },
     response: pwResponse,
   }
@@ -2397,25 +2403,27 @@
       }
     ),
     test: (descriptor, testFn) => {
-      inputs.preTest(descriptor)
-      const result = testFn()
+      // Execute test IMMEDIATELY but chain sequentially
+      // This keeps QuickJS handles alive during execution
 
-      // Handle async test functions
-      if (result && typeof result.then === 'function') {
-        const promise = result.then(
-          () => inputs.postTest(),
-          (error) => {
-            inputs.postTest()
-            throw error
-          }
-        )
-        // Register promise with module so runner can await it
-        inputs.registerTestPromise(promise)
-        return promise
-      }
+      // Create test descriptor metadata
+      const testDescriptor = inputs.preTest(descriptor)
 
-      // Synchronous test
-      inputs.postTest()
+      // Chain this test to execute after previous tests
+      __testExecutionChain = __testExecutionChain.then(async () => {
+        // Set current test context
+        inputs.setCurrentTest(testDescriptor)
+
+        try {
+          // Execute test callback immediately (while handles are alive)
+          await testFn()
+        } catch (error) {
+          // Error is already recorded via inputs.chaiFail
+        } finally {
+          // Clear current test context
+          inputs.clearCurrentTest()
+        }
+      })
     },
     response: hoppResponse,
   }

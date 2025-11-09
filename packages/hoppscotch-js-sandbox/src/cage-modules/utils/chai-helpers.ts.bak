@@ -882,8 +882,7 @@ export const createChaiMethods: (
           ? methodName || "lengthOf"
           : `have ${methodName || "lengthOf"}`
         if (actualSize !== undefined && typeName) {
-          const targetTest = getCurrentTest()
-        if (!targetTest) return
+          if (testStack.length === 0) return
           const matches = Number(actualSize) === Number(length)
           const negated = mods.includes("not")
           const pass = negated ? !matches : matches
@@ -900,24 +899,22 @@ export const createChaiMethods: (
                 .join(", ")}])`
             }
           }
-          targetTest.expectResults.push({
+          testStack[testStack.length - 1].expectResults.push({
             status: pass ? "pass" : "fail",
             message: buildMessage(displayValue, mods, assertion, [length]),
           })
         } else if (value instanceof Set) {
-          const targetTest = getCurrentTest()
-        if (!targetTest) return
+          if (testStack.length === 0) return
           const matches = value.size === Number(length)
           const negated = mods.includes("not")
           const pass = negated ? !matches : matches
           const displayValue = `new Set([${Array.from(value).join(", ")}])`
-          targetTest.expectResults.push({
+          testStack[testStack.length - 1].expectResults.push({
             status: pass ? "pass" : "fail",
             message: buildMessage(displayValue, mods, assertion, [length]),
           })
         } else if (value instanceof Map) {
-          const targetTest = getCurrentTest()
-        if (!targetTest) return
+          if (testStack.length === 0) return
           const matches = value.size === Number(length)
           const negated = mods.includes("not")
           const pass = negated ? !matches : matches
@@ -927,7 +924,7 @@ export const createChaiMethods: (
               return `[${key}, ${value}]`
             })
             .join(", ")}])`
-          targetTest.expectResults.push({
+          testStack[testStack.length - 1].expectResults.push({
             status: pass ? "pass" : "fail",
             message: buildMessage(displayValue, mods, assertion, [length]),
           })
@@ -1271,11 +1268,10 @@ export const createChaiMethods: (
           matched = false
         }
         const pass = isNegated ? !matched : matched
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        if (testStack.length === 0) return
         const displayValue = typeof value === "string" ? value : String(value)
         const notStr = isNegated ? " not" : ""
-        targetTest.expectResults.push({
+        testStack[testStack.length - 1].expectResults.push({
           status: pass ? "pass" : "fail",
           message: `Expected '${displayValue}' to${notStr} match ${displayPattern}`,
         })
@@ -1295,10 +1291,9 @@ export const createChaiMethods: (
         const hasSubstring = valueStr.includes(String(substring))
         const shouldPass = isNegated ? !hasSubstring : hasSubstring
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        if (testStack.length === 0) return
 
-        targetTest.expectResults.push({
+        testStack[testStack.length - 1].expectResults.push({
           status: shouldPass ? "pass" : "fail",
           message: buildMessage(value, mods, "have string", [`'${substring}'`]),
         })
@@ -1532,9 +1527,8 @@ export const createChaiMethods: (
         // Extract "arguments" or "Arguments" from modifiers
         const assertionName =
           mods.match(/\b(arguments|Arguments)\b/)?.[1] || "arguments"
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
-        targetTest.expectResults.push({
+        if (testStack.length === 0) return
+        testStack[testStack.length - 1].expectResults.push({
           status: shouldPass ? "pass" : "fail",
           message: buildMessage(value, mods, assertionName),
         })
@@ -1576,9 +1570,8 @@ export const createChaiMethods: (
           }
         }
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
-        targetTest.expectResults.push({
+        if (testStack.length === 0) return
+        testStack[testStack.length - 1].expectResults.push({
           status: shouldPass ? "pass" : "fail",
           message: `Expected {}${mods} ownPropertyDescriptor '${prop}'`,
         })
@@ -1603,9 +1596,8 @@ export const createChaiMethods: (
         } catch {
           pass = isNegated
         }
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
-        targetTest.expectResults.push({
+        if (testStack.length === 0) return
+        testStack[testStack.length - 1].expectResults.push({
           status: pass ? "pass" : "fail",
           message: buildMessage(value, mods, "members", [...members]),
         })
@@ -1747,9 +1739,8 @@ export const createChaiMethods: (
           }
         }
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
-        targetTest.expectResults.push({
+        if (testStack.length === 0) return
+        testStack[testStack.length - 1].expectResults.push({
           status: shouldPass ? "pass" : "fail",
           message: buildMessage(fn, mods, "throw", messageArgs.filter(Boolean)),
         })
@@ -1771,9 +1762,8 @@ export const createChaiMethods: (
         const passed = Boolean(satisfyResult)
         const shouldPass = isNegated ? !passed : passed
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
-        targetTest.expectResults.push({
+        if (testStack.length === 0) return
+        testStack[testStack.length - 1].expectResults.push({
           status: shouldPass ? "pass" : "fail",
           message: buildMessage(value, mods, "satisfy", [
             String(matcherString),
@@ -1791,10 +1781,9 @@ export const createChaiMethods: (
         const isNegated = mods.includes("not")
         const shouldPass = isNegated ? !changed : changed
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        if (testStack.length === 0) return
 
-        targetTest.expectResults.push({
+        testStack[testStack.length - 1].expectResults.push({
           status: shouldPass ? "pass" : "fail",
           message: `Expected [Function]${mods} change {}.'${prop}'`,
         })
@@ -1815,13 +1804,12 @@ export const createChaiMethods: (
         const byPasses = changed && deltaMatches
         const byShouldPass = isNegated ? !byPasses : byPasses
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        if (testStack.length === 0) return
 
         // Update the last result (from chaiChange)
         const lastResult =
-          targetTest.expectResults[
-            targetTest.expectResults.length - 1
+          testStack[testStack.length - 1].expectResults[
+            testStack[testStack.length - 1].expectResults.length - 1
           ]
         lastResult.status = byShouldPass ? "pass" : "fail"
         lastResult.message = `Expected [Function]${mods} change {}.'${prop}' by ${numExpectedDelta}`
@@ -1836,10 +1824,9 @@ export const createChaiMethods: (
         const isNegated = mods.includes("not")
         const shouldPass = isNegated ? !increased : increased
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        if (testStack.length === 0) return
 
-        targetTest.expectResults.push({
+        testStack[testStack.length - 1].expectResults.push({
           status: shouldPass ? "pass" : "fail",
           message: `Expected [Function]${mods} increase {}.'${prop}'`,
         })
@@ -1858,13 +1845,12 @@ export const createChaiMethods: (
         const byPasses = increased && deltaMatches
         const byShouldPass = isNegated ? !byPasses : byPasses
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        if (testStack.length === 0) return
 
         // Update the last result (from chaiIncrease)
         const lastResult =
-          targetTest.expectResults[
-            targetTest.expectResults.length - 1
+          testStack[testStack.length - 1].expectResults[
+            testStack[testStack.length - 1].expectResults.length - 1
           ]
         lastResult.status = byShouldPass ? "pass" : "fail"
         lastResult.message = `Expected [Function]${mods} increase {}.'${prop}' by ${numExpectedDelta}`
@@ -1879,10 +1865,9 @@ export const createChaiMethods: (
         const isNegated = mods.includes("not")
         const shouldPass = isNegated ? !decreased : decreased
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        if (testStack.length === 0) return
 
-        targetTest.expectResults.push({
+        testStack[testStack.length - 1].expectResults.push({
           status: shouldPass ? "pass" : "fail",
           message: `Expected [Function]${mods} decrease {}.'${prop}'`,
         })
@@ -1902,13 +1887,12 @@ export const createChaiMethods: (
         const byPasses = decreased && deltaMatches
         const byShouldPass = isNegated ? !byPasses : byPasses
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        if (testStack.length === 0) return
 
         // Update the last result (from chaiDecrease)
         const lastResult =
-          targetTest.expectResults[
-            targetTest.expectResults.length - 1
+          testStack[testStack.length - 1].expectResults[
+            testStack[testStack.length - 1].expectResults.length - 1
           ]
         lastResult.status = byShouldPass ? "pass" : "fail"
         lastResult.message = `Expected [Function]${mods} decrease {}.'${prop}' by ${numExpectedDelta}`
@@ -1961,10 +1945,9 @@ export const createChaiMethods: (
         const passes = validateSchema(value, schema)
         const shouldPass = isNegated ? !passes : passes
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        if (testStack.length === 0) return
 
-        targetTest.expectResults.push({
+        testStack[testStack.length - 1].expectResults.push({
           status: shouldPass ? "pass" : "fail",
           message: buildMessage(value, mods, "jsonSchema", [schema]),
         })
@@ -1987,10 +1970,9 @@ export const createChaiMethods: (
 
         const shouldPass = isNegated ? !passes : passes
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        if (testStack.length === 0) return
 
-        targetTest.expectResults.push({
+        testStack[testStack.length - 1].expectResults.push({
           status: shouldPass ? "pass" : "fail",
           message: buildMessage(value, mods, "charset", [expectedCharset]),
         })
@@ -2018,12 +2000,11 @@ export const createChaiMethods: (
         const passes = hasCookie && valueMatches
         const shouldPass = isNegated ? !passes : passes
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        if (testStack.length === 0) return
 
         const args =
           cookieValue !== undefined ? [cookieName, cookieValue] : [cookieName]
-        targetTest.expectResults.push({
+        testStack[testStack.length - 1].expectResults.push({
           status: shouldPass ? "pass" : "fail",
           message: buildMessage(value, mods, "cookie", args),
         })
@@ -2110,12 +2091,11 @@ export const createChaiMethods: (
 
         const shouldPass = isNegated ? !passes : passes
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        if (testStack.length === 0) return
 
         const args =
           expectedValue !== undefined ? [path, expectedValue] : [path]
-        targetTest.expectResults.push({
+        testStack[testStack.length - 1].expectResults.push({
           status: shouldPass ? "pass" : "fail",
           message: buildMessage(value, mods, "jsonPath", args),
         })
@@ -2130,8 +2110,7 @@ export const createChaiMethods: (
     // expect.fail(actual, expected, message)
     // expect.fail(actual, expected, message, operator)
     chaiFail: defineSandboxFn(ctx, "chaiFail", (...args: unknown[]) => {
-      const targetTest = getCurrentTest()
-        if (!targetTest) return
+      if (testStack.length === 0) return
 
       const [actual, expected, message, operator] = args
       let errorMessage: string
@@ -2155,7 +2134,7 @@ export const createChaiMethods: (
       }
 
       // Always record as failure
-      targetTest.expectResults.push({
+      testStack[testStack.length - 1].expectResults.push({
         status: "fail",
         message: errorMessage,
       })

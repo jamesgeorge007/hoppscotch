@@ -159,17 +159,26 @@ const createScriptingInputsObj = (
   if (type === "post") {
     const postConfig = config as PostRequestModuleConfig
 
+    // Track current executing test
+    let currentExecutingTest: TestDescriptor | null = null
+
+    const getCurrentTestContext = (): TestDescriptor | null => {
+      return currentExecutingTest
+    }
+
     // Create expectation methods for post-request scripts
     const expectationMethods = createExpectationMethods(
       ctx,
-      postConfig.testRunStack
+      postConfig.testRunStack,
+      getCurrentTestContext // Pass getter for current test context
     )
 
     // Create Chai methods
-    const chaiMethods = createChaiMethods(ctx, postConfig.testRunStack)
-
-    // Register hook with helper function
-    registerAfterScriptExecutionHook(ctx, "post", postConfig, baseInputs)
+    const chaiMethods = createChaiMethods(
+      ctx,
+      postConfig.testRunStack,
+      getCurrentTestContext // Pass getter for current test context
+    )
 
     return {
       ...baseInputs,
@@ -181,49 +190,40 @@ const createScriptingInputsObj = (
         ctx,
         "preTest",
         function preTest(descriptor: unknown) {
-          postConfig.testRunStack.push({
+          const testDescriptor: TestDescriptor = {
             descriptor: descriptor as string,
             expectResults: [],
             children: [],
-          })
+          }
+
+          // CRITICAL FIX: Add to root.children immediately to preserve registration order
+          // This ensures tests appear in the order they're defined, not completion order
+          postConfig.testRunStack[0].children.push(testDescriptor)
+
+          // NOTE: We no longer push onto stack here because all tests would be pushed
+          // synchronously during registration, making stack-based tracking unreliable.
+          // Instead, we use setCurrentTest() in the bootstrap code.
+
+          // Return the test descriptor so it can be set as context
+          return testDescriptor
         }
       ),
       postTest: defineSandboxFn(ctx, "postTest", function postTest() {
-        const child = postConfig.testRunStack.pop() as TestDescriptor
-        postConfig.testRunStack[
-          postConfig.testRunStack.length - 1
-        ].children.push(child)
+        // NOTE: No longer pops from stack since we don't push in preTest
+        // Test cleanup is handled by clearCurrentTest() in bootstrap
       }),
-      registerTestPromise: defineSandboxFunctionRaw(
+      setCurrentTest: defineSandboxFn(
         ctx,
-        "registerTestPromise",
-        (...args: any[]) => {
-          const promiseHandle = args[0]
-
-          if (postConfig.onTestPromise) {
-            // Convert QuickJS promise handle to host promise
-            try {
-              const hostPromise = ctx.vm.resolvePromise(promiseHandle).then(
-                (result) => {
-                  // Unwrap the result and dispose of the handle
-                  result.dispose()
-                  return Promise.resolve()
-                },
-                (error) => {
-                  // Dispose of error handle if present
-                  if (error && typeof error.dispose === 'function') {
-                    error.dispose()
-                  }
-                  return Promise.reject(error)
-                }
-              )
-              postConfig.onTestPromise(hostPromise)
-            } catch (error) {
-              console.error('[scripting-module] Failed to convert promise:', error)
-            }
-          }
-
-          return ctx.vm.undefined
+        "setCurrentTest",
+        function setCurrentTest(testDescriptor: unknown) {
+          currentExecutingTest = testDescriptor as TestDescriptor
+        }
+      ),
+      clearCurrentTest: defineSandboxFn(
+        ctx,
+        "clearCurrentTest",
+        function clearCurrentTest() {
+          currentExecutingTest = null
         }
       ),
       getResponse: defineSandboxFn(ctx, "getResponse", function getResponse() {
@@ -379,9 +379,10 @@ const createScriptingModule = (
     } else if (captureHook && type === "post") {
       const postConfig = config as PostRequestModuleConfig
       captureHook.capture = () => {
-        // CRITICAL FIX: Deep clone testRunStack to prevent UI reactivity to async mutations
+        // Deep clone testRunStack to prevent UI reactivity to async mutations
         // Without this, async test callbacks that complete after capture will mutate
         // the same object being displayed in the UI, causing flickering test results
+
         postConfig.handleSandboxResults({
           envs: (inputsObj as any).getUpdatedEnvs?.() || { global: [], selected: [] },
           testRunStack: cloneDeep(postConfig.testRunStack),

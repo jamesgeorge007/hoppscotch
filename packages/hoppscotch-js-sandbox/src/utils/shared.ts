@@ -652,10 +652,16 @@ export function preventCyclicObjects<T extends object = Record<string, any>>(
 export const createExpectation = (
   expectVal: SandboxValue,
   negated: boolean,
-  currTestStack: TestDescriptor[]
+  currTestStack: TestDescriptor[],
+  getCurrentTestContext?: () => TestDescriptor | null
 ): Expectation => {
   // Non-primitive values supplied are stringified in the isolate context
   const resolvedExpectVal = getResolvedExpectValue(expectVal)
+
+  // Helper to get current test descriptor (prefers context over stack)
+  const getCurrentTest = (): TestDescriptor | null => {
+    return getCurrentTestContext?.() || (currTestStack.length > 0 ? currTestStack[currTestStack.length - 1] : null)
+  }
 
   const toBeFn = (expectedVal: SandboxValue) => {
     let assertion = resolvedExpectVal === expectedVal
@@ -669,7 +675,10 @@ export const createExpectation = (
       negated ? " not" : ""
     } be '${expectedVal}'`
 
-    currTestStack[currTestStack.length - 1].expectResults.push({
+    const targetTest = getCurrentTest()
+    if (!targetTest) return undefined
+
+    targetTest.expectResults.push({
       status,
       message,
     })
@@ -697,13 +706,17 @@ export const createExpectation = (
         negated ? " not" : ""
       } be ${level}-level status`
 
-      currTestStack[currTestStack.length - 1].expectResults.push({
+      const targetTest = getCurrentTest()
+      if (!targetTest) return undefined
+      targetTest.expectResults.push({
         status,
         message,
       })
     } else {
       const message = `Expected ${level}-level status but could not parse value '${resolvedExpectVal}'`
-      currTestStack[currTestStack.length - 1].expectResults.push({
+      const targetTest = getCurrentTest()
+      if (!targetTest) return undefined
+      targetTest.expectResults.push({
         status: "error",
         message,
       })
@@ -741,14 +754,18 @@ export const createExpectation = (
         negated ? " not" : ""
       } be type '${expectedType}'`
 
-      currTestStack[currTestStack.length - 1].expectResults.push({
+      const targetTest = getCurrentTest()
+      if (!targetTest) return undefined
+      targetTest.expectResults.push({
         status,
         message,
       })
     } else {
       const message =
         'Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"'
-      currTestStack[currTestStack.length - 1].expectResults.push({
+      const targetTest = getCurrentTest()
+      if (!targetTest) return undefined
+      targetTest.expectResults.push({
         status: "error",
         message,
       })
@@ -766,7 +783,9 @@ export const createExpectation = (
     ) {
       const message =
         "Expected toHaveLength to be called for an array or string"
-      currTestStack[currTestStack.length - 1].expectResults.push({
+      const targetTest = getCurrentTest()
+      if (!targetTest) return undefined
+      targetTest.expectResults.push({
         status: "error",
         message,
       })
@@ -786,13 +805,17 @@ export const createExpectation = (
         negated ? " not" : ""
       } be of length '${expectedLength}'`
 
-      currTestStack[currTestStack.length - 1].expectResults.push({
+      const targetTest = getCurrentTest()
+      if (!targetTest) return undefined
+      targetTest.expectResults.push({
         status,
         message,
       })
     } else {
       const message = "Argument for toHaveLength should be a number"
-      currTestStack[currTestStack.length - 1].expectResults.push({
+      const targetTest = getCurrentTest()
+      if (!targetTest) return undefined
+      targetTest.expectResults.push({
         status: "error",
         message,
       })
@@ -809,7 +832,9 @@ export const createExpectation = (
       )
     ) {
       const message = "Expected toInclude to be called for an array or string"
-      currTestStack[currTestStack.length - 1].expectResults.push({
+      const targetTest = getCurrentTest()
+      if (!targetTest) return undefined
+      targetTest.expectResults.push({
         status: "error",
         message,
       })
@@ -818,7 +843,9 @@ export const createExpectation = (
 
     if (needle === null) {
       const message = "Argument for toInclude should not be null"
-      currTestStack[currTestStack.length - 1].expectResults.push({
+      const targetTest = getCurrentTest()
+      if (!targetTest) return undefined
+      targetTest.expectResults.push({
         status: "error",
         message,
       })
@@ -827,7 +854,9 @@ export const createExpectation = (
 
     if (needle === undefined) {
       const message = "Argument for toInclude should not be undefined"
-      currTestStack[currTestStack.length - 1].expectResults.push({
+      const targetTest = getCurrentTest()
+      if (!targetTest) return undefined
+      targetTest.expectResults.push({
         status: "error",
         message,
       })
@@ -847,7 +876,9 @@ export const createExpectation = (
       negated ? " not" : ""
     } include ${needlePretty}`
 
-    currTestStack[currTestStack.length - 1].expectResults.push({
+    const targetTest = getCurrentTest()
+    if (!targetTest) return undefined
+    targetTest.expectResults.push({
       status,
       message,
     })

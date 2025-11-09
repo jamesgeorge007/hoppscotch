@@ -1,0 +1,36 @@
+{
+  "v": 10,
+  "id": "test-dependent",
+  "name": "Dependent Tests",
+  "folders": [],
+  "requests": [
+    {
+      "v": "16",
+      "name": "dependent-test",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "",
+      "testScript": "let authToken = null\n\nconsole.log('[TEST] Starting script execution')\n\n// Test 1: Login and get token\nhopp.test('Login test', async () => {\n  console.log('[LOGIN] Test callback started')\n  const response = await hopp.fetch('https://echo.hoppscotch.io?action=login')\n  console.log('[LOGIN] Fetch completed')\n  const data = await response.json()\n  console.log('[LOGIN] JSON parsed')\n  authToken = 'token-' + Date.now()\n  console.log('[LOGIN] Token set to:', authToken)\n  hopp.expect(response.status).toBe(200)\n  console.log('[LOGIN] Test callback completed')\n})\n\n// Test 2: Use token from Test 1\nhopp.test('Authenticated request', async () => {\n  console.log('[AUTH] Test callback started')\n  console.log('[AUTH] Using token:', authToken)\n  \n  if (authToken === null) {\n    console.log('[AUTH] ERROR: Token is null! Login test has not completed yet!')\n  } else {\n    console.log('[AUTH] SUCCESS: Token is available')\n  }\n  \n  const response = await hopp.fetch('https://echo.hoppscotch.io?token=' + authToken)\n  console.log('[AUTH] Fetch completed')\n  const data = await response.json()\n  console.log('[AUTH] Response args:', JSON.stringify(data.args))\n  \n  // This should pass if login completed first\n  hopp.expect(authToken).not.toBe(null)\n  hopp.expect(data.args.token).toBe(authToken)\n  console.log('[AUTH] Test callback completed')\n})\n\nconsole.log('[TEST] Script execution completed')\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_dependent_test"
+    }
+  ],
+  "auth": {
+    "authType": "inherit",
+    "authActive": true
+  },
+  "headers": [],
+  "variables": [],
+  "_ref_id": "coll_dependent_test"
+}

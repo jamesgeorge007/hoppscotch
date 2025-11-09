@@ -8,10 +8,11 @@ import { createExpectation } from "~/utils/shared"
  */
 export const createExpectationMethods = (
   ctx: CageModuleCtx,
-  testRunStack: TestDescriptor[]
+  testRunStack: TestDescriptor[],
+  getCurrentTestContext?: () => TestDescriptor | null
 ): ExpectationMethods => {
   const createExpect = (expectVal: SandboxValue) =>
-    createExpectation(expectVal, false, testRunStack)
+    createExpectation(expectVal, false, testRunStack, getCurrentTestContext)
 
   return {
     expectToBe: defineSandboxFn(

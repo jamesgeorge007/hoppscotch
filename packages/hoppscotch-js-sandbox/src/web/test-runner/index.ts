@@ -114,9 +114,10 @@ const runPostRequestScriptWithFaradayCage = async (
       captureHook.capture()
     }
 
-    // CRITICAL FIX: Deep clone ALL results before disposing cage
-    // This ensures no QuickJS handles remain in the returned data
+    // CRITICAL FIX: Deep clone ALL results before returning
+    // This ensures no mutable references escape that could cause UI flickering
     const safeTestResults = cloneDeep(finalTestResults[0])
+
     const safeEnvs = cloneDeep(finalEnvs)
     const safeConsoleEntries = cloneDeep(consoleEntries)
     const safeCookies = finalCookies ? cloneDeep(finalCookies) : null

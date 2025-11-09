@@ -59,10 +59,30 @@ export const runPostRequestScriptWithFaradayCage = (
             throw result.err
           }
 
-          // CRITICAL: Wait for async test functions BEFORE capturing results
-          // This ensures test assertions in async callbacks complete before we return results
+          // CRITICAL FIX: Execute tests SEQUENTIALLY to support dependent tests
+          // Problem: Tests that share variables (e.g., authToken) fail with concurrent execution
+          // Example:
+          //   let token = null
+          //   hopp.test('Login', async () => { token = await getToken() })
+          //   hopp.test('Use token', async () => { await useToken(token) })  // token is null!
+          //
+          // Solution: Execute tests one at a time, waiting for each to complete before starting next
+          // This ensures:
+          //   ✓ Variables set in earlier tests are available to later tests
+          //   ✓ Tests complete in registration order
+          //   ✓ Predictable, deterministic behavior
+          //   ✓ No race conditions
           if (testPromises.length > 0) {
-            await Promise.all(testPromises)
+            console.log(`[EXPERIMENTAL] Executing ${testPromises.length} tests sequentially...`)
+
+            // Execute each test promise one at a time, waiting for completion
+            for (let i = 0; i < testPromises.length; i++) {
+              console.log(`[EXPERIMENTAL] Executing test ${i + 1}/${testPromises.length}...`)
+              await testPromises[i]
+              console.log(`[EXPERIMENTAL] Test ${i + 1} completed`)
+            }
+
+            console.log('[EXPERIMENTAL] All tests completed sequentially')
           }
 
           // Capture results AFTER all async tests complete
