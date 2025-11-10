@@ -898,7 +898,7 @@ export const createExpectation = (
 
   Object.defineProperties(result, {
     not: {
-      get: () => createExpectation(expectVal, !negated, currTestStack),
+      get: () => createExpectation(expectVal, !negated, currTestStack, getCurrentTestContext),
     },
   })
 

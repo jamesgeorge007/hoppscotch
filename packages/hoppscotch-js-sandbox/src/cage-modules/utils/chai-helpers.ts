@@ -29,7 +29,9 @@ export const createChaiMethods: (
    */
   const executeChaiAssertion = (assertionFn: () => void, message: string) => {
     const targetTest = getCurrentTest()
-    if (!targetTest) return
+    if (!targetTest) {
+      return
+    }
 
     try {
       assertionFn()

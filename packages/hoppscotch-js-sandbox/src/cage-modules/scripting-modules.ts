@@ -215,8 +215,13 @@ const createScriptingInputsObj = (
       setCurrentTest: defineSandboxFn(
         ctx,
         "setCurrentTest",
-        function setCurrentTest(testDescriptor: unknown) {
-          currentExecutingTest = testDescriptor as TestDescriptor
+        function setCurrentTest(descriptorName: unknown) {
+          // Find the test descriptor in the testRunStack by descriptor name
+          // This ensures we use the ACTUAL object, not a serialized copy
+          const found = postConfig.testRunStack[0].children.find(
+            (test) => test.descriptor === descriptorName
+          )
+          currentExecutingTest = found || null
         }
       ),
       clearCurrentTest: defineSandboxFn(
@@ -393,16 +398,41 @@ const createScriptingModule = (
 
     const sandboxInputsObj = defineSandboxObject(ctx, inputsObj)
 
-    ctx.vm.callFunction(funcHandle, ctx.vm.undefined, sandboxInputsObj)
+    const bootstrapResult = ctx.vm.callFunction(funcHandle, ctx.vm.undefined, sandboxInputsObj)
 
-    // IMPORTANT: Schedule the test promise resolution check after script execution
-    // Use afterScriptExecutionHooks to wait for test promises AFTER main script completes
+    // Extract the test execution chain promise from the bootstrap function's return value
+    let testExecutionChainPromise: any = null
+    if (bootstrapResult.error) {
+      console.error('[SCRIPTING] Bootstrap function error:', ctx.vm.dump(bootstrapResult.error))
+      bootstrapResult.error.dispose()
+    } else if (bootstrapResult.value) {
+      testExecutionChainPromise = bootstrapResult.value
+      // Don't dispose the value yet - we need to await it
+    }
+
+    // IMPORTANT: Wait for test execution chain BEFORE resolving keepAlive
+    // This ensures all tests complete before results are captured
     ctx.afterScriptExecutionHooks.push(() => {
-      // Schedule async work without blocking the hook
       setTimeout(async () => {
+        // If we have a test execution chain, await it
+        if (testExecutionChainPromise) {
+          const resolvedPromise = ctx.vm.resolvePromise(testExecutionChainPromise)
+          testExecutionChainPromise.dispose()
+
+          const awaitResult = await resolvedPromise
+          if (awaitResult.error) {
+            console.error('[SCRIPTING] Test execution chain error:', ctx.vm.dump(awaitResult.error))
+            awaitResult.error.dispose()
+          } else {
+            awaitResult.value?.dispose()
+          }
+        }
+
+        // Also wait for any old-style test promises (for backwards compatibility)
         if (testPromises.length > 0) {
           await Promise.allSettled(testPromises)
         }
+
         resolveKeepAlive?.()
       }, 0)
     })

@@ -2166,8 +2166,9 @@
 
       // Chain this test to execute after previous tests
       __testExecutionChain = __testExecutionChain.then(async () => {
-        // Set current test context
-        inputs.setCurrentTest(testDescriptor)
+        // Set current test context by descriptor name (not the object itself)
+        // This ensures we use the actual object from testRunStack, not a serialized copy
+        inputs.setCurrentTest(descriptor)
 
         try {
           // Execute test callback immediately (while handles are alive)
@@ -2411,8 +2412,9 @@
 
       // Chain this test to execute after previous tests
       __testExecutionChain = __testExecutionChain.then(async () => {
-        // Set current test context
-        inputs.setCurrentTest(testDescriptor)
+        // Set current test context by descriptor name (not the object itself)
+        // This ensures we use the actual object from testRunStack, not a serialized copy
+        inputs.setCurrentTest(descriptor)
 
         try {
           // Execute test callback immediately (while handles are alive)
@@ -3957,4 +3959,8 @@
       )
     },
   }
+
+  // Return the test execution chain promise so the host can await it
+  // This ensures all tests complete before results are captured
+  return __testExecutionChain
 }
