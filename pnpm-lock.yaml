@@ -1162,8 +1162,8 @@ importers:
         specifier: 6.2.0
         version: 6.2.0
       faraday-cage:
-        specifier: file:../../../faraday-cage
-        version: file:../faraday-cage
+        specifier: 0.1.0
+        version: 0.1.0
       fp-ts:
         specifier: 2.16.11
         version: 2.16.11
@@ -10306,8 +10306,8 @@ packages:
     resolution: {integrity: sha512-FuoE1qtbJ4bBVvv94CC7s0oTnKUGvQs+Rjf1L2SJFfS+HTVVjhPFtehPdQ0JiGPqVNfSSZvL5yzHHQq2Z4WNhQ==}
     engines: {node: ^12.20 || >= 14.13}
 
-  faraday-cage@file:../faraday-cage:
-    resolution: {directory: ../faraday-cage, type: directory}
+  faraday-cage@0.1.0:
+    resolution: {integrity: sha512-tzTqTDYO/OKrJ2y9GDfztPM6YuqGkD0GLwtdpf9mX1n29jRiOcgpElljp4F6Pr8iq7UIkVUXjV2yNnKuNSgzBQ==}
 
   fast-check@3.23.2:
     resolution: {integrity: sha512-h5+1OzzfCC3Ef7VbtKdcv7zsstUQwUDlYpUTvjeUsJAssPgLn7QzbboPtL5ro04Mq0rPOsMzl7q5hIbRs2wD1A==}
@@ -26881,7 +26881,7 @@ snapshots:
 
   extract-files@11.0.0: {}
 
-  faraday-cage@file:../faraday-cage:
+  faraday-cage@0.1.0:
     dependencies:
       '@jitl/quickjs-ffi-types': 0.31.0
       '@jitl/quickjs-singlefile-mjs-release-asyncify': 0.31.0
