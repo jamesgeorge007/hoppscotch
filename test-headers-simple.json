@@ -1,0 +1,36 @@
+{
+  "v": 10,
+  "id": "test-headers-simple",
+  "name": "Test Headers Simple",
+  "folders": [],
+  "requests": [
+    {
+      "v": "16",
+      "name": "headers-simple",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "console.log('Creating Headers')\nconst headers = new Headers()\nconsole.log('Headers created:', typeof headers)\nhopp.env.active.set('headers_type', typeof headers)\n",
+      "testScript": "hopp.test('Headers exists', () => {\n  const type = hopp.env.active.get('headers_type')\n  console.log('Headers type:', type)\n  hopp.expect(type).toBe('object')\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_headers_simple"
+    }
+  ],
+  "auth": {
+    "authType": "inherit",
+    "authActive": true
+  },
+  "headers": [],
+  "variables": [],
+  "_ref_id": "coll_headers_simple"
+}

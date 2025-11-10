@@ -1,0 +1,27 @@
+{
+  "v": 10,
+  "id": "test-abort",
+  "name": "Test AbortController",
+  "folders": [],
+  "requests": [
+    {
+      "v": "16",
+      "name": "abort-test",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "console.log('Creating AbortController')\nconst controller = new AbortController()\nconst signal = controller.signal\n\nconsole.log('Adding event listener')\nlet fired = false\nsignal.addEventListener('abort', () => {\n  console.log('Event listener called!')\n  fired = true\n})\n\nconsole.log('Calling abort()')\ncontroller.abort()\n\nconsole.log('After abort, fired:', fired)\nhopp.env.active.set('event_fired', fired.toString())\n",
+      "testScript": "hopp.test('Event fired', () => {\n  const fired = hopp.env.active.get('event_fired')\n  console.log('Test check - fired:', fired)\n  hopp.expect(fired).toBe('true')\n})\n",
+      "auth": {"authType": "inherit", "authActive": true},
+      "body": {"contentType": null, "body": null},
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_abort"
+    }
+  ],
+  "auth": {"authType": "inherit", "authActive": true},
+  "headers": [],
+  "variables": [],
+  "_ref_id": "coll_abort"
+}

@@ -97,11 +97,44 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
     // Define fetch function in the sandbox
     const fetchFn = defineSandboxFunctionRaw(ctx, "fetch", (...args) => {
-      const [input, init] = args.map((arg) => ctx.vm.dump(arg))
+      const input = ctx.vm.dump(args[0])
+      let init = args.length > 1 ? args[1] : undefined
+
+      // Check if init has headers that need conversion
+      if (init) {
+        const headersHandle = ctx.vm.getProp(init, "headers")
+        if (headersHandle) {
+          // Check if it's a Headers instance
+          const isHoppHeaders = ctx.vm.getProp(headersHandle, "__isHoppHeaders")
+          if (isHoppHeaders && ctx.vm.typeof(isHoppHeaders) === "boolean") {
+            const isHoppHeadersValue = ctx.vm.dump(isHoppHeaders)
+            if (isHoppHeadersValue === true) {
+              // Call toObject() to get plain object
+              const toObjectFn = ctx.vm.getProp(headersHandle, "toObject")
+              if (toObjectFn && ctx.vm.typeof(toObjectFn) === "function") {
+                const result = ctx.vm.callFunction(toObjectFn, headersHandle)
+                if (!result.error) {
+                  // Replace headers with the plain object
+                  ctx.vm.setProp(init, "headers", result.value)
+                  result.value.dispose()
+                } else {
+                  result.error.dispose()
+                }
+              }
+              toObjectFn?.dispose()
+            }
+            isHoppHeaders.dispose()
+          }
+          headersHandle.dispose()
+        }
+      }
+
+      // Now dump init after conversion
+      const dumpedInit = init ? ctx.vm.dump(init) : undefined
 
       const promiseHandle = ctx.scope.manage(
         ctx.vm.newPromise((resolve, reject) => {
-          const fetchPromise = trackAsyncOperation(fetchImpl(input, init))
+          const fetchPromise = trackAsyncOperation(fetchImpl(input, dumpedInit))
 
           fetchPromise
             .then((response) => {
@@ -270,9 +303,9 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     // ========================================================================
     // Headers Class Implementation (wraps native Headers)
     // ========================================================================
-    const HeadersClass = defineSandboxFunctionRaw(ctx, "Headers", (...args) => {
-      // Create native Headers instance
-      const init = args.length > 0 ? ctx.vm.dump(args[0]) : undefined
+    // Helper function to create a Headers instance (called from sandbox)
+    const createHeadersInstance = defineSandboxFunctionRaw(ctx, "__createHeadersInstance", (initHandle) => {
+      const init = initHandle ? ctx.vm.dump(initHandle) : undefined
       const nativeHeaders = new globalThis.Headers(init as HeadersInit)
 
       const headersInstance = ctx.scope.manage(ctx.vm.newObject())
@@ -373,10 +406,42 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       })
       ctx.vm.setProp(headersInstance, "values", valuesFn)
 
+      // Add a special marker and toObject method for fetch compatibility
+      ctx.vm.setProp(headersInstance, "__isHoppHeaders", ctx.vm.true)
+
+      const toObjectFn = defineSandboxFunctionRaw(ctx, "toObject", () => {
+        const obj = ctx.scope.manage(ctx.vm.newObject())
+        // @ts-expect-error - Headers.entries() exists
+        for (const [key, value] of nativeHeaders.entries()) {
+          ctx.vm.setProp(obj, key, ctx.scope.manage(ctx.vm.newString(value)))
+        }
+        return obj
+      })
+      ctx.vm.setProp(headersInstance, "toObject", toObjectFn)
+
       return headersInstance
     })
 
-    ctx.vm.setProp(ctx.vm.global, "Headers", HeadersClass)
+    // Set the helper on global scope (keep it, don't remove)
+    ctx.vm.setProp(ctx.vm.global, "__createHeadersInstance", createHeadersInstance)
+
+    // Define the Headers constructor as actual JavaScript in the sandbox
+    // This ensures it's recognized as a proper constructor
+    const headersCtorResult = ctx.vm.evalCode(`
+      (function() {
+        globalThis.Headers = function Headers(init) {
+          return __createHeadersInstance(init)
+        }
+        return true
+      })()
+    `)
+
+    if (headersCtorResult.error) {
+      console.error('[CUSTOM-FETCH] Failed to define Headers constructor:', ctx.vm.dump(headersCtorResult.error))
+      headersCtorResult.error.dispose()
+    } else {
+      headersCtorResult.value?.dispose()
+    }
 
     // ========================================================================
     // Request Class Implementation (wraps native Request)
@@ -390,11 +455,15 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
       const requestInstance = ctx.scope.manage(ctx.vm.newObject())
 
-      // url property
+      // url property - strip trailing slash if original didn't have one
+      let url = nativeRequest.url
+      if (typeof input === 'string' && !input.endsWith('/') && url.endsWith('/')) {
+        url = url.slice(0, -1)
+      }
       ctx.vm.setProp(
         requestInstance,
         "url",
-        ctx.scope.manage(ctx.vm.newString(nativeRequest.url))
+        ctx.scope.manage(ctx.vm.newString(url))
       )
 
       // method property
@@ -516,7 +585,22 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       return requestInstance
     })
 
-    ctx.vm.setProp(ctx.vm.global, "Request", RequestClass)
+    // Set helper on global and define Request constructor in sandbox
+    ctx.vm.setProp(ctx.vm.global, "__createRequestInstance", RequestClass)
+    const requestCtorResult = ctx.vm.evalCode(`
+      (function() {
+        globalThis.Request = function Request(input, init) {
+          return __createRequestInstance(input, init)
+        }
+        return true
+      })()
+    `)
+    if (requestCtorResult.error) {
+      console.error('[CUSTOM-FETCH] Failed to define Request constructor:', ctx.vm.dump(requestCtorResult.error))
+      requestCtorResult.error.dispose()
+    } else {
+      requestCtorResult.value?.dispose()
+    }
 
     // ========================================================================
     // Response Class Implementation
@@ -673,7 +757,22 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       return responseInstance
     })
 
-    ctx.vm.setProp(ctx.vm.global, "Response", ResponseClass)
+    // Set helper on global and define Response constructor in sandbox
+    ctx.vm.setProp(ctx.vm.global, "__createResponseInstance", ResponseClass)
+    const responseCtorResult = ctx.vm.evalCode(`
+      (function() {
+        globalThis.Response = function Response(body, init) {
+          return __createResponseInstance(body, init)
+        }
+        return true
+      })()
+    `)
+    if (responseCtorResult.error) {
+      console.error('[CUSTOM-FETCH] Failed to define Response constructor:', ctx.vm.dump(responseCtorResult.error))
+      responseCtorResult.error.dispose()
+    } else {
+      responseCtorResult.value?.dispose()
+    }
 
     // ========================================================================
     // AbortController Class Implementation
@@ -685,8 +784,9 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       const signalInstance = ctx.scope.manage(ctx.vm.newObject())
       ctx.vm.setProp(signalInstance, "aborted", ctx.vm.false)
 
-      // Store abort listeners
-      const abortListeners: any[] = []
+      // Store abort listeners - use an array to store handles that we DON'T dispose
+      // These handles need to stay alive until abort() is called
+      const abortListeners: Array<{ handle: any, disposed: boolean }> = []
 
       // addEventListener method for signal
       const addEventListenerFn = defineSandboxFunctionRaw(
@@ -695,7 +795,11 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         (...listenerArgs) => {
           const eventType = ctx.vm.dump(listenerArgs[0])
           if (eventType === "abort") {
-            abortListeners.push(listenerArgs[1])
+            // The handle passed to us is managed by the caller's scope
+            // We need to create our own reference that won't be auto-disposed
+            const listenerHandle = listenerArgs[1]
+            const dupedHandle = listenerHandle.dup()
+            abortListeners.push({ handle: dupedHandle, disposed: false })
           }
           return ctx.vm.undefined
         }
@@ -711,8 +815,20 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         ctx.vm.setProp(signalInstance, "aborted", ctx.vm.true)
 
         // Call all abort listeners
-        for (const listener of abortListeners) {
-          ctx.vm.callFunction(listener, ctx.vm.undefined)
+        for (let i = 0; i < abortListeners.length; i++) {
+          const listenerInfo = abortListeners[i]
+          if (!listenerInfo.disposed) {
+            const result = ctx.vm.callFunction(listenerInfo.handle, ctx.vm.undefined)
+            if (result.error) {
+              console.error('[ABORT] Listener error:', ctx.vm.dump(result.error))
+              result.error.dispose()
+            } else {
+              result.value.dispose()
+            }
+            // Dispose the handle after calling it
+            listenerInfo.handle.dispose()
+            listenerInfo.disposed = true
+          }
         }
 
         return ctx.vm.undefined
@@ -722,5 +838,20 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       return controllerInstance
     })
 
-    ctx.vm.setProp(ctx.vm.global, "AbortController", AbortControllerClass)
+    // Set helper on global and define AbortController constructor in sandbox
+    ctx.vm.setProp(ctx.vm.global, "__createAbortControllerInstance", AbortControllerClass)
+    const abortCtorResult = ctx.vm.evalCode(`
+      (function() {
+        globalThis.AbortController = function AbortController() {
+          return __createAbortControllerInstance()
+        }
+        return true
+      })()
+    `)
+    if (abortCtorResult.error) {
+      console.error('[CUSTOM-FETCH] Failed to define AbortController constructor:', ctx.vm.dump(abortCtorResult.error))
+      abortCtorResult.error.dispose()
+    } else {
+      abortCtorResult.value?.dispose()
+    }
   })
