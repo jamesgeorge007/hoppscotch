@@ -3,6 +3,7 @@ import {
   HoppCollectionVariable,
   HoppRESTHeaders,
   HoppRESTRequest,
+  isRESTRequest,
 } from "@hoppscotch/data"
 import { Service } from "dioc"
 import * as E from "fp-ts/Either"
@@ -158,7 +159,14 @@ export class TestRunnerService extends Service {
           throw new Error("Test execution stopped")
         }
 
-        const request = collection.requests[i] as TestRunnerRequest
+        const requestWrapper = collection.requests[i]
+
+        // Skip non-REST requests in test runner (only REST is supported for now)
+        if (!isRESTRequest(requestWrapper)) {
+          continue
+        }
+
+        const request = requestWrapper.request as TestRunnerRequest
         const currentPath = [...parentPath, i]
 
         // Add request to the result collection before execution

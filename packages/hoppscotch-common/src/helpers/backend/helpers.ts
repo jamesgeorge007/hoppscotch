@@ -7,6 +7,7 @@ import {
   HoppRESTRequest,
   makeCollection,
   translateToNewRequest,
+  wrapRESTRequest,
 } from "@hoppscotch/data"
 import * as A from "fp-ts/Array"
 import * as E from "fp-ts/Either"
@@ -165,7 +166,7 @@ const teamCollectionJSONToHoppRESTColl = (
   return makeCollection({
     name: coll.name,
     folders: coll.folders.map(teamCollectionJSONToHoppRESTColl),
-    requests: coll.requests,
+    requests: coll.requests.map(wrapRESTRequest),
     auth,
     headers,
     variables,
@@ -237,7 +238,7 @@ export const teamCollToHoppRESTColl = (
     id: coll.id,
     name: coll.title,
     folders: coll.children?.map(teamCollToHoppRESTColl) ?? [],
-    requests: coll.requests?.map((x) => x.request) ?? [],
+    requests: (coll.requests?.map((x) => x.request) ?? []).map(wrapRESTRequest),
     auth: auth ?? { authType: "inherit", authActive: true },
     headers: headers ?? [],
     variables: variables ?? [],

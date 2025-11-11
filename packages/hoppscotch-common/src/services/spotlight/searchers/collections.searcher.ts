@@ -22,6 +22,8 @@ import {
   HoppCollection,
   HoppGQLRequest,
   HoppRESTRequest,
+  isRESTRequest,
+  isGQLRequest,
 } from "@hoppscotch/data"
 import { WorkspaceService } from "~/services/workspace.service"
 import { invokeAction } from "~/helpers/actions"
@@ -313,10 +315,12 @@ export class CollectionsSpotlightSearcherService
       if (possibleTab) {
         this.restTab.setActiveTab(possibleTab.value.id)
       } else {
-        const req = this.getRESTFolderFromFolderPath(folderPath.join("/"))
-          ?.requests[reqIndex] as HoppRESTRequest
+        const reqWrapper = this.getRESTFolderFromFolderPath(folderPath.join("/"))
+          ?.requests[reqIndex]
 
-        if (!req) return
+        if (!reqWrapper || !isRESTRequest(reqWrapper)) return
+
+        const req = reqWrapper.request
 
         this.restTab.createNewTab(
           {
@@ -340,10 +344,12 @@ export class CollectionsSpotlightSearcherService
       const folderPath = path.split("/").map((x) => parseInt(x))
       const reqIndex = folderPath.pop()!
 
-      const req = this.getGQLFolderFromFolderPath(folderPath.join("/"))
-        ?.requests[reqIndex] as HoppGQLRequest
+      const reqWrapper = this.getGQLFolderFromFolderPath(folderPath.join("/"))
+        ?.requests[reqIndex]
 
-      if (!req) return
+      if (!reqWrapper || !isGQLRequest(reqWrapper)) return
+
+      const req = reqWrapper.request
 
       this.gqlTab.createNewTab({
         saveContext: {

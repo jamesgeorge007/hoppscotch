@@ -30,4 +30,8 @@ export const getDefaultGQLRequest = (): HoppGQLRequest => ({
     authType: "inherit",
     authActive: true,
   },
+  preRequestScript: "",
+  testScript: "",
+  requestVariables: [],
+  responses: {},
 })

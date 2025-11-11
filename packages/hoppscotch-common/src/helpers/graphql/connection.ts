@@ -410,13 +410,17 @@ export const runGQLOperation = async (options: RunQueryOptions) => {
   )
 
   const gqlRequest: HoppGQLRequest = {
-    v: 9,
+    v: 10,
     name: options.name || "Untitled Request",
     url: finalUrl,
     headers: finalHoppHeaders,
     query,
     variables,
     auth: auth ?? request.auth,
+    preRequestScript: request.preRequestScript || "",
+    testScript: request.testScript || "",
+    requestVariables: request.requestVariables || [],
+    responses: request.responses || {},
   }
 
   if (operationType === "subscription") {
@@ -658,6 +662,10 @@ const addQueryToHistory = (options: RunQueryOptions, response: string) => {
         headers: request.headers,
         variables,
         auth: request.auth as HoppGQLAuth,
+        preRequestScript: request.preRequestScript || "",
+        testScript: request.testScript || "",
+        requestVariables: request.requestVariables || [],
+        responses: request.responses || {},
       }),
       response,
       star: false,
