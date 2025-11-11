@@ -351,6 +351,10 @@ const newSendRequest = async () => {
     req: tab.value.document.request
   }
 
+  // Clear test results to prevent showing stale data during async operations
+  // The Test Results tab will remain hidden until new results are available
+  tab.value.document.testResults = null
+
   // Also set loading ref for internal state
   loading.value = true
 
