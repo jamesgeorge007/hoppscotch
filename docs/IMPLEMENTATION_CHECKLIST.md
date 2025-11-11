@@ -255,12 +255,13 @@ Use this checklist to verify implementation completeness.
 - [x] Wire up import/export with protocol detection
 
 ### Week 3: Navigation & Environment UI
-- [ ] Update routes (redirect `/graphql` → unified)
-- [ ] Add query param support (`?protocol=graphql`)
-- [ ] Update internal links
-- [ ] Add Environments tab to GraphQL sidebar
-- [ ] Enable environment selector in GQL requests
-- [ ] Test variable resolution
+- [x] Update routes - Index route now uses unified page
+- [x] Disabled `/graphql` route in favor of unified at `/`
+- [x] Updated all internal navigation and redirects
+- [x] Environments tab available in unified sidebar for all protocols
+- [x] Environment selector integrated in unified page
+- [ ] Add query param support (`?protocol=graphql`) (optional enhancement)
+- [ ] Test variable resolution comprehensively
 
 ### Week 4-5: Team Workspaces (Optional)
 - [ ] Coordinate with backend team
@@ -378,7 +379,7 @@ Use this checklist to verify implementation completeness.
 ---
 
 **Last Updated:** 2025-11-11
-**Status:** Core implementation complete (~90%) - Ready for routing integration and testing
+**Status:** Implementation complete (~95%) - Fully integrated and ready for testing
 **Implementation Progress:**
 - ✅ Phase 1: Data Model & Foundation (100%)
 - ✅ Phase 2: Migration System (100%)
@@ -387,12 +388,19 @@ Use this checklist to verify implementation completeness.
 - ✅ Phase 5: Unified Tab Service (100%)
 - ✅ Phase 6: UI Components (100%)
 - ✅ Phase 7: Documentation (100%)
-- ⏳ Phase 8: Testing (30%)
+- ✅ Phase 8: Routing Integration (100%)
+- ⏳ Phase 9: Testing (30%)
 
-**Remaining Critical Work:**
-1. Route integration - Add /unified route to router
-2. Testing - Unit, integration, and E2E tests
-3. Protocol icons in collection tree (visual enhancement)
-4. Beta testing and feedback
+**Routing Changes Completed:**
+1. ✅ Index route (`/`) now uses unified page
+2. ✅ `/graphql` route disabled (renamed to .old-gql-only)
+3. ✅ All navigation updated to unified experience
+4. ✅ OAuth redirects point to index route
+5. ✅ Action handlers updated
 
-**Estimated Completion:** 1-2 weeks for route integration and basic testing, 3-4 weeks for comprehensive testing and beta
+**Remaining Work:**
+1. Testing - Unit, integration, and E2E tests
+2. Protocol icons in collection tree (visual enhancement)
+3. Beta testing and feedback
+
+**Estimated Completion:** 2-3 weeks for comprehensive testing and beta

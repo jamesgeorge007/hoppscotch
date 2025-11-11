@@ -45,14 +45,8 @@ const primaryNavigation = [
   {
     target: "/",
     svg: IconLink2,
-    title: "navigation.rest",
+    title: "navigation.rest", // Now unified REST + GraphQL
     exact: true,
-  },
-  {
-    target: "/graphql",
-    svg: IconGraphql,
-    title: "navigation.graphql",
-    exact: false,
   },
   {
     target: "/realtime",

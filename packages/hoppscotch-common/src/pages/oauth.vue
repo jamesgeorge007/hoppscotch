@@ -86,7 +86,7 @@ onMounted(async () => {
 
   if (E.isLeft(tokenInfo)) {
     toast.error(translateOAuthRedirectError(tokenInfo.left))
-    router.push(source === "REST" ? "/" : "/graphql")
+    router.push("/") // Unified page handles both REST and GraphQL
     return
   }
 
@@ -109,11 +109,11 @@ onMounted(async () => {
 
     toast.success(t("authorization.oauth.token_fetched_successfully"))
 
-    router.push(source === "REST" ? "/" : "/graphql")
+    router.push("/") // Unified page handles both REST and GraphQL
     return
   }
 
-  const routeToRedirect = source === "GraphQL" ? "/graphql" : "/"
+  const routeToRedirect = "/" // Unified page handles both REST and GraphQL
   const tabService = source === "GraphQL" ? gqlTabs : restTabs
 
   if (
