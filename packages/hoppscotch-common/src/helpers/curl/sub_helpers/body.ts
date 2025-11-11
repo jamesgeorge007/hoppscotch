@@ -6,7 +6,7 @@ import * as RNEA from "fp-ts/ReadonlyNonEmptyArray"
 import * as S from "fp-ts/string"
 import {
   HoppRESTReqBody,
-  HoppRESTReqBodyFormData,
+  FormDataKeyValue,
   ValidContentTypes,
   knownContentTypes,
 } from "@hoppscotch/data"
@@ -16,6 +16,11 @@ import {
   objHasProperty,
   objHasArrayProperty,
 } from "~/helpers/functional/object"
+
+type HoppRESTReqBodyFormData = {
+  contentType: "multipart/form-data"
+  body: FormDataKeyValue[]
+}
 
 type BodyReturnType =
   | { type: "FORMDATA"; body: Record<string, string> }

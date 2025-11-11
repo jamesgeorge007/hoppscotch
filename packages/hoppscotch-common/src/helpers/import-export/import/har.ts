@@ -5,13 +5,19 @@ import {
   ValidContentTypesList,
   ValidContentTypes,
   HoppRESTReqBody,
-  HoppRESTReqBodyFormData,
   HoppRESTRequest,
   getDefaultRESTRequest,
   makeCollection,
+  wrapRESTRequest,
+  FormDataKeyValue,
 } from "@hoppscotch/data"
 import * as E from "fp-ts/Either"
 import { z } from "zod"
+
+type HoppRESTReqBodyFormData = {
+  contentType: "multipart/form-data"
+  body: FormDataKeyValue[]
+}
 
 export const harImporter = (
   content: string[]
@@ -28,10 +34,13 @@ export const harImporter = (
 
     const requests = harToHoppscotchRequestConverter(har)
 
+    // Wrap REST requests with protocol discriminator
+    const wrappedRequests = requests.map(wrapRESTRequest)
+
     const collection = makeCollection({
       name: "Imported from HAR",
       folders: [],
-      requests: requests,
+      requests: wrappedRequests,
       auth: {
         authType: "none",
         authActive: true,

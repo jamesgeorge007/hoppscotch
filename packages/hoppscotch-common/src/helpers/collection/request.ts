@@ -2,7 +2,8 @@ import {
   HoppCollection,
   HoppGQLRequest,
   HoppRESTRequest,
-  RESTReqSchemaVersion,
+  isRESTRequest,
+  isGQLRequest,
 } from "@hoppscotch/data"
 import { getAffectedIndexes } from "./affectedIndex"
 import { RESTTabService } from "~/services/tab/rest"
@@ -60,27 +61,43 @@ export function resolveSaveContextOnRequestReorder(payload: {
 export function getRequestsByPath(
   collections: HoppCollection[],
   path: string
-): HoppRESTRequest[] | HoppGQLRequest[] {
+): (HoppRESTRequest | HoppGQLRequest)[] {
   // path will be like this "0/0/1" these are the indexes of the folders
   const pathArray = path.split("/").map((index) => parseInt(index))
 
   let currentCollection = collections[pathArray[0]]
 
   if (pathArray.length === 1) {
-    const latestVersionedRequests = currentCollection.requests.filter(
-      (req): req is HoppRESTRequest => req.v === RESTReqSchemaVersion
-    )
+    // Unwrap requests from protocol wrappers
+    const unwrappedRequests = currentCollection.requests
+      .map((reqWrapper) => {
+        if (isRESTRequest(reqWrapper)) {
+          return reqWrapper.request as HoppRESTRequest
+        } else if (isGQLRequest(reqWrapper)) {
+          return reqWrapper.request as HoppGQLRequest
+        }
+        return null
+      })
+      .filter((req): req is HoppRESTRequest | HoppGQLRequest => req !== null)
 
-    return latestVersionedRequests
+    return unwrappedRequests
   }
   for (let i = 1; i < pathArray.length; i++) {
     const folder = currentCollection.folders[pathArray[i]]
     if (folder) currentCollection = folder
   }
 
-  const latestVersionedRequests = currentCollection.requests.filter(
-    (req): req is HoppRESTRequest => req.v === RESTReqSchemaVersion
-  )
+  // Unwrap requests from protocol wrappers
+  const unwrappedRequests = currentCollection.requests
+    .map((reqWrapper) => {
+      if (isRESTRequest(reqWrapper)) {
+        return reqWrapper.request as HoppRESTRequest
+      } else if (isGQLRequest(reqWrapper)) {
+        return reqWrapper.request as HoppGQLRequest
+      }
+      return null
+    })
+    .filter((req): req is HoppRESTRequest | HoppGQLRequest => req !== null)
 
-  return latestVersionedRequests
+  return unwrappedRequests
 }

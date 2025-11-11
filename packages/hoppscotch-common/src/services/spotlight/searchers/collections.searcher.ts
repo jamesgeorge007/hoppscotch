@@ -20,8 +20,6 @@ import RESTRequestSpotlightEntry from "~/components/app/spotlight/entry/RESTRequ
 import GQLRequestSpotlightEntry from "~/components/app/spotlight/entry/GQLRequest.vue"
 import {
   HoppCollection,
-  HoppGQLRequest,
-  HoppRESTRequest,
   isRESTRequest,
   isGQLRequest,
 } from "@hoppscotch/data"
@@ -75,10 +73,17 @@ export class CollectionsSpotlightSearcherService
       )
 
       minisearch.addAll(
-        coll.requests.map((req, reqIndex) => ({
-          id: `gql-${index}/${reqIndex}`,
-          name: req.name,
-        }))
+        coll.requests.map((reqWrapper, reqIndex) => {
+          const name = isGQLRequest(reqWrapper)
+            ? reqWrapper.request.name
+            : isRESTRequest(reqWrapper)
+              ? reqWrapper.request.name
+              : "Unnamed"
+          return {
+            id: `gql-${index}/${reqIndex}`,
+            name,
+          }
+        })
       )
     }
   }
@@ -102,10 +107,17 @@ export class CollectionsSpotlightSearcherService
       )
 
       minisearch.addAll(
-        coll.requests.map((req, reqIndex) => ({
-          id: `rest-${index}/${reqIndex}`,
-          name: req.name,
-        }))
+        coll.requests.map((reqWrapper, reqIndex) => {
+          const name = isRESTRequest(reqWrapper)
+            ? reqWrapper.request.name
+            : isGQLRequest(reqWrapper)
+              ? reqWrapper.request.name
+              : "Unnamed"
+          return {
+            id: `rest-${index}/${reqIndex}`,
+            name,
+          }
+        })
       )
     }
   }

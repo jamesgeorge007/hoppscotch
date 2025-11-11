@@ -21,6 +21,8 @@ import {
   HoppGQLRequest,
   getDefaultRESTRequest,
   getDefaultGQLRequest,
+  wrapRESTRequest,
+  wrapGQLRequest,
 } from "@hoppscotch/data"
 import * as E from "fp-ts/Either"
 
@@ -140,7 +142,15 @@ export function convertUserCollectionToHoppCollection(
   const requests = userCollection.requests
     ? userCollection.requests
         .filter((req) => req.type === reqType)
-        .map(convertUserRequestToHoppRequest)
+        .map((req) => {
+          const hoppReq = convertUserRequestToHoppRequest(req)
+          // Wrap based on request type
+          if (reqType === ReqType.Rest) {
+            return wrapRESTRequest(hoppReq as HoppRESTRequest)
+          } else {
+            return wrapGQLRequest(hoppReq as HoppGQLRequest)
+          }
+        })
     : []
 
   const collection = makeCollection({

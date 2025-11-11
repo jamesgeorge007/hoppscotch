@@ -4,6 +4,7 @@ import {
   HoppRESTHeaders,
   HoppRESTRequest,
   isRESTRequest,
+  wrapRESTRequest,
 } from "@hoppscotch/data"
 import { Service } from "dioc"
 import * as E from "fp-ts/Either"
@@ -249,9 +250,9 @@ export class TestRunnerService extends Service {
       current = current.folders[path[i]]
     }
 
-    // Add the request at the specified index
+    // Add the request at the specified index (wrapped with protocol)
     if (path.length > 0) {
-      current.requests[path[path.length - 1]] = request
+      current.requests[path[path.length - 1]] = wrapRESTRequest(request)
     }
   }
 
@@ -270,10 +271,15 @@ export class TestRunnerService extends Service {
     // Update the request at the specified index
     if (path.length > 0) {
       const index = path[path.length - 1]
-      current.requests[index] = {
-        ...current.requests[index],
-        ...updates,
-      } as TestRunnerRequest
+      const reqWrapper = current.requests[index]
+      // Unwrap, update, and re-wrap
+      if (isRESTRequest(reqWrapper)) {
+        const updatedReq = {
+          ...reqWrapper.request,
+          ...updates,
+        } as TestRunnerRequest
+        current.requests[index] = wrapRESTRequest(updatedReq)
+      }
     }
   }
 

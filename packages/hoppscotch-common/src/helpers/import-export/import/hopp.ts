@@ -7,6 +7,7 @@ import {
   HoppGQLRequest,
   translateToNewGQLCollection,
 } from "@hoppscotch/data"
+import { migrateImportedCollection } from "./protocol-detector"
 import * as A from "fp-ts/Array"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
@@ -25,7 +26,9 @@ export const hoppRESTImporter = (content: string[]) =>
         makeCollectionsArray,
         RA.map(validateCollection),
         O.sequenceArray,
-        O.map(RA.toArray)
+        O.map(RA.toArray),
+        // Apply protocol detection to migrated collections
+        O.map((collections) => collections.map(migrateImportedCollection))
       )
     ),
     TE.fromOption(() => IMPORTER_INVALID_FILE_FORMAT)
@@ -72,7 +75,9 @@ export const hoppGQLImporter = (content: string) =>
         makeCollectionsArray,
         RA.map(validateGQLCollection),
         O.sequenceArray,
-        O.map(RA.toArray)
+        O.map(RA.toArray),
+        // Apply protocol detection to migrated collections
+        O.map((collections) => collections.map(migrateImportedCollection))
       )
     ),
     TE.fromOption(() => IMPORTER_INVALID_FILE_FORMAT)

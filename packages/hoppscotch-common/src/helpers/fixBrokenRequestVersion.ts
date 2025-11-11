@@ -1,6 +1,7 @@
 import {
   getDefaultRESTRequest,
   safelyExtractRESTRequest,
+  wrapRESTRequest,
 } from "@hoppscotch/data"
 import { z } from "zod"
 import { REST_TAB_STATE_SCHEMA } from "~/services/persistence/validation-schemas"
@@ -43,7 +44,10 @@ export const fixBrokenRequestVersion = (
       if (x.doc.resultCollection) {
         x.doc.resultCollection.requests = x.doc.resultCollection?.requests.map(
           (req) => {
-            return safelyExtractRESTRequest(req, getDefaultRESTRequest())
+            // Wrap the extracted REST request with protocol
+            return wrapRESTRequest(
+              safelyExtractRESTRequest(req, getDefaultRESTRequest())
+            )
           }
         )
       }
