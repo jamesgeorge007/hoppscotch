@@ -170,33 +170,6 @@
         </div>
       </div>
     </div>
-    <div v-else-if="isLoading">
-      <div
-        class="sticky top-lowerSecondaryStickyFold z-10 flex flex-shrink-0 items-center justify-between overflow-x-auto border-b border-dividerLight bg-primary pl-4"
-      >
-        <label class="truncate font-semibold text-secondaryLight">
-          {{ t("test.report") }}
-        </label>
-        <div>
-          <HoppButtonSecondary
-            v-tippy="{ theme: 'tooltip' }"
-            :title="t('action.download_test_report')"
-            :icon="IconDownload"
-            disabled
-          />
-          <HoppButtonSecondary
-            v-tippy="{ theme: 'tooltip' }"
-            :title="t('action.clear')"
-            :icon="IconTrash2"
-            disabled
-          />
-        </div>
-      </div>
-      <div class="flex flex-col items-center justify-center p-4">
-        <HoppSmartSpinner class="my-4" />
-        <span class="text-secondaryLight">{{ t("state.loading") }}</span>
-      </div>
-    </div>
     <HoppSmartPlaceholder
       v-else-if="testResults && testResults.scriptError"
       :src="`/images/states/${colorMode.value}/upload_error.svg`"
@@ -270,11 +243,9 @@ const props = withDefaults(
   defineProps<{
     modelValue: HoppTestResult | null | undefined
     showEmptyMessage?: boolean
-    isLoading?: boolean
   }>(),
   {
     showEmptyMessage: true,
-    isLoading: false,
   }
 )
 

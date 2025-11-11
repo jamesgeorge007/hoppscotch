@@ -747,8 +747,51 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         ctx.vm.setProp(clonedResponse, "url", ctx.scope.manage(ctx.vm.newString(init.url || "")))
         ctx.vm.setProp(clonedResponse, "redirected", init.redirected ? ctx.vm.true : ctx.vm.false)
 
-        // Note: We don't copy body methods as they would share the same bodyBytes reference
-        // In a real implementation, you'd need to clone the body stream
+        // Clone body bytes array so modifications to one don't affect the other
+        const clonedBodyBytes = [...bodyBytes]
+
+        // Add json() method to cloned response
+        const clonedJsonFn = defineSandboxFunctionRaw(ctx, "json", () => {
+          const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+            try {
+              const text = new TextDecoder().decode(new Uint8Array(clonedBodyBytes))
+              const parsed = JSON.parse(text)
+              resolve(marshalValue(parsed))
+            } catch (error) {
+              reject(
+                ctx.scope.manage(
+                  ctx.vm.newError({
+                    name: "JSONError",
+                    message: error instanceof Error ? error.message : "JSON parse failed",
+                  })
+                )
+              )
+            }
+          })
+          return ctx.scope.manage(vmPromise).handle
+        })
+        ctx.vm.setProp(clonedResponse, "json", clonedJsonFn)
+
+        // Add text() method to cloned response
+        const clonedTextFn = defineSandboxFunctionRaw(ctx, "text", () => {
+          const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+            try {
+              const text = new TextDecoder().decode(new Uint8Array(clonedBodyBytes))
+              resolve(ctx.scope.manage(ctx.vm.newString(text)))
+            } catch (error) {
+              reject(
+                ctx.scope.manage(
+                  ctx.vm.newError({
+                    name: "TextError",
+                    message: error instanceof Error ? error.message : "Text decode failed",
+                  })
+                )
+              )
+            }
+          })
+          return ctx.scope.manage(vmPromise).handle
+        })
+        ctx.vm.setProp(clonedResponse, "text", clonedTextFn)
 
         return clonedResponse
       })

@@ -36,10 +36,7 @@
       :indicator="showIndicator"
       class="flex flex-1 flex-col"
     >
-      <HttpTestResult
-        v-model="doc.testResults"
-        :is-loading="doc.response?.type === 'loading' || doc.testResults === null"
-      />
+      <HttpTestResult v-model="doc.testResults" />
     </HoppSmartTab>
     <HoppSmartTab
       v-if="requestHeaders"
