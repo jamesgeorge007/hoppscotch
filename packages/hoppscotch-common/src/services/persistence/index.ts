@@ -124,6 +124,7 @@ export const STORE_KEYS = {
   GLOBAL_ENV: "globalEnv",
   REST_TABS: "restTabs",
   GQL_TABS: "gqlTabs",
+  UNIFIED_TABS: "unifiedTabs",
   SECRET_ENVIRONMENTS: "secretEnvironments",
   CURRENT_ENVIRONMENT_VALUE: "currentEnvironmentValue",
   CURRENT_SORT_VALUES: "currentSortValues",
