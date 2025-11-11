@@ -243,7 +243,7 @@ import { useReadonlyStream, useStreamSubscriber } from "@composables/stream"
 import { useToast } from "@composables/toast"
 import { useVModel } from "@vueuse/core"
 import * as E from "fp-ts/Either"
-import { computed, nextTick, ref, onUnmounted } from "vue"
+import { computed, nextTick, ref, onUnmounted, watch } from "vue"
 import { defineActionHandler, invokeAction } from "~/helpers/actions"
 import { runMutation } from "~/helpers/backend/GQLClient"
 import { UpdateRequestDocument } from "~/helpers/backend/graphql"
@@ -309,7 +309,9 @@ const curlText = ref("")
 const loading = ref(false)
 
 const isTabResponseLoading = computed(
-  () => tab.value.document.response?.type === "loading"
+  // Check both loading ref AND response type to ensure button stays as "Cancel"
+  // until ALL async operations (HTTP + test execution) complete
+  () => loading.value || tab.value.document.response?.type === "loading"
 )
 
 const showCurlImportModal = ref(false)
@@ -395,7 +397,8 @@ const newSendRequest = async () => {
         }
       },
       () => {
-        loading.value = false
+        // Don't clear loading here - wait for testResults to be set
+        // loading.value = false
       },
       () => {
         // TODO: Change this any to a proper type
@@ -412,7 +415,8 @@ const newSendRequest = async () => {
           }
           updateRESTResponse(errorResponse)
         }
-        loading.value = false
+        // Don't clear loading here - wait for testResults to be set
+        // loading.value = false
       }
     )
   } else {
@@ -461,6 +465,19 @@ function isCURL(curl: string) {
 }
 
 const currentTabID = tabs.currentTabID.value
+
+// Watch testResults to clear loading state only after tests complete
+// This ensures the Cancel button stays active until ALL async operations finish
+watch(
+  () => tab.value.document.testResults,
+  (newTestResults, oldTestResults) => {
+    // Clear loading when testResults changes from null to a value
+    // This means the post-request/test script has completed
+    if (oldTestResults === null && newTestResults !== null && loading.value) {
+      loading.value = false
+    }
+  }
+)
 
 onUnmounted(() => {
   //check if current tab id exist in the current tab id lists
