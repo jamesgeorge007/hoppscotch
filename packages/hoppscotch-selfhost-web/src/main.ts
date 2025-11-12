@@ -28,6 +28,7 @@ import { ProxyKernelInterceptorService } from "@hoppscotch/common/platform/std/k
 import { ExtensionKernelInterceptorService } from "@hoppscotch/common/platform/std/kernel-interceptors/extension"
 import { BrowserKernelInterceptorService } from "@hoppscotch/common/platform/std/kernel-interceptors/browser"
 import { HeaderDownloadableLinksService } from "./services/headerDownloadableLinks.service"
+import { ScriptingSecurityInspectorService } from "./services/scripting-security.inspector"
 
 type Platform = "web" | "desktop"
 
@@ -99,6 +100,17 @@ async function initApp() {
       default: kernelMode === "desktop" ? "native" : "browser",
       interceptors: getInterceptors(kernelMode),
     },
+    // Only add security inspector for web mode (not desktop)
+    // Desktop doesn't have CSRF concerns as it doesn't have cookie-based auth
+    additionalInspectors:
+      kernelMode === "web"
+        ? [
+            {
+              type: "service",
+              service: ScriptingSecurityInspectorService,
+            },
+          ]
+        : undefined,
     platformFeatureFlags: {
       exportAsGIST: false,
       hasTelemetry: false,

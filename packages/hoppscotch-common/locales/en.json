@@ -770,6 +770,12 @@
     },
     "body": {
       "binary": "Sending binary data via the current interceptor is not supported yet."
+    },
+    "scripting_security": {
+      "pre_request": "pre-request script",
+      "post_request": "post-request script",
+      "both_scripts": "pre-request and post-request scripts",
+      "same_origin_fetch_warning": "Your {scriptType} contains fetch() calls that target the same origin as this web app. On self-hosted instances, browsers automatically send cookies with same-origin requests, which could lead to CSRF vulnerabilities if the script is from an untrusted source. Only run scripts from trusted sources."
     }
   },
   "interceptor": {
