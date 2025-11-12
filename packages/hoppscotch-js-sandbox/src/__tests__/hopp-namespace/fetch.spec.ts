@@ -543,4 +543,149 @@ describe("hopp.fetch()", () => {
       ])
     })
   })
+
+  describe("Global fetch() alias", () => {
+    test("global fetch() should be defined and callable", async () => {
+      const mockFetch: HoppFetchHook = vi.fn(async () => {
+        return new Response("OK", { status: 200 })
+      })
+
+      await expect(
+        runTest(
+          `
+            pw.expect(typeof fetch).toBe("function")
+          `,
+          { global: [], selected: [] },
+          undefined,
+          undefined,
+          mockFetch,
+        )(),
+      ).resolves.toEqualRight([
+        expect.objectContaining({
+          expectResults: [
+            {
+              status: "pass",
+              message: "Expected 'function' to be 'function'",
+            },
+          ],
+        }),
+      ])
+    })
+
+    test("global fetch() should work identically to hopp.fetch()", async () => {
+      const mockFetch: HoppFetchHook = vi.fn(async (input, init) => {
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
+      })
+
+      await expect(
+        runTest(
+          `
+            const response = await fetch("https://api.example.com/data")
+            pw.expect(response.status).toBe(200)
+            pw.expect(response.ok).toBe(true)
+          `,
+          { global: [], selected: [] },
+          undefined,
+          undefined,
+          mockFetch,
+        )(),
+      ).resolves.toEqualRight([
+        expect.objectContaining({
+          expectResults: [
+            {
+              status: "pass",
+              message: "Expected '200' to be '200'",
+            },
+            {
+              status: "pass",
+              message: "Expected 'true' to be 'true'",
+            },
+          ],
+        }),
+      ])
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.example.com/data",
+        undefined,
+      )
+    })
+
+    test("global fetch() should support POST with body", async () => {
+      const mockFetch: HoppFetchHook = vi.fn(async (input, init) => {
+        return new Response(JSON.stringify({ created: true }), {
+          status: 201,
+        })
+      })
+
+      await expect(
+        runTest(
+          `
+            const response = await fetch("https://api.example.com/items", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name: "test" })
+            })
+            pw.expect(response.status).toBe(201)
+          `,
+          { global: [], selected: [] },
+          undefined,
+          undefined,
+          mockFetch,
+        )(),
+      ).resolves.toEqualRight([
+        expect.objectContaining({
+          expectResults: [
+            {
+              status: "pass",
+              message: "Expected '201' to be '201'",
+            },
+          ],
+        }),
+      ])
+    })
+
+    test("global fetch() and hopp.fetch() should call the same hook", async () => {
+      const mockFetch: HoppFetchHook = vi.fn(async () => {
+        return new Response("OK", { status: 200 })
+      })
+
+      await expect(
+        runTest(
+          `
+            await fetch("https://api.example.com/test1")
+            await hopp.fetch("https://api.example.com/test2")
+            pw.expect(1).toBe(1)
+          `,
+          { global: [], selected: [] },
+          undefined,
+          undefined,
+          mockFetch,
+        )(),
+      ).resolves.toEqualRight([
+        expect.objectContaining({
+          expectResults: [
+            {
+              status: "pass",
+              message: "Expected '1' to be '1'",
+            },
+          ],
+        }),
+      ])
+
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        1,
+        "https://api.example.com/test1",
+        undefined,
+      )
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        2,
+        "https://api.example.com/test2",
+        undefined,
+      )
+    })
+  })
 })

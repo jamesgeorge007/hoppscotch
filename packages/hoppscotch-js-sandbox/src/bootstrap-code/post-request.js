@@ -2460,19 +2460,14 @@
     }
   }
 
-  // Override global fetch() to prevent confusion and CORS issues
-  // Users should use hopp.fetch() which respects interceptor settings
+  // Make global fetch() an alias to hopp.fetch()
+  // Both fetch() and hopp.fetch() respect interceptor settings
   if (typeof fetch !== "undefined") {
     const originalFetch = fetch
-    globalThis.fetch = function () {
-      throw new Error(
-        "Use hopp.fetch() instead of fetch(). " +
-        "hopp.fetch() respects your interceptor settings (browser/proxy/extension/agent) " +
-        "and avoids CORS issues in the sandbox."
-      )
-    }
-    // Ensure hopp.fetch still works
+    // Make hopp.fetch available
     globalThis.hopp.fetch = originalFetch
+    // Make fetch an alias to hopp.fetch
+    globalThis.fetch = originalFetch
   }
 
   // PM Namespace - Postman Compatibility Layer
