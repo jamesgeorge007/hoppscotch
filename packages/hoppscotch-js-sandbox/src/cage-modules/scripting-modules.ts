@@ -121,7 +121,8 @@ function registerAfterScriptExecutionHook(
 const createScriptingInputsObj = (
   ctx: CageModuleCtx,
   type: ModuleType,
-  config: ModuleConfig
+  config: ModuleConfig,
+  captureGetUpdatedRequest?: (fn: () => HoppRESTRequest) => void
 ) => {
   if (type === "pre") {
     const preConfig = config as PreRequestModuleConfig
@@ -129,6 +130,11 @@ const createScriptingInputsObj = (
     // Create request setter methods FIRST for pre-request scripts
     const { methods: requestSetterMethods, getUpdatedRequest } =
       createRequestSetterMethods(ctx, preConfig.request)
+
+    // Capture the getUpdatedRequest function so the caller can use it
+    if (captureGetUpdatedRequest) {
+      captureGetUpdatedRequest(getUpdatedRequest)
+    }
 
     // Create base inputs with access to updated request
     const baseInputs = createBaseInputs(ctx, {
@@ -357,27 +363,26 @@ const createScriptingModule = (
 
     const funcHandle = ctx.scope.manage(ctx.vm.evalCode(bootstrapCode)).unwrap()
 
-    const inputsObj = createScriptingInputsObj(ctx, type, config)
+    // Capture getUpdatedRequest via callback for pre-request scripts
+    let getUpdatedRequest: (() => HoppRESTRequest) | undefined = undefined
+    const inputsObj = createScriptingInputsObj(ctx, type, config, (fn) => {
+      getUpdatedRequest = fn
+    })
 
     // CRITICAL FIX: Set up the capture function before script runs
     // This allows the caller to capture results AFTER runCode() completes
     if (captureHook && type === "pre") {
       const preConfig = config as PreRequestModuleConfig
-      const requestMethods = (inputsObj as any).setRequestUrl
-        ? inputsObj
-        : null
-      const getUpdatedRequest = requestMethods
-        ? () => {
-            // Reconstruct request from mutated values
-            return config.request
-          }
-        : () => config.request
 
       captureHook.capture = () => {
         const capturedEnvs = (inputsObj as any).getUpdatedEnvs?.() || { global: [], selected: [] }
+        // Use the getUpdatedRequest from request setters (via createRequestSetterMethods)
+        // This returns the mutated request, not the original
+        const finalRequest = getUpdatedRequest ? getUpdatedRequest() : config.request
+
         preConfig.handleSandboxResults({
           envs: capturedEnvs,
-          request: getUpdatedRequest(),
+          request: finalRequest,
           cookies: (inputsObj as any).getUpdatedCookies?.() || null,
         })
       }

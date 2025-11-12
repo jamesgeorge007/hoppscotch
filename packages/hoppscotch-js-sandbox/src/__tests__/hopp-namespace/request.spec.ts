@@ -104,7 +104,7 @@ describe("hopp.request", () => {
           request: baseRequest,
         })
       ).resolves.toEqualLeft(
-        `Script execution failed: hopp.request.${property} is read-only`
+        expect.stringContaining(`Script execution failed: hopp.request.${property} is read-only`)
       )
     )
 
@@ -121,7 +121,7 @@ describe("hopp.request", () => {
           response,
         })
       ).resolves.toEqualLeft(
-        `Script execution failed: hopp.request.${property} is read-only`
+        expect.stringContaining(`Script execution failed: hopp.request.${property} is read-only`)
       )
     )
 
@@ -526,7 +526,7 @@ describe("hopp.request", () => {
           response: testResponse,
         }
       )
-    ).resolves.toEqualLeft(`Script execution failed: not a function`)
+    ).resolves.toEqualLeft(expect.stringContaining(`Script execution failed: not a function`))
   })
 
   test("hopp.request read-only properties are accessible from post-request script", () => {

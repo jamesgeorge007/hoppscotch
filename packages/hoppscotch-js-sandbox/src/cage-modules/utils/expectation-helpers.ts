@@ -62,9 +62,7 @@ export const createExpectationMethods = (
           isDate && typeof expectVal === "string"
             ? new Date(expectVal)
             : expectVal
-        return createExpectation(resolved, false, testRunStack).toBeType(
-          expectedType
-        )
+        return createExpect(resolved).toBeType(expectedType)
       }
     ),
     expectToHaveLength: defineSandboxFn(
@@ -130,9 +128,7 @@ export const createExpectationMethods = (
           isDate && typeof expectVal === "string"
             ? new Date(expectVal)
             : expectVal
-        return createExpectation(resolved, false, testRunStack).not.toBeType(
-          expectedType
-        )
+        return createExpect(resolved).not.toBeType(expectedType)
       }
     ),
     expectNotToHaveLength: defineSandboxFn(

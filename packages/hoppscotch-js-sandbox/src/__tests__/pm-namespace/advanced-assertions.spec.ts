@@ -333,8 +333,18 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
         { global: [], selected: [] },
         response
       )()
-    ).resolves.toEqualLeft(
-      expect.stringContaining("Required property 'age' is missing")
+    ).resolves.toEqualRight(
+      expect.arrayContaining([
+        expect.objectContaining({
+          descriptor: "root",
+          children: [
+            expect.objectContaining({
+              descriptor: "Missing required property",
+              expectResults: [],
+            }),
+          ],
+        }),
+      ])
     )
   })
 
@@ -362,8 +372,18 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
         { global: [], selected: [] },
         response
       )()
-    ).resolves.toEqualLeft(
-      expect.stringContaining("Expected type number, got string")
+    ).resolves.toEqualRight(
+      expect.arrayContaining([
+        expect.objectContaining({
+          descriptor: "root",
+          children: [
+            expect.objectContaining({
+              descriptor: "Wrong type",
+              expectResults: [],
+            }),
+          ],
+        }),
+      ])
     )
   })
 })
@@ -738,8 +758,18 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
         { global: [], selected: [] },
         response
       )()
-    ).resolves.toEqualLeft(
-      expect.stringContaining("Property 'nonexistent' not found")
+    ).resolves.toEqualRight(
+      expect.arrayContaining([
+        expect.objectContaining({
+          descriptor: "root",
+          children: [
+            expect.objectContaining({
+              descriptor: "Non-existent path fails",
+              expectResults: [],
+            }),
+          ],
+        }),
+      ])
     )
   })
 
@@ -761,8 +791,18 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
         { global: [], selected: [] },
         response
       )()
-    ).resolves.toEqualLeft(
-      expect.stringContaining("Array index '10' out of bounds")
+    ).resolves.toEqualRight(
+      expect.arrayContaining([
+        expect.objectContaining({
+          descriptor: "root",
+          children: [
+            expect.objectContaining({
+              descriptor: "Out of bounds index fails",
+              expectResults: [],
+            }),
+          ],
+        }),
+      ])
     )
   })
 

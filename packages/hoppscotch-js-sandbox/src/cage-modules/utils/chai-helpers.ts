@@ -1963,13 +1963,32 @@ export const createChaiMethods: (
         const passes = validateSchema(value, schema)
         const shouldPass = isNegated ? !passes : passes
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
-
-        targetTest.expectResults.push({
-          status: shouldPass ? "pass" : "fail",
-          message: buildMessage(value, mods, "jsonSchema", [schema]),
-        })
+        executeChaiAssertion(
+          () => {
+            if (!shouldPass) {
+              let errorMessage = ""
+              if (schema.required && Array.isArray(schema.required)) {
+                for (const key of schema.required) {
+                  if (!(key in value)) {
+                    errorMessage = `Required property '${key}' is missing`
+                    break
+                  }
+                }
+              }
+              if (!errorMessage && schema.type !== undefined) {
+                const actualType = Array.isArray(value) ? "array" : typeof value
+                if (actualType !== schema.type) {
+                  errorMessage = `Expected type ${schema.type}, got ${actualType}`
+                }
+              }
+              if (!errorMessage) {
+                errorMessage = "Schema validation failed"
+              }
+              throw new Error(errorMessage)
+            }
+          },
+          buildMessage(value, mods, "jsonSchema", [schema])
+        )
       }
     ),
 
@@ -2112,15 +2131,37 @@ export const createChaiMethods: (
 
         const shouldPass = isNegated ? !passes : passes
 
-        const targetTest = getCurrentTest()
-        if (!targetTest) return
+        const args = expectedValue !== undefined ? [path, expectedValue] : [path]
 
-        const args =
-          expectedValue !== undefined ? [path, expectedValue] : [path]
-        targetTest.expectResults.push({
-          status: shouldPass ? "pass" : "fail",
-          message: buildMessage(value, mods, "jsonPath", args),
-        })
+        executeChaiAssertion(
+          () => {
+            if (!shouldPass) {
+              let errorMessage = ""
+              if (actualValue === undefined) {
+                // Extract property name from path for better error message
+                const pathStr = String(path).replace(/^\$\.?/, "")
+                const segments = pathStr.split(/\.|\[/).filter(Boolean)
+                const lastSegment = segments[segments.length - 1]?.replace(
+                  /\]$/,
+                  ""
+                )
+
+                // Check if it's an array index
+                if (lastSegment && /^\d+$/.test(lastSegment)) {
+                  errorMessage = `Array index '${lastSegment}' out of bounds`
+                } else {
+                  errorMessage = `Property '${lastSegment || pathStr}' not found`
+                }
+              } else if (expectedValue !== undefined) {
+                errorMessage = `Expected value at path '${path}' to be '${expectedValue}', but got '${actualValue}'`
+              } else {
+                errorMessage = `JSONPath assertion failed for '${path}'`
+              }
+              throw new Error(errorMessage)
+            }
+          },
+          buildMessage(value, mods, "jsonPath", args)
+        )
       }
     ),
 

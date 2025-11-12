@@ -285,6 +285,64 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
 
       expect(error).toBeNull();
     });
+
+    test(
+      "Validates JUnit report structure snapshot for scripting-revamp collection (comprehensive regression test)",
+      async () => {
+      const junitPath = path.join(__dirname, "scripting-revamp-snapshot-junit.xml");
+
+      if (fs.existsSync(junitPath)) {
+        fs.unlinkSync(junitPath);
+      }
+
+      const args = `test ${getTestJsonFilePath(
+        "scripting-revamp-coll.json",
+        "collection"
+      )} --reporter-junit ${junitPath}`;
+
+      const { error } = await runCLI(args);
+      expect(error).toBeNull();
+
+      let junitXml = fs.readFileSync(junitPath, "utf-8");
+
+      // Normalize dynamic values for stable snapshot comparison
+      junitXml = junitXml
+        .replace(/time="[^"]*"/g, 'time="NORMALIZED"')
+        .replace(/timestamp="[^"]*"/g, 'timestamp="NORMALIZED"')
+        // Normalize test execution timestamps that might vary
+        .replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g, 'TIMESTAMP')
+        // Normalize any duration values in milliseconds
+        .replace(/\d+ms/g, 'NORMALIZEDms')
+        // Normalize any numeric IDs that might be generated
+        .replace(/id="[^"]*"/g, 'id="NORMALIZED"');
+
+      // Validate critical structural invariants using regex parsing
+      // CRITICAL: Validate no testcases have "root" as name (would indicate assertions at root level)
+      const testcaseRootPattern = /<testcase [^>]*name="root"/;
+      expect(junitXml).not.toMatch(testcaseRootPattern);
+
+      // Validate test structure: testcases should have meaningful names from test blocks
+      const testcasePattern = /<testcase name="([^"]+)"/g;
+      const testcaseNames = Array.from(junitXml.matchAll(testcasePattern), m => m[1]);
+
+      // Ensure we have testcases
+      expect(testcaseNames.length).toBeGreaterThan(0);
+
+      // Ensure no empty testcase names
+      for (const name of testcaseNames) {
+        expect(name.length).toBeGreaterThan(0);
+        expect(name).not.toBe("root");
+      }
+
+        // Snapshot test with normalized values
+        // This will catch any future regression where assertions leak to root level
+        expect(junitXml).toMatchSnapshot();
+
+        // Clean up
+        fs.unlinkSync(junitPath);
+      },
+      150000 // 150 second timeout for comprehensive collection test
+    );
   });
 
   describe("Test `hopp test <file_path_or_id> --env <file_path_or_id>` command:", () => {
