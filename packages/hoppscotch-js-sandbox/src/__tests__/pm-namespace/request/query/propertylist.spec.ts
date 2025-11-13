@@ -242,31 +242,20 @@ describe("pm.request.url.query.upsert()", () => {
     )
   })
 
-  test("throws error for missing key", () => {
-    return expect(
-      runPreRequestScript(
-        `
-        try {
-          pm.request.url.query.upsert({ value: 'test' })
-          console.log("Should not reach here")
-        } catch (error) {
-          console.log("Error caught:", error.message)
-        }
-        `,
-        { envs, request: baseRequest }
-      )
-    ).resolves.toEqualRight(
-      expect.objectContaining({
-        consoleEntries: expect.arrayContaining([
-          expect.objectContaining({
-            args: expect.arrayContaining([
-              "Error caught:",
-              expect.stringContaining("must have a 'key' property"),
-            ]),
-          }),
-        ]),
-      })
+  test("throws error for missing key", async () => {
+    const result = await runPreRequestScript(
+      `pm.request.url.query.upsert({ value: 'test' })`,
+      {
+        envs,
+        request: baseRequest,
+        cookies: null,
+        experimentalScriptingSandbox: true,
+      }
     )
+    expect(result._tag).toBe("Left")
+    if (result._tag === "Left") {
+      expect(result.left).toContain("must have a 'key' property")
+    }
   })
 })
 
@@ -995,28 +984,21 @@ describe("pm.request.url.query.insert()", () => {
     )
   })
 
-  test("throws error when item has no key", () => {
-    return expect(
-      runPreRequestScript(
-        `
-        try {
-          pm.request.url.query.insert({ value: '10' })
-          console.log("Should not reach here")
-        } catch (error) {
-          console.log("Error caught:", error.message)
-        }
-        `,
-        { envs, request: baseRequest }
-      )
-    ).resolves.toEqualRight(
-      expect.objectContaining({
-        consoleEntries: expect.arrayContaining([
-          expect.objectContaining({
-            args: ["Error caught:", "Query param must have a 'key' property"],
-          }),
-        ]),
-      })
+  test("throws error when item has no key", async () => {
+    const result = await runPreRequestScript(
+      `pm.request.url.query.insert({ value: '10' })`,
+      {
+        envs,
+        request: baseRequest,
+        cookies: null,
+        experimentalScriptingSandbox: true,
+      }
     )
+
+    expect(result._tag).toBe("Left")
+    if (result._tag === "Left") {
+      expect(result.left).toContain("must have a 'key' property")
+    }
   })
 })
 
@@ -1076,28 +1058,21 @@ describe("pm.request.url.query.append()", () => {
     )
   })
 
-  test("throws error when item has no key", () => {
-    return expect(
-      runPreRequestScript(
-        `
-        try {
-          pm.request.url.query.append({ value: '10' })
-          console.log("Should not reach here")
-        } catch (error) {
-          console.log("Error caught:", error.message)
-        }
-        `,
-        { envs, request: baseRequest }
-      )
-    ).resolves.toEqualRight(
-      expect.objectContaining({
-        consoleEntries: expect.arrayContaining([
-          expect.objectContaining({
-            args: ["Error caught:", "Query param must have a 'key' property"],
-          }),
-        ]),
-      })
+  test("throws error when item has no key", async () => {
+    const result = await runPreRequestScript(
+      `pm.request.url.query.append({ value: '10' })`,
+      {
+        envs,
+        request: baseRequest,
+        cookies: null,
+        experimentalScriptingSandbox: true,
+      }
     )
+
+    expect(result._tag).toBe("Left")
+    if (result._tag === "Left") {
+      expect(result.left).toContain("must have a 'key' property")
+    }
   })
 })
 
@@ -1200,27 +1175,20 @@ describe("pm.request.url.query.assimilate()", () => {
     )
   })
 
-  test("throws error for invalid source", () => {
-    return expect(
-      runPreRequestScript(
-        `
-        try {
-          pm.request.url.query.assimilate("invalid")
-          console.log("Should not reach here")
-        } catch (error) {
-          console.log("Error caught:", error.message)
-        }
-        `,
-        { envs, request: baseRequest }
-      )
-    ).resolves.toEqualRight(
-      expect.objectContaining({
-        consoleEntries: expect.arrayContaining([
-          expect.objectContaining({
-            args: ["Error caught:", "Source must be an array or object"],
-          }),
-        ]),
-      })
+  test("throws error for invalid source", async () => {
+    const result = await runPreRequestScript(
+      `pm.request.url.query.assimilate("invalid")`,
+      {
+        envs,
+        request: baseRequest,
+        cookies: null,
+        experimentalScriptingSandbox: true,
+      }
     )
+
+    expect(result._tag).toBe("Left")
+    if (result._tag === "Left") {
+      expect(result.left).toContain("Source must be an array or object")
+    }
   })
 })

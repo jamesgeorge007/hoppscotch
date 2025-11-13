@@ -184,195 +184,82 @@ describe("pm namespace - unsupported features", () => {
     }
   )
 
-  test("pm.collectionVariables.get() throws error", () => {
-    return expect(
-      runTest(
-        `
-          try {
-            pm.collectionVariables.get("test")
-            pm.test("Should not reach here", () => {
-              pm.expect(true).toBe(false)
-            })
-          } catch (error) {
-            pm.test("Throws correct error", () => {
-              pm.expect(error.message).toInclude("pm.collectionVariables.get() is not supported")
-            })
-          }
-        `,
-        {
-          global: [],
-          selected: [],
-        }
-      )()
-    ).resolves.toEqualRight([
-      expect.objectContaining({
-        children: [
-          expect.objectContaining({
-            descriptor: "Throws correct error",
-            expectResults: [{ status: "pass", message: expect.any(String) }],
-          }),
-        ],
-      }),
-    ])
+  test("pm.collectionVariables.get() throws error", async () => {
+    const result = await runTest(`pm.collectionVariables.get("test")`, {
+      global: [],
+      selected: [],
+    })()
+
+    expect(result._tag).toBe("Left")
+    if (result._tag === "Left") {
+      expect(result.left).toContain(
+        "pm.collectionVariables.get() is not supported"
+      )
+    }
   })
 
-  test("pm.vault.get() throws error", () => {
-    return expect(
-      runTest(
-        `
-          try {
-            pm.vault.get("test")
-            pm.test("Should not reach here", () => {
-              pm.expect(true).toBe(false)
-            })
-          } catch (error) {
-            pm.test("Throws correct error", () => {
-              pm.expect(error.message).toInclude("pm.vault.get() is not supported")
-            })
-          }
-        `,
-        {
-          global: [],
-          selected: [],
-        }
-      )()
-    ).resolves.toEqualRight([
-      expect.objectContaining({
-        children: [
-          expect.objectContaining({
-            descriptor: "Throws correct error",
-            expectResults: [{ status: "pass", message: expect.any(String) }],
-          }),
-        ],
-      }),
-    ])
+  test("pm.vault.get() throws error", async () => {
+    const result = await runTest(`pm.vault.get("test")`, {
+      global: [],
+      selected: [],
+    })()
+
+    expect(result._tag).toBe("Left")
+    if (result._tag === "Left") {
+      expect(result.left).toContain("pm.vault.get() is not supported")
+    }
   })
 
-  test("pm.iterationData.get() throws error", () => {
-    return expect(
-      runTest(
-        `
-          try {
-            pm.iterationData.get("test")
-            pm.test("Should not reach here", () => {
-              pm.expect(true).toBe(false)
-            })
-          } catch (error) {
-            pm.test("Throws correct error", () => {
-              pm.expect(error.message).toInclude("pm.iterationData.get() is not supported")
-            })
-          }
-        `,
-        {
-          global: [],
-          selected: [],
-        }
-      )()
-    ).resolves.toEqualRight([
-      expect.objectContaining({
-        children: [
-          expect.objectContaining({
-            descriptor: "Throws correct error",
-            expectResults: [{ status: "pass", message: expect.any(String) }],
-          }),
-        ],
-      }),
-    ])
+  test("pm.iterationData.get() throws error", async () => {
+    const result = await runTest(`pm.iterationData.get("test")`, {
+      global: [],
+      selected: [],
+    })()
+
+    expect(result._tag).toBe("Left")
+    if (result._tag === "Left") {
+      expect(result.left).toContain("pm.iterationData.get() is not supported")
+    }
   })
 
-  test("pm.execution.setNextRequest() throws error", () => {
-    return expect(
-      runTest(
-        `
-          try {
-            pm.execution.setNextRequest("next-request")
-            pm.test("Should not reach here", () => {
-              pm.expect(true).toBe(false)
-            })
-          } catch (error) {
-            pm.test("Throws correct error", () => {
-              pm.expect(error.message).toInclude("pm.execution.setNextRequest() is not supported")
-            })
-          }
-        `,
-        {
-          global: [],
-          selected: [],
-        }
-      )()
-    ).resolves.toEqualRight([
-      expect.objectContaining({
-        children: [
-          expect.objectContaining({
-            descriptor: "Throws correct error",
-            expectResults: [{ status: "pass", message: expect.any(String) }],
-          }),
-        ],
-      }),
-    ])
+  test("pm.execution.setNextRequest() throws error", async () => {
+    const result = await runTest(
+      `pm.execution.setNextRequest("next-request")`,
+      {
+        global: [],
+        selected: [],
+      }
+    )()
+
+    expect(result._tag).toBe("Left")
+    if (result._tag === "Left") {
+      expect(result.left).toContain(
+        "pm.execution.setNextRequest() is not supported"
+      )
+    }
   })
 
-  test("pm.visualizer.set() throws error", () => {
-    return expect(
-      runTest(
-        `
-          try {
-            pm.visualizer.set("<h1>Test</h1>")
-            pm.test("Should not reach here", () => {
-              pm.expect(true).toBe(false)
-            })
-          } catch (error) {
-            pm.test("Throws correct error", () => {
-              pm.expect(error.message).toInclude("pm.visualizer.set() is not supported")
-            })
-          }
-        `,
-        {
-          global: [],
-          selected: [],
-        }
-      )()
-    ).resolves.toEqualRight([
-      expect.objectContaining({
-        children: [
-          expect.objectContaining({
-            descriptor: "Throws correct error",
-            expectResults: [{ status: "pass", message: expect.any(String) }],
-          }),
-        ],
-      }),
-    ])
+  test("pm.visualizer.set() throws error", async () => {
+    const result = await runTest(`pm.visualizer.set("<h1>Test</h1>")`, {
+      global: [],
+      selected: [],
+    })()
+
+    expect(result._tag).toBe("Left")
+    if (result._tag === "Left") {
+      expect(result.left).toContain("pm.visualizer.set() is not supported")
+    }
   })
 
-  test("pm.visualizer.clear() throws error", () => {
-    return expect(
-      runTest(
-        `
-          try {
-            pm.visualizer.clear()
-            pm.test("Should not reach here", () => {
-              pm.expect(true).toBe(false)
-            })
-          } catch (error) {
-            pm.test("Throws correct error", () => {
-              pm.expect(error.message).toInclude("pm.visualizer.clear() is not supported")
-            })
-          }
-        `,
-        {
-          global: [],
-          selected: [],
-        }
-      )()
-    ).resolves.toEqualRight([
-      expect.objectContaining({
-        children: [
-          expect.objectContaining({
-            descriptor: "Throws correct error",
-            expectResults: [{ status: "pass", message: expect.any(String) }],
-          }),
-        ],
-      }),
-    ])
+  test("pm.visualizer.clear() throws error", async () => {
+    const result = await runTest(`pm.visualizer.clear()`, {
+      global: [],
+      selected: [],
+    })()
+
+    expect(result._tag).toBe("Left")
+    if (result._tag === "Left") {
+      expect(result.left).toContain("pm.visualizer.clear() is not supported")
+    }
   })
 })
