@@ -231,12 +231,12 @@ export class ExtensionKernelInterceptorService
       let requestData: any = null
 
       if (request.content) {
-        console.log('[Extension Interceptor] Processing request content:', {
+        console.log("[Extension Interceptor] Processing request content:", {
           kind: request.content.kind,
           contentType: typeof request.content.content,
           isUint8Array: request.content.content instanceof Uint8Array,
           isBlob: request.content.content instanceof Blob,
-          isString: typeof request.content.content === 'string'
+          isString: typeof request.content.content === "string",
         })
 
         switch (request.content.kind) {
@@ -283,9 +283,16 @@ export class ExtensionKernelInterceptorService
             } else if (request.content.content instanceof Uint8Array) {
               // Pass Uint8Array directly - extension will handle it
               requestData = request.content.content
-              console.log('[Extension Interceptor] Passing Uint8Array directly, length:', request.content.content.length)
+              console.log(
+                "[Extension Interceptor] Passing Uint8Array directly, length:",
+                request.content.content.length
+              )
             } else {
-              console.warn('[Extension Interceptor] Unknown binary content type:', typeof request.content.content, request.content.content)
+              console.warn(
+                "[Extension Interceptor] Unknown binary content type:",
+                typeof request.content.content,
+                request.content.content
+              )
               requestData = request.content.content
             }
             break
@@ -322,14 +329,14 @@ export class ExtensionKernelInterceptorService
         }
       }
 
-      console.log('[Extension Interceptor] Sending to extension:', {
+      console.log("[Extension Interceptor] Sending to extension:", {
         url: request.url,
         method: request.method,
         dataType: typeof requestData,
         isUint8Array: requestData instanceof Uint8Array,
         isBlob: requestData instanceof Blob,
-        isString: typeof requestData === 'string',
-        dataLength: requestData?.length || requestData?.byteLength || 0
+        isString: typeof requestData === "string",
+        dataLength: requestData?.length || requestData?.byteLength || 0,
       })
 
       // Always use wantsBinary: true - required for correct data handling
@@ -361,7 +368,11 @@ export class ExtensionKernelInterceptorService
       // Handle response data - extension with wantsBinary: true returns ArrayBuffer or Uint8Array
       let responseData: Uint8Array
 
-      if (!extensionResponse.data || extensionResponse.data === null || extensionResponse.data === undefined) {
+      if (
+        !extensionResponse.data ||
+        extensionResponse.data === null ||
+        extensionResponse.data === undefined
+      ) {
         // No response body
         responseData = new Uint8Array(0)
       } else if (extensionResponse.data instanceof Uint8Array) {
@@ -370,7 +381,7 @@ export class ExtensionKernelInterceptorService
       } else if (extensionResponse.data instanceof ArrayBuffer) {
         // Extension returned ArrayBuffer - convert to Uint8Array
         responseData = new Uint8Array(extensionResponse.data)
-      } else if (typeof extensionResponse.data === 'string') {
+      } else if (typeof extensionResponse.data === "string") {
         // Extension returned string - encode as UTF-8
         responseData = new TextEncoder().encode(extensionResponse.data)
       } else if (extensionResponse.data instanceof Blob) {
@@ -379,18 +390,22 @@ export class ExtensionKernelInterceptorService
         responseData = new Uint8Array(arrayBuffer)
       } else {
         // Unexpected type - handle gracefully
-        console.warn('[Extension Interceptor] Unexpected response data type:', {
+        console.warn("[Extension Interceptor] Unexpected response data type:", {
           type: typeof extensionResponse.data,
-          constructor: extensionResponse.data?.constructor?.name
+          constructor: extensionResponse.data?.constructor?.name,
         })
         try {
           // Try to convert to string and encode
-          const dataString = typeof extensionResponse.data === 'object'
-            ? JSON.stringify(extensionResponse.data)
-            : String(extensionResponse.data)
+          const dataString =
+            typeof extensionResponse.data === "object"
+              ? JSON.stringify(extensionResponse.data)
+              : String(extensionResponse.data)
           responseData = new TextEncoder().encode(dataString)
         } catch (err) {
-          console.error('[Extension Interceptor] Failed to convert response data:', err)
+          console.error(
+            "[Extension Interceptor] Failed to convert response data:",
+            err
+          )
           responseData = new Uint8Array(0)
         }
       }

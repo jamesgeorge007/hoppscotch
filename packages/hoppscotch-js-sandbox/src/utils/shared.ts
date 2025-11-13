@@ -660,7 +660,12 @@ export const createExpectation = (
 
   // Helper to get current test descriptor (prefers context over stack)
   const getCurrentTest = (): TestDescriptor | null => {
-    return getCurrentTestContext?.() || (currTestStack.length > 0 ? currTestStack[currTestStack.length - 1] : null)
+    return (
+      getCurrentTestContext?.() ||
+      (currTestStack.length > 0
+        ? currTestStack[currTestStack.length - 1]
+        : null)
+    )
   }
 
   const toBeFn = (expectedVal: SandboxValue) => {
@@ -898,7 +903,13 @@ export const createExpectation = (
 
   Object.defineProperties(result, {
     not: {
-      get: () => createExpectation(expectVal, !negated, currTestStack, getCurrentTestContext),
+      get: () =>
+        createExpectation(
+          expectVal,
+          !negated,
+          currTestStack,
+          getCurrentTestContext
+        ),
     },
   })
 

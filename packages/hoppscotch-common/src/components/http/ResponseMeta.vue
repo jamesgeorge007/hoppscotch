@@ -79,7 +79,10 @@
         </template>
       </HoppSmartPlaceholder>
       <div
-        v-if="(response.type === 'success' || response.type === 'fail') && !isLoading"
+        v-if="
+          (response.type === 'success' || response.type === 'fail') &&
+          !isLoading
+        "
         class="flex items-center text-tiny font-semibold"
       >
         <div

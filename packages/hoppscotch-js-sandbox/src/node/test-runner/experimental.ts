@@ -5,7 +5,12 @@ import { pipe } from "fp-ts/function"
 import { cloneDeep } from "lodash"
 
 import { defaultModules, postRequestModule } from "~/cage-modules"
-import { HoppFetchHook, TestDescriptor, TestResponse, TestResult } from "~/types"
+import {
+  HoppFetchHook,
+  TestDescriptor,
+  TestResponse,
+  TestResult,
+} from "~/types"
 
 export const runPostRequestScriptWithFaradayCage = (
   testScript: string,
@@ -73,16 +78,20 @@ export const runPostRequestScriptWithFaradayCage = (
           //   ✓ Predictable, deterministic behavior
           //   ✓ No race conditions
           if (testPromises.length > 0) {
-            console.log(`[EXPERIMENTAL] Executing ${testPromises.length} tests sequentially...`)
+            console.log(
+              `[EXPERIMENTAL] Executing ${testPromises.length} tests sequentially...`
+            )
 
             // Execute each test promise one at a time, waiting for completion
             for (let i = 0; i < testPromises.length; i++) {
-              console.log(`[EXPERIMENTAL] Executing test ${i + 1}/${testPromises.length}...`)
+              console.log(
+                `[EXPERIMENTAL] Executing test ${i + 1}/${testPromises.length}...`
+              )
               await testPromises[i]
               console.log(`[EXPERIMENTAL] Test ${i + 1} completed`)
             }
 
-            console.log('[EXPERIMENTAL] All tests completed sequentially')
+            console.log("[EXPERIMENTAL] All tests completed sequentially")
           }
 
           // Capture results AFTER all async tests complete

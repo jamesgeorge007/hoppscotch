@@ -350,7 +350,7 @@ const newSendRequest = async () => {
   // This must be synchronous for instant UI feedback
   tab.value.document.response = {
     type: "loading" as const,
-    req: tab.value.document.request
+    req: tab.value.document.request,
   }
 
   // Clear test results to prevent showing stale data during async operations
@@ -363,7 +363,7 @@ const newSendRequest = async () => {
   // Force Vue to flush DOM updates AND wait for browser to paint
   // Double RAF ensures the loading state is actually visible before any blocking work
   await nextTick()
-  await new Promise(resolve => {
+  await new Promise((resolve) => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         resolve(undefined)

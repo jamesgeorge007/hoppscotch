@@ -128,7 +128,7 @@ const runPostRequestScriptWithFaradayCage = async (
       consoleEntries: safeConsoleEntries,
       updatedCookies: safeCookies,
     })
-  } finally{
+  } finally {
     // NOTE: FaradayCage doesn't expose a dispose() method
     // Rely on garbage collection to clean up when no longer referenced
     // The deep cloning above ensures no mutable references are returned

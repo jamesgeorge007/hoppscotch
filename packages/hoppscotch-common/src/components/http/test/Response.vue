@@ -9,7 +9,12 @@
         <span class="text-red-500">{{ doc.error }}</span>
       </span>
     </div>
-    <HttpResponseMeta v-else :response="doc.response" :is-embed="false" :is-loading="loading" />
+    <HttpResponseMeta
+      v-else
+      :response="doc.response"
+      :is-embed="false"
+      :is-loading="loading"
+    />
     <LensesResponseBodyRenderer
       v-if="!loading && hasResponse"
       :document="{
@@ -67,7 +72,6 @@ const hasResponse = computed(
 const loading = computed(
   // Check both response type AND testResults to ensure we stay in loading state
   // during test execution (when testResults is null)
-  () =>
-    doc.value.response?.type === "loading" || doc.value.testResults === null
+  () => doc.value.response?.type === "loading" || doc.value.testResults === null
 )
 </script>

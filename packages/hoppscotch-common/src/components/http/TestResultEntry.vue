@@ -99,6 +99,9 @@ const shouldHideResultReport = computed(() => {
  * This prevents showing empty test descriptors during async operations
  */
 const hasResults = computed(() => {
-  return props.testResults.expectResults && props.testResults.expectResults.length > 0
+  return (
+    props.testResults.expectResults &&
+    props.testResults.expectResults.length > 0
+  )
 })
 </script>

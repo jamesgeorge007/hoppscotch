@@ -1,4 +1,7 @@
-import { defineCageModule, defineSandboxFunctionRaw } from "faraday-cage/modules"
+import {
+  defineCageModule,
+  defineSandboxFunctionRaw,
+} from "faraday-cage/modules"
 import type { HoppFetchHook } from "~/types"
 
 /**
@@ -75,8 +78,10 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       if (value === undefined) return ctx.vm.undefined
       if (value === true) return ctx.vm.true
       if (value === false) return ctx.vm.false
-      if (typeof value === "string") return ctx.scope.manage(ctx.vm.newString(value))
-      if (typeof value === "number") return ctx.scope.manage(ctx.vm.newNumber(value))
+      if (typeof value === "string")
+        return ctx.scope.manage(ctx.vm.newString(value))
+      if (typeof value === "number")
+        return ctx.scope.manage(ctx.vm.newNumber(value))
       if (typeof value === "object") {
         if (Array.isArray(value)) {
           const arr = ctx.scope.manage(ctx.vm.newArray())
@@ -98,7 +103,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     // Define fetch function in the sandbox
     const fetchFn = defineSandboxFunctionRaw(ctx, "fetch", (...args) => {
       const input = ctx.vm.dump(args[0])
-      let init = args.length > 1 ? args[1] : undefined
+      const init = args.length > 1 ? args[1] : undefined
 
       // Check if init has headers that need conversion
       if (init) {
@@ -153,7 +158,9 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
               ctx.vm.setProp(
                 responseObj,
                 "statusText",
-                ctx.scope.manage(ctx.vm.newString(serializableResponse.statusText))
+                ctx.scope.manage(
+                  ctx.vm.newString(serializableResponse.statusText)
+                )
               )
               ctx.vm.setProp(
                 responseObj,
@@ -164,7 +171,11 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
               // Create headers object with Headers-like interface
               const headersObj = ctx.scope.manage(ctx.vm.newObject())
               // Use _headersData which contains only header key-value pairs (no methods)
-              const headersMap = ((serializableResponse as any)._headersData as Record<string, string>) || {}
+              const headersMap =
+                ((serializableResponse as any)._headersData as Record<
+                  string,
+                  string
+                >) || {}
 
               // Set individual header properties
               for (const [key, value] of Object.entries(headersMap)) {
@@ -203,7 +214,9 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
               const getFn = defineSandboxFunctionRaw(ctx, "get", (...args) => {
                 const key = String(ctx.vm.dump(args[0]))
                 const value = headersMap[key] || headersMap[key.toLowerCase()]
-                return value ? ctx.scope.manage(ctx.vm.newString(value)) : ctx.vm.null
+                return value
+                  ? ctx.scope.manage(ctx.vm.newString(value))
+                  : ctx.vm.null
               })
               ctx.vm.setProp(headersObj, "get", getFn)
 
@@ -215,7 +228,11 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
               // Store body bytes for sync access
               const bodyBytesArray = ctx.scope.manage(ctx.vm.newArray())
               for (let i = 0; i < bodyBytes.length; i++) {
-                ctx.vm.setProp(bodyBytesArray, i, ctx.scope.manage(ctx.vm.newNumber(bodyBytes[i])))
+                ctx.vm.setProp(
+                  bodyBytesArray,
+                  i,
+                  ctx.scope.manage(ctx.vm.newNumber(bodyBytes[i]))
+                )
               }
               ctx.vm.setProp(responseObj, "_bodyBytes", bodyBytesArray)
 
@@ -227,9 +244,14 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                     // Filter out null bytes (some interceptors add trailing null bytes)
                     // Find the first null byte and truncate there, or use all bytes if no null
                     const nullByteIndex = bodyBytes.indexOf(0)
-                    const cleanBytes = nullByteIndex >= 0 ? bodyBytes.slice(0, nullByteIndex) : bodyBytes
+                    const cleanBytes =
+                      nullByteIndex >= 0
+                        ? bodyBytes.slice(0, nullByteIndex)
+                        : bodyBytes
 
-                    const text = new TextDecoder().decode(new Uint8Array(cleanBytes))
+                    const text = new TextDecoder().decode(
+                      new Uint8Array(cleanBytes)
+                    )
                     const parsed = JSON.parse(text)
                     const marshalledResult = marshalValue(parsed)
                     resolve(marshalledResult)
@@ -238,7 +260,10 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                       ctx.scope.manage(
                         ctx.vm.newError({
                           name: "JSONError",
-                          message: error instanceof Error ? error.message : "JSON parse failed",
+                          message:
+                            error instanceof Error
+                              ? error.message
+                              : "JSON parse failed",
                         })
                       )
                     )
@@ -257,17 +282,27 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                   try {
                     // Filter out null bytes (some interceptors add trailing null bytes)
                     const nullByteIndex = bodyBytes.indexOf(0)
-                    const cleanBytes = nullByteIndex >= 0 ? bodyBytes.slice(0, nullByteIndex) : bodyBytes
+                    const cleanBytes =
+                      nullByteIndex >= 0
+                        ? bodyBytes.slice(0, nullByteIndex)
+                        : bodyBytes
 
-                    const text = new TextDecoder().decode(new Uint8Array(cleanBytes))
-                    const textHandle = ctx.scope.manage(ctx.vm.newString(String(text)))
+                    const text = new TextDecoder().decode(
+                      new Uint8Array(cleanBytes)
+                    )
+                    const textHandle = ctx.scope.manage(
+                      ctx.vm.newString(String(text))
+                    )
                     resolve(textHandle)
                   } catch (error) {
                     reject(
                       ctx.scope.manage(
                         ctx.vm.newError({
                           name: "TextError",
-                          message: error instanceof Error ? error.message : "Text decode failed",
+                          message:
+                            error instanceof Error
+                              ? error.message
+                              : "Text decode failed",
                         })
                       )
                     )
@@ -286,7 +321,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                 ctx.scope.manage(
                   ctx.vm.newError({
                     name: "FetchError",
-                    message: error instanceof Error ? error.message : "Fetch failed",
+                    message:
+                      error instanceof Error ? error.message : "Fetch failed",
                   })
                 )
               )
@@ -304,126 +340,156 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     // Headers Class Implementation (wraps native Headers)
     // ========================================================================
     // Helper function to create a Headers instance (called from sandbox)
-    const createHeadersInstance = defineSandboxFunctionRaw(ctx, "__createHeadersInstance", (initHandle) => {
-      const init = initHandle ? ctx.vm.dump(initHandle) : undefined
-      const nativeHeaders = new globalThis.Headers(init as HeadersInit)
+    const createHeadersInstance = defineSandboxFunctionRaw(
+      ctx,
+      "__createHeadersInstance",
+      (initHandle) => {
+        const init = initHandle ? ctx.vm.dump(initHandle) : undefined
+        const nativeHeaders = new globalThis.Headers(init as HeadersInit)
 
-      const headersInstance = ctx.scope.manage(ctx.vm.newObject())
+        const headersInstance = ctx.scope.manage(ctx.vm.newObject())
 
-      // append(name, value) - delegates to native Headers
-      const appendFn = defineSandboxFunctionRaw(ctx, "append", (...appendArgs) => {
-        const name = String(ctx.vm.dump(appendArgs[0]))
-        const value = String(ctx.vm.dump(appendArgs[1]))
-        nativeHeaders.append(name, value)
-        return ctx.vm.undefined
-      })
-      ctx.vm.setProp(headersInstance, "append", appendFn)
+        // append(name, value) - delegates to native Headers
+        const appendFn = defineSandboxFunctionRaw(
+          ctx,
+          "append",
+          (...appendArgs) => {
+            const name = String(ctx.vm.dump(appendArgs[0]))
+            const value = String(ctx.vm.dump(appendArgs[1]))
+            nativeHeaders.append(name, value)
+            return ctx.vm.undefined
+          }
+        )
+        ctx.vm.setProp(headersInstance, "append", appendFn)
 
-      // delete(name) - delegates to native Headers
-      const deleteFn = defineSandboxFunctionRaw(ctx, "delete", (...deleteArgs) => {
-        const name = String(ctx.vm.dump(deleteArgs[0]))
-        nativeHeaders.delete(name)
-        return ctx.vm.undefined
-      })
-      ctx.vm.setProp(headersInstance, "delete", deleteFn)
+        // delete(name) - delegates to native Headers
+        const deleteFn = defineSandboxFunctionRaw(
+          ctx,
+          "delete",
+          (...deleteArgs) => {
+            const name = String(ctx.vm.dump(deleteArgs[0]))
+            nativeHeaders.delete(name)
+            return ctx.vm.undefined
+          }
+        )
+        ctx.vm.setProp(headersInstance, "delete", deleteFn)
 
-      // get(name) - delegates to native Headers
-      const getFn = defineSandboxFunctionRaw(ctx, "get", (...getArgs) => {
-        const name = String(ctx.vm.dump(getArgs[0]))
-        const value = nativeHeaders.get(name)
-        return value !== null ? ctx.scope.manage(ctx.vm.newString(value)) : ctx.vm.null
-      })
-      ctx.vm.setProp(headersInstance, "get", getFn)
-
-      // has(name) - delegates to native Headers
-      const hasFn = defineSandboxFunctionRaw(ctx, "has", (...hasArgs) => {
-        const name = String(ctx.vm.dump(hasArgs[0]))
-        return nativeHeaders.has(name) ? ctx.vm.true : ctx.vm.false
-      })
-      ctx.vm.setProp(headersInstance, "has", hasFn)
-
-      // set(name, value) - delegates to native Headers
-      const setFn = defineSandboxFunctionRaw(ctx, "set", (...setArgs) => {
-        const name = String(ctx.vm.dump(setArgs[0]))
-        const value = String(ctx.vm.dump(setArgs[1]))
-        nativeHeaders.set(name, value)
-        return ctx.vm.undefined
-      })
-      ctx.vm.setProp(headersInstance, "set", setFn)
-
-      // forEach(callbackfn) - delegates to native Headers
-      const forEachFn = defineSandboxFunctionRaw(ctx, "forEach", (...forEachArgs) => {
-        const callback = forEachArgs[0]
-        nativeHeaders.forEach((value, key) => {
-          ctx.vm.callFunction(
-            callback,
-            ctx.vm.undefined,
-            ctx.scope.manage(ctx.vm.newString(value)),
-            ctx.scope.manage(ctx.vm.newString(key)),
-            headersInstance
-          )
+        // get(name) - delegates to native Headers
+        const getFn = defineSandboxFunctionRaw(ctx, "get", (...getArgs) => {
+          const name = String(ctx.vm.dump(getArgs[0]))
+          const value = nativeHeaders.get(name)
+          return value !== null
+            ? ctx.scope.manage(ctx.vm.newString(value))
+            : ctx.vm.null
         })
-        return ctx.vm.undefined
-      })
-      ctx.vm.setProp(headersInstance, "forEach", forEachFn)
+        ctx.vm.setProp(headersInstance, "get", getFn)
 
-      // entries() - delegates to native Headers
-      const entriesFn = defineSandboxFunctionRaw(ctx, "entries", () => {
-        const entriesArray = ctx.scope.manage(ctx.vm.newArray())
-        let index = 0
-        // @ts-expect-error - Headers.entries() exists but TS lib may not include it
-        for (const [key, value] of nativeHeaders.entries()) {
-          const entry = ctx.scope.manage(ctx.vm.newArray())
-          ctx.vm.setProp(entry, 0, ctx.scope.manage(ctx.vm.newString(key)))
-          ctx.vm.setProp(entry, 1, ctx.scope.manage(ctx.vm.newString(value)))
-          ctx.vm.setProp(entriesArray, index++, entry)
-        }
-        return entriesArray
-      })
-      ctx.vm.setProp(headersInstance, "entries", entriesFn)
+        // has(name) - delegates to native Headers
+        const hasFn = defineSandboxFunctionRaw(ctx, "has", (...hasArgs) => {
+          const name = String(ctx.vm.dump(hasArgs[0]))
+          return nativeHeaders.has(name) ? ctx.vm.true : ctx.vm.false
+        })
+        ctx.vm.setProp(headersInstance, "has", hasFn)
 
-      // keys() - delegates to native Headers
-      const keysFn = defineSandboxFunctionRaw(ctx, "keys", () => {
-        const keysArray = ctx.scope.manage(ctx.vm.newArray())
-        let index = 0
-        // @ts-expect-error - Headers.keys() exists but TS lib may not include it
-        for (const key of nativeHeaders.keys()) {
-          ctx.vm.setProp(keysArray, index++, ctx.scope.manage(ctx.vm.newString(key)))
-        }
-        return keysArray
-      })
-      ctx.vm.setProp(headersInstance, "keys", keysFn)
+        // set(name, value) - delegates to native Headers
+        const setFn = defineSandboxFunctionRaw(ctx, "set", (...setArgs) => {
+          const name = String(ctx.vm.dump(setArgs[0]))
+          const value = String(ctx.vm.dump(setArgs[1]))
+          nativeHeaders.set(name, value)
+          return ctx.vm.undefined
+        })
+        ctx.vm.setProp(headersInstance, "set", setFn)
 
-      // values() - delegates to native Headers
-      const valuesFn = defineSandboxFunctionRaw(ctx, "values", () => {
-        const valuesArray = ctx.scope.manage(ctx.vm.newArray())
-        let index = 0
-        // @ts-expect-error - Headers.values() exists but TS lib may not include it
-        for (const value of nativeHeaders.values()) {
-          ctx.vm.setProp(valuesArray, index++, ctx.scope.manage(ctx.vm.newString(value)))
-        }
-        return valuesArray
-      })
-      ctx.vm.setProp(headersInstance, "values", valuesFn)
+        // forEach(callbackfn) - delegates to native Headers
+        const forEachFn = defineSandboxFunctionRaw(
+          ctx,
+          "forEach",
+          (...forEachArgs) => {
+            const callback = forEachArgs[0]
+            nativeHeaders.forEach((value, key) => {
+              ctx.vm.callFunction(
+                callback,
+                ctx.vm.undefined,
+                ctx.scope.manage(ctx.vm.newString(value)),
+                ctx.scope.manage(ctx.vm.newString(key)),
+                headersInstance
+              )
+            })
+            return ctx.vm.undefined
+          }
+        )
+        ctx.vm.setProp(headersInstance, "forEach", forEachFn)
 
-      // Add a special marker and toObject method for fetch compatibility
-      ctx.vm.setProp(headersInstance, "__isHoppHeaders", ctx.vm.true)
+        // entries() - delegates to native Headers
+        const entriesFn = defineSandboxFunctionRaw(ctx, "entries", () => {
+          const entriesArray = ctx.scope.manage(ctx.vm.newArray())
+          let index = 0
+          // @ts-expect-error - Headers.entries() exists but TS lib may not include it
+          for (const [key, value] of nativeHeaders.entries()) {
+            const entry = ctx.scope.manage(ctx.vm.newArray())
+            ctx.vm.setProp(entry, 0, ctx.scope.manage(ctx.vm.newString(key)))
+            ctx.vm.setProp(entry, 1, ctx.scope.manage(ctx.vm.newString(value)))
+            ctx.vm.setProp(entriesArray, index++, entry)
+          }
+          return entriesArray
+        })
+        ctx.vm.setProp(headersInstance, "entries", entriesFn)
 
-      const toObjectFn = defineSandboxFunctionRaw(ctx, "toObject", () => {
-        const obj = ctx.scope.manage(ctx.vm.newObject())
-        // @ts-expect-error - Headers.entries() exists
-        for (const [key, value] of nativeHeaders.entries()) {
-          ctx.vm.setProp(obj, key, ctx.scope.manage(ctx.vm.newString(value)))
-        }
-        return obj
-      })
-      ctx.vm.setProp(headersInstance, "toObject", toObjectFn)
+        // keys() - delegates to native Headers
+        const keysFn = defineSandboxFunctionRaw(ctx, "keys", () => {
+          const keysArray = ctx.scope.manage(ctx.vm.newArray())
+          let index = 0
+          // @ts-expect-error - Headers.keys() exists but TS lib may not include it
+          for (const key of nativeHeaders.keys()) {
+            ctx.vm.setProp(
+              keysArray,
+              index++,
+              ctx.scope.manage(ctx.vm.newString(key))
+            )
+          }
+          return keysArray
+        })
+        ctx.vm.setProp(headersInstance, "keys", keysFn)
 
-      return headersInstance
-    })
+        // values() - delegates to native Headers
+        const valuesFn = defineSandboxFunctionRaw(ctx, "values", () => {
+          const valuesArray = ctx.scope.manage(ctx.vm.newArray())
+          let index = 0
+          // @ts-expect-error - Headers.values() exists but TS lib may not include it
+          for (const value of nativeHeaders.values()) {
+            ctx.vm.setProp(
+              valuesArray,
+              index++,
+              ctx.scope.manage(ctx.vm.newString(value))
+            )
+          }
+          return valuesArray
+        })
+        ctx.vm.setProp(headersInstance, "values", valuesFn)
+
+        // Add a special marker and toObject method for fetch compatibility
+        ctx.vm.setProp(headersInstance, "__isHoppHeaders", ctx.vm.true)
+
+        const toObjectFn = defineSandboxFunctionRaw(ctx, "toObject", () => {
+          const obj = ctx.scope.manage(ctx.vm.newObject())
+          // @ts-expect-error - Headers.entries() exists
+          for (const [key, value] of nativeHeaders.entries()) {
+            ctx.vm.setProp(obj, key, ctx.scope.manage(ctx.vm.newString(value)))
+          }
+          return obj
+        })
+        ctx.vm.setProp(headersInstance, "toObject", toObjectFn)
+
+        return headersInstance
+      }
+    )
 
     // Set the helper on global scope (keep it, don't remove)
-    ctx.vm.setProp(ctx.vm.global, "__createHeadersInstance", createHeadersInstance)
+    ctx.vm.setProp(
+      ctx.vm.global,
+      "__createHeadersInstance",
+      createHeadersInstance
+    )
 
     // Define the Headers constructor as actual JavaScript in the sandbox
     // This ensures it's recognized as a proper constructor
@@ -437,7 +503,10 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     `)
 
     if (headersCtorResult.error) {
-      console.error('[CUSTOM-FETCH] Failed to define Headers constructor:', ctx.vm.dump(headersCtorResult.error))
+      console.error(
+        "[CUSTOM-FETCH] Failed to define Headers constructor:",
+        ctx.vm.dump(headersCtorResult.error)
+      )
       headersCtorResult.error.dispose()
     } else {
       headersCtorResult.value?.dispose()
@@ -451,13 +520,20 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       const init = args.length > 1 ? ctx.vm.dump(args[1]) : {}
 
       // Create native Request instance
-      const nativeRequest = new globalThis.Request(input as RequestInfo, init as RequestInit)
+      const nativeRequest = new globalThis.Request(
+        input as RequestInfo,
+        init as RequestInit
+      )
 
       const requestInstance = ctx.scope.manage(ctx.vm.newObject())
 
       // url property - strip trailing slash if original didn't have one
       let url = nativeRequest.url
-      if (typeof input === 'string' && !input.endsWith('/') && url.endsWith('/')) {
+      if (
+        typeof input === "string" &&
+        !input.endsWith("/") &&
+        url.endsWith("/")
+      ) {
         url = url.slice(0, -1)
       }
       ctx.vm.setProp(
@@ -596,7 +672,10 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       })()
     `)
     if (requestCtorResult.error) {
-      console.error('[CUSTOM-FETCH] Failed to define Request constructor:', ctx.vm.dump(requestCtorResult.error))
+      console.error(
+        "[CUSTOM-FETCH] Failed to define Request constructor:",
+        ctx.vm.dump(requestCtorResult.error)
+      )
       requestCtorResult.error.dispose()
     } else {
       requestCtorResult.value?.dispose()
@@ -605,156 +684,89 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     // ========================================================================
     // Response Class Implementation
     // ========================================================================
-    const ResponseClass = defineSandboxFunctionRaw(ctx, "Response", (...args) => {
-      const body = args.length > 0 ? ctx.vm.dump(args[0]) : null
-      const init = args.length > 1 ? ctx.vm.dump(args[1]) : {}
+    const ResponseClass = defineSandboxFunctionRaw(
+      ctx,
+      "Response",
+      (...args) => {
+        const body = args.length > 0 ? ctx.vm.dump(args[0]) : null
+        const init = args.length > 1 ? ctx.vm.dump(args[1]) : {}
 
-      const responseInstance = ctx.scope.manage(ctx.vm.newObject())
+        const responseInstance = ctx.scope.manage(ctx.vm.newObject())
 
-      // Set status property
-      const status = init.status || 200
-      ctx.vm.setProp(responseInstance, "status", ctx.scope.manage(ctx.vm.newNumber(status)))
+        // Set status property
+        const status = init.status || 200
+        ctx.vm.setProp(
+          responseInstance,
+          "status",
+          ctx.scope.manage(ctx.vm.newNumber(status))
+        )
 
-      // Set statusText property
-      ctx.vm.setProp(
-        responseInstance,
-        "statusText",
-        ctx.scope.manage(ctx.vm.newString(init.statusText || ""))
-      )
+        // Set statusText property
+        ctx.vm.setProp(
+          responseInstance,
+          "statusText",
+          ctx.scope.manage(ctx.vm.newString(init.statusText || ""))
+        )
 
-      // Set ok property (true for 200-299 status codes)
-      const ok = status >= 200 && status < 300
-      ctx.vm.setProp(responseInstance, "ok", ok ? ctx.vm.true : ctx.vm.false)
+        // Set ok property (true for 200-299 status codes)
+        const ok = status >= 200 && status < 300
+        ctx.vm.setProp(responseInstance, "ok", ok ? ctx.vm.true : ctx.vm.false)
 
-      // Set headers property - create headers inline
-      const responseHeadersData = init.headers || {}
-      const responseHeadersObj = ctx.scope.manage(ctx.vm.newObject())
+        // Set headers property - create headers inline
+        const responseHeadersData = init.headers || {}
+        const responseHeadersObj = ctx.scope.manage(ctx.vm.newObject())
 
-      // Populate headers from init
-      if (responseHeadersData && typeof responseHeadersData === "object") {
-        for (const [key, value] of Object.entries(responseHeadersData)) {
-          ctx.vm.setProp(
-            responseHeadersObj,
-            key.toLowerCase(),
-            ctx.scope.manage(ctx.vm.newString(String(value)))
-          )
-        }
-      }
-
-      ctx.vm.setProp(responseInstance, "headers", responseHeadersObj)
-
-      // Set type property
-      ctx.vm.setProp(
-        responseInstance,
-        "type",
-        ctx.scope.manage(ctx.vm.newString(init.type || "default"))
-      )
-
-      // Set url property
-      ctx.vm.setProp(
-        responseInstance,
-        "url",
-        ctx.scope.manage(ctx.vm.newString(init.url || ""))
-      )
-
-      // Set redirected property
-      ctx.vm.setProp(
-        responseInstance,
-        "redirected",
-        init.redirected ? ctx.vm.true : ctx.vm.false
-      )
-
-      // Store body internally
-      let bodyBytes: number[] = []
-      if (body !== null && body !== undefined) {
-        if (typeof body === "string") {
-          bodyBytes = Array.from(new TextEncoder().encode(body))
-        } else if (typeof body === "object" && body !== null) {
-          // Assume it's JSON-serializable
-          const jsonString = JSON.stringify(body)
-          bodyBytes = Array.from(new TextEncoder().encode(jsonString))
-        }
-      }
-
-      // json() method
-      const jsonFn = defineSandboxFunctionRaw(ctx, "json", () => {
-        const vmPromise = ctx.vm.newPromise((resolve, reject) => {
-          try {
-            const text = new TextDecoder().decode(new Uint8Array(bodyBytes))
-            const parsed = JSON.parse(text)
-            resolve(marshalValue(parsed))
-          } catch (error) {
-            reject(
-              ctx.scope.manage(
-                ctx.vm.newError({
-                  name: "JSONError",
-                  message: error instanceof Error ? error.message : "JSON parse failed",
-                })
-              )
-            )
-          }
-        })
-        return ctx.scope.manage(vmPromise).handle
-      })
-      ctx.vm.setProp(responseInstance, "json", jsonFn)
-
-      // text() method
-      const textFn = defineSandboxFunctionRaw(ctx, "text", () => {
-        const vmPromise = ctx.vm.newPromise((resolve, reject) => {
-          try {
-            const text = new TextDecoder().decode(new Uint8Array(bodyBytes))
-            resolve(ctx.scope.manage(ctx.vm.newString(text)))
-          } catch (error) {
-            reject(
-              ctx.scope.manage(
-                ctx.vm.newError({
-                  name: "TextError",
-                  message: error instanceof Error ? error.message : "Text decode failed",
-                })
-              )
-            )
-          }
-        })
-        return ctx.scope.manage(vmPromise).handle
-      })
-      ctx.vm.setProp(responseInstance, "text", textFn)
-
-      // clone() method
-      const cloneFn = defineSandboxFunctionRaw(ctx, "clone", () => {
-        // Create a new response instance manually to avoid callFunction type issues
-        const clonedResponse = ctx.scope.manage(ctx.vm.newObject())
-
-        // Copy all properties
-        ctx.vm.setProp(clonedResponse, "status", ctx.scope.manage(ctx.vm.newNumber(status)))
-        ctx.vm.setProp(clonedResponse, "statusText", ctx.scope.manage(ctx.vm.newString(init.statusText || "")))
-        ctx.vm.setProp(clonedResponse, "ok", ok ? ctx.vm.true : ctx.vm.false)
-
-        // Clone headers
-        const clonedResponseHeadersObj = ctx.scope.manage(ctx.vm.newObject())
+        // Populate headers from init
         if (responseHeadersData && typeof responseHeadersData === "object") {
           for (const [key, value] of Object.entries(responseHeadersData)) {
             ctx.vm.setProp(
-              clonedResponseHeadersObj,
+              responseHeadersObj,
               key.toLowerCase(),
               ctx.scope.manage(ctx.vm.newString(String(value)))
             )
           }
         }
-        ctx.vm.setProp(clonedResponse, "headers", clonedResponseHeadersObj)
 
-        // Copy other properties
-        ctx.vm.setProp(clonedResponse, "type", ctx.scope.manage(ctx.vm.newString(init.type || "default")))
-        ctx.vm.setProp(clonedResponse, "url", ctx.scope.manage(ctx.vm.newString(init.url || "")))
-        ctx.vm.setProp(clonedResponse, "redirected", init.redirected ? ctx.vm.true : ctx.vm.false)
+        ctx.vm.setProp(responseInstance, "headers", responseHeadersObj)
 
-        // Clone body bytes array so modifications to one don't affect the other
-        const clonedBodyBytes = [...bodyBytes]
+        // Set type property
+        ctx.vm.setProp(
+          responseInstance,
+          "type",
+          ctx.scope.manage(ctx.vm.newString(init.type || "default"))
+        )
 
-        // Add json() method to cloned response
-        const clonedJsonFn = defineSandboxFunctionRaw(ctx, "json", () => {
+        // Set url property
+        ctx.vm.setProp(
+          responseInstance,
+          "url",
+          ctx.scope.manage(ctx.vm.newString(init.url || ""))
+        )
+
+        // Set redirected property
+        ctx.vm.setProp(
+          responseInstance,
+          "redirected",
+          init.redirected ? ctx.vm.true : ctx.vm.false
+        )
+
+        // Store body internally
+        let bodyBytes: number[] = []
+        if (body !== null && body !== undefined) {
+          if (typeof body === "string") {
+            bodyBytes = Array.from(new TextEncoder().encode(body))
+          } else if (typeof body === "object" && body !== null) {
+            // Assume it's JSON-serializable
+            const jsonString = JSON.stringify(body)
+            bodyBytes = Array.from(new TextEncoder().encode(jsonString))
+          }
+        }
+
+        // json() method
+        const jsonFn = defineSandboxFunctionRaw(ctx, "json", () => {
           const vmPromise = ctx.vm.newPromise((resolve, reject) => {
             try {
-              const text = new TextDecoder().decode(new Uint8Array(clonedBodyBytes))
+              const text = new TextDecoder().decode(new Uint8Array(bodyBytes))
               const parsed = JSON.parse(text)
               resolve(marshalValue(parsed))
             } catch (error) {
@@ -762,7 +774,10 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                 ctx.scope.manage(
                   ctx.vm.newError({
                     name: "JSONError",
-                    message: error instanceof Error ? error.message : "JSON parse failed",
+                    message:
+                      error instanceof Error
+                        ? error.message
+                        : "JSON parse failed",
                   })
                 )
               )
@@ -770,20 +785,23 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
           })
           return ctx.scope.manage(vmPromise).handle
         })
-        ctx.vm.setProp(clonedResponse, "json", clonedJsonFn)
+        ctx.vm.setProp(responseInstance, "json", jsonFn)
 
-        // Add text() method to cloned response
-        const clonedTextFn = defineSandboxFunctionRaw(ctx, "text", () => {
+        // text() method
+        const textFn = defineSandboxFunctionRaw(ctx, "text", () => {
           const vmPromise = ctx.vm.newPromise((resolve, reject) => {
             try {
-              const text = new TextDecoder().decode(new Uint8Array(clonedBodyBytes))
+              const text = new TextDecoder().decode(new Uint8Array(bodyBytes))
               resolve(ctx.scope.manage(ctx.vm.newString(text)))
             } catch (error) {
               reject(
                 ctx.scope.manage(
                   ctx.vm.newError({
                     name: "TextError",
-                    message: error instanceof Error ? error.message : "Text decode failed",
+                    message:
+                      error instanceof Error
+                        ? error.message
+                        : "Text decode failed",
                   })
                 )
               )
@@ -791,14 +809,119 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
           })
           return ctx.scope.manage(vmPromise).handle
         })
-        ctx.vm.setProp(clonedResponse, "text", clonedTextFn)
+        ctx.vm.setProp(responseInstance, "text", textFn)
 
-        return clonedResponse
-      })
-      ctx.vm.setProp(responseInstance, "clone", cloneFn)
+        // clone() method
+        const cloneFn = defineSandboxFunctionRaw(ctx, "clone", () => {
+          // Create a new response instance manually to avoid callFunction type issues
+          const clonedResponse = ctx.scope.manage(ctx.vm.newObject())
 
-      return responseInstance
-    })
+          // Copy all properties
+          ctx.vm.setProp(
+            clonedResponse,
+            "status",
+            ctx.scope.manage(ctx.vm.newNumber(status))
+          )
+          ctx.vm.setProp(
+            clonedResponse,
+            "statusText",
+            ctx.scope.manage(ctx.vm.newString(init.statusText || ""))
+          )
+          ctx.vm.setProp(clonedResponse, "ok", ok ? ctx.vm.true : ctx.vm.false)
+
+          // Clone headers
+          const clonedResponseHeadersObj = ctx.scope.manage(ctx.vm.newObject())
+          if (responseHeadersData && typeof responseHeadersData === "object") {
+            for (const [key, value] of Object.entries(responseHeadersData)) {
+              ctx.vm.setProp(
+                clonedResponseHeadersObj,
+                key.toLowerCase(),
+                ctx.scope.manage(ctx.vm.newString(String(value)))
+              )
+            }
+          }
+          ctx.vm.setProp(clonedResponse, "headers", clonedResponseHeadersObj)
+
+          // Copy other properties
+          ctx.vm.setProp(
+            clonedResponse,
+            "type",
+            ctx.scope.manage(ctx.vm.newString(init.type || "default"))
+          )
+          ctx.vm.setProp(
+            clonedResponse,
+            "url",
+            ctx.scope.manage(ctx.vm.newString(init.url || ""))
+          )
+          ctx.vm.setProp(
+            clonedResponse,
+            "redirected",
+            init.redirected ? ctx.vm.true : ctx.vm.false
+          )
+
+          // Clone body bytes array so modifications to one don't affect the other
+          const clonedBodyBytes = [...bodyBytes]
+
+          // Add json() method to cloned response
+          const clonedJsonFn = defineSandboxFunctionRaw(ctx, "json", () => {
+            const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+              try {
+                const text = new TextDecoder().decode(
+                  new Uint8Array(clonedBodyBytes)
+                )
+                const parsed = JSON.parse(text)
+                resolve(marshalValue(parsed))
+              } catch (error) {
+                reject(
+                  ctx.scope.manage(
+                    ctx.vm.newError({
+                      name: "JSONError",
+                      message:
+                        error instanceof Error
+                          ? error.message
+                          : "JSON parse failed",
+                    })
+                  )
+                )
+              }
+            })
+            return ctx.scope.manage(vmPromise).handle
+          })
+          ctx.vm.setProp(clonedResponse, "json", clonedJsonFn)
+
+          // Add text() method to cloned response
+          const clonedTextFn = defineSandboxFunctionRaw(ctx, "text", () => {
+            const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+              try {
+                const text = new TextDecoder().decode(
+                  new Uint8Array(clonedBodyBytes)
+                )
+                resolve(ctx.scope.manage(ctx.vm.newString(text)))
+              } catch (error) {
+                reject(
+                  ctx.scope.manage(
+                    ctx.vm.newError({
+                      name: "TextError",
+                      message:
+                        error instanceof Error
+                          ? error.message
+                          : "Text decode failed",
+                    })
+                  )
+                )
+              }
+            })
+            return ctx.scope.manage(vmPromise).handle
+          })
+          ctx.vm.setProp(clonedResponse, "text", clonedTextFn)
+
+          return clonedResponse
+        })
+        ctx.vm.setProp(responseInstance, "clone", cloneFn)
+
+        return responseInstance
+      }
+    )
 
     // Set helper on global and define Response constructor in sandbox
     ctx.vm.setProp(ctx.vm.global, "__createResponseInstance", ResponseClass)
@@ -811,7 +934,10 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       })()
     `)
     if (responseCtorResult.error) {
-      console.error('[CUSTOM-FETCH] Failed to define Response constructor:', ctx.vm.dump(responseCtorResult.error))
+      console.error(
+        "[CUSTOM-FETCH] Failed to define Response constructor:",
+        ctx.vm.dump(responseCtorResult.error)
+      )
       responseCtorResult.error.dispose()
     } else {
       responseCtorResult.value?.dispose()
@@ -820,69 +946,83 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     // ========================================================================
     // AbortController Class Implementation
     // ========================================================================
-    const AbortControllerClass = defineSandboxFunctionRaw(ctx, "AbortController", () => {
-      const controllerInstance = ctx.scope.manage(ctx.vm.newObject())
+    const AbortControllerClass = defineSandboxFunctionRaw(
+      ctx,
+      "AbortController",
+      () => {
+        const controllerInstance = ctx.scope.manage(ctx.vm.newObject())
 
-      // Create AbortSignal
-      const signalInstance = ctx.scope.manage(ctx.vm.newObject())
-      ctx.vm.setProp(signalInstance, "aborted", ctx.vm.false)
+        // Create AbortSignal
+        const signalInstance = ctx.scope.manage(ctx.vm.newObject())
+        ctx.vm.setProp(signalInstance, "aborted", ctx.vm.false)
 
-      // Store abort listeners - use an array to store handles that we DON'T dispose
-      // These handles need to stay alive until abort() is called
-      const abortListeners: Array<{ handle: any, disposed: boolean }> = []
+        // Store abort listeners - use an array to store handles that we DON'T dispose
+        // These handles need to stay alive until abort() is called
+        const abortListeners: Array<{ handle: any; disposed: boolean }> = []
 
-      // addEventListener method for signal
-      const addEventListenerFn = defineSandboxFunctionRaw(
-        ctx,
-        "addEventListener",
-        (...listenerArgs) => {
-          const eventType = ctx.vm.dump(listenerArgs[0])
-          if (eventType === "abort") {
-            // The handle passed to us is managed by the caller's scope
-            // We need to create our own reference that won't be auto-disposed
-            const listenerHandle = listenerArgs[1]
-            const dupedHandle = listenerHandle.dup()
-            abortListeners.push({ handle: dupedHandle, disposed: false })
-          }
-          return ctx.vm.undefined
-        }
-      )
-      ctx.vm.setProp(signalInstance, "addEventListener", addEventListenerFn)
-
-      // Set signal property on controller
-      ctx.vm.setProp(controllerInstance, "signal", signalInstance)
-
-      // abort() method
-      const abortFn = defineSandboxFunctionRaw(ctx, "abort", () => {
-        // Mark signal as aborted
-        ctx.vm.setProp(signalInstance, "aborted", ctx.vm.true)
-
-        // Call all abort listeners
-        for (let i = 0; i < abortListeners.length; i++) {
-          const listenerInfo = abortListeners[i]
-          if (!listenerInfo.disposed) {
-            const result = ctx.vm.callFunction(listenerInfo.handle, ctx.vm.undefined)
-            if (result.error) {
-              console.error('[ABORT] Listener error:', ctx.vm.dump(result.error))
-              result.error.dispose()
-            } else {
-              result.value.dispose()
+        // addEventListener method for signal
+        const addEventListenerFn = defineSandboxFunctionRaw(
+          ctx,
+          "addEventListener",
+          (...listenerArgs) => {
+            const eventType = ctx.vm.dump(listenerArgs[0])
+            if (eventType === "abort") {
+              // The handle passed to us is managed by the caller's scope
+              // We need to create our own reference that won't be auto-disposed
+              const listenerHandle = listenerArgs[1]
+              const dupedHandle = listenerHandle.dup()
+              abortListeners.push({ handle: dupedHandle, disposed: false })
             }
-            // Dispose the handle after calling it
-            listenerInfo.handle.dispose()
-            listenerInfo.disposed = true
+            return ctx.vm.undefined
           }
-        }
+        )
+        ctx.vm.setProp(signalInstance, "addEventListener", addEventListenerFn)
 
-        return ctx.vm.undefined
-      })
-      ctx.vm.setProp(controllerInstance, "abort", abortFn)
+        // Set signal property on controller
+        ctx.vm.setProp(controllerInstance, "signal", signalInstance)
 
-      return controllerInstance
-    })
+        // abort() method
+        const abortFn = defineSandboxFunctionRaw(ctx, "abort", () => {
+          // Mark signal as aborted
+          ctx.vm.setProp(signalInstance, "aborted", ctx.vm.true)
+
+          // Call all abort listeners
+          for (let i = 0; i < abortListeners.length; i++) {
+            const listenerInfo = abortListeners[i]
+            if (!listenerInfo.disposed) {
+              const result = ctx.vm.callFunction(
+                listenerInfo.handle,
+                ctx.vm.undefined
+              )
+              if (result.error) {
+                console.error(
+                  "[ABORT] Listener error:",
+                  ctx.vm.dump(result.error)
+                )
+                result.error.dispose()
+              } else {
+                result.value.dispose()
+              }
+              // Dispose the handle after calling it
+              listenerInfo.handle.dispose()
+              listenerInfo.disposed = true
+            }
+          }
+
+          return ctx.vm.undefined
+        })
+        ctx.vm.setProp(controllerInstance, "abort", abortFn)
+
+        return controllerInstance
+      }
+    )
 
     // Set helper on global and define AbortController constructor in sandbox
-    ctx.vm.setProp(ctx.vm.global, "__createAbortControllerInstance", AbortControllerClass)
+    ctx.vm.setProp(
+      ctx.vm.global,
+      "__createAbortControllerInstance",
+      AbortControllerClass
+    )
     const abortCtorResult = ctx.vm.evalCode(`
       (function() {
         globalThis.AbortController = function AbortController() {
@@ -892,7 +1032,10 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       })()
     `)
     if (abortCtorResult.error) {
-      console.error('[CUSTOM-FETCH] Failed to define AbortController constructor:', ctx.vm.dump(abortCtorResult.error))
+      console.error(
+        "[CUSTOM-FETCH] Failed to define AbortController constructor:",
+        ctx.vm.dump(abortCtorResult.error)
+      )
       abortCtorResult.error.dispose()
     } else {
       abortCtorResult.value?.dispose()

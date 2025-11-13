@@ -233,7 +233,8 @@ describe("pm.sendRequest()", () => {
           expectResults: [
             {
               status: "pass",
-              message: "Expected 'https://api.example.com' to be 'https://api.example.com'",
+              message:
+                "Expected 'https://api.example.com' to be 'https://api.example.com'",
             },
             {
               status: "pass",

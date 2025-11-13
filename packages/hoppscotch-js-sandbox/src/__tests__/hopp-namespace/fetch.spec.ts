@@ -25,8 +25,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -40,7 +40,7 @@ describe("hopp.fetch()", () => {
     })
 
     test("hopp.fetch should make GET request with string URL", async () => {
-      const mockFetch: HoppFetchHook = vi.fn(async (input, init) => {
+      const mockFetch: HoppFetchHook = vi.fn(async (_input, _init) => {
         return new Response(JSON.stringify({ success: true }), {
           status: 200,
           headers: { "Content-Type": "application/json" },
@@ -57,8 +57,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -76,12 +76,12 @@ describe("hopp.fetch()", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "https://api.example.com/data",
-        undefined,
+        undefined
       )
     })
 
     test("hopp.fetch should make POST request with JSON body", async () => {
-      const mockFetch: HoppFetchHook = vi.fn(async (input, init) => {
+      const mockFetch: HoppFetchHook = vi.fn(async (_input, _init) => {
         return new Response(JSON.stringify({ created: true, id: 42 }), {
           status: 201,
           headers: { "Content-Type": "application/json" },
@@ -104,8 +104,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -129,7 +129,7 @@ describe("hopp.fetch()", () => {
             "Content-Type": "application/json",
           }),
           body: JSON.stringify({ name: "test" }),
-        }),
+        })
       )
     })
 
@@ -148,8 +148,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -182,8 +182,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -222,8 +222,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -259,8 +259,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -301,8 +301,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -335,8 +335,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -367,8 +367,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -406,8 +406,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -426,7 +426,7 @@ describe("hopp.fetch()", () => {
             Authorization: "Bearer token123",
             "X-API-Key": "key456",
           }),
-        }),
+        })
       )
     })
   })
@@ -452,8 +452,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -488,8 +488,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -503,7 +503,7 @@ describe("hopp.fetch()", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "https://api.example.com/data",
-        undefined,
+        undefined
       )
     })
 
@@ -525,8 +525,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -558,8 +558,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -573,7 +573,7 @@ describe("hopp.fetch()", () => {
     })
 
     test("global fetch() should work identically to hopp.fetch()", async () => {
-      const mockFetch: HoppFetchHook = vi.fn(async (input, init) => {
+      const mockFetch: HoppFetchHook = vi.fn(async (_input, _init) => {
         return new Response(JSON.stringify({ success: true }), {
           status: 200,
           headers: { "Content-Type": "application/json" },
@@ -590,8 +590,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -609,12 +609,12 @@ describe("hopp.fetch()", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "https://api.example.com/data",
-        undefined,
+        undefined
       )
     })
 
     test("global fetch() should support POST with body", async () => {
-      const mockFetch: HoppFetchHook = vi.fn(async (input, init) => {
+      const mockFetch: HoppFetchHook = vi.fn(async (_input, _init) => {
         return new Response(JSON.stringify({ created: true }), {
           status: 201,
         })
@@ -633,8 +633,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -662,8 +662,8 @@ describe("hopp.fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -679,12 +679,12 @@ describe("hopp.fetch()", () => {
       expect(mockFetch).toHaveBeenNthCalledWith(
         1,
         "https://api.example.com/test1",
-        undefined,
+        undefined
       )
       expect(mockFetch).toHaveBeenNthCalledWith(
         2,
         "https://api.example.com/test2",
-        undefined,
+        undefined
       )
     })
   })

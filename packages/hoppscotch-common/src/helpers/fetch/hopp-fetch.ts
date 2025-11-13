@@ -45,7 +45,9 @@ export const createHoppFetchHook = (
       const errorMessage =
         typeof error === "string"
           ? error
-          : typeof error === "object" && error !== null && "humanMessage" in error
+          : typeof error === "object" &&
+              error !== null &&
+              "humanMessage" in error
             ? typeof error.humanMessage.heading === "function"
               ? error.humanMessage.heading(() => "Unknown error")
               : "Unknown error"
@@ -79,9 +81,7 @@ async function convertFetchToRelayRequest(
   const headers: Record<string, string> = {}
   if (init?.headers) {
     const headersObj =
-      init.headers instanceof Headers
-        ? init.headers
-        : new Headers(init.headers)
+      init.headers instanceof Headers ? init.headers : new Headers(init.headers)
 
     headersObj.forEach((value, key) => {
       headers[key] = value
@@ -95,7 +95,8 @@ async function convertFetchToRelayRequest(
     if (typeof init.body === "string") {
       // Text/JSON body - use proper ContentType structure
       // Case-insensitive header lookup (Headers API normalizes to lowercase)
-      const mediaType = headers["content-type"] || headers["Content-Type"] || "text/plain"
+      const mediaType =
+        headers["content-type"] || headers["Content-Type"] || "text/plain"
 
       // Use "text" kind for string bodies - Axios will handle it correctly
       content = {
@@ -201,17 +202,20 @@ function convertRelayResponseToSerializableResponse(
     } else if (ArrayBuffer.isView(actualBody)) {
       // Other typed array
       bodyBytes = Array.from(new Uint8Array(actualBody.buffer))
-    } else if (typeof actualBody === 'object') {
+    } else if (typeof actualBody === "object") {
       // Check if it's a Buffer-like object with 'type' and 'data' properties
-      if ('type' in actualBody && 'data' in actualBody) {
+      if ("type" in actualBody && "data" in actualBody) {
         // This is likely a serialized Buffer: {type: 'Buffer', data: [1,2,3,...]}
         if (Array.isArray(actualBody.data)) {
           bodyBytes = actualBody.data
         }
       } else {
         // Plain object with numeric keys (like {0: 72, 1: 101, ...})
-        const keys = Object.keys(actualBody).map(Number).filter(n => !isNaN(n)).sort((a, b) => a - b)
-        bodyBytes = keys.map(k => actualBody[k])
+        const keys = Object.keys(actualBody)
+          .map(Number)
+          .filter((n) => !isNaN(n))
+          .sort((a, b) => a - b)
+        bodyBytes = keys.map((k) => actualBody[k])
       }
     }
   }
@@ -247,7 +251,9 @@ function convertRelayResponseToSerializableResponse(
         return Object.values(headersObj)[Symbol.iterator]()
       },
       forEach(callback: (value: string, key: string) => void) {
-        Object.entries(headersObj).forEach(([key, value]) => callback(value, key))
+        Object.entries(headersObj).forEach(([key, value]) =>
+          callback(value, key)
+        )
       },
     },
     _bodyBytes: bodyBytes,

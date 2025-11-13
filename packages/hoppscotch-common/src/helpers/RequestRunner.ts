@@ -771,7 +771,7 @@ export async function runTestRunnerRequest(
   // Give browser time to paint the loading state before starting pre-request script
   // Double RAF ensures browser has actually rendered the DOM update
   // This is critical for requests with async pre-request scripts
-  await new Promise(resolve => {
+  await new Promise((resolve) => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         resolve(undefined)

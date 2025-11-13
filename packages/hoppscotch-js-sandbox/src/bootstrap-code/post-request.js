@@ -2162,7 +2162,7 @@
       // This keeps QuickJS handles alive during execution
 
       // Create test descriptor metadata
-      const testDescriptor = inputs.preTest(descriptor)
+      const _testDescriptor = inputs.preTest(descriptor)
 
       // Chain this test to execute after previous tests
       __testExecutionChain = __testExecutionChain.then(async () => {
@@ -2173,7 +2173,7 @@
         try {
           // Execute test callback immediately (while handles are alive)
           await testFn()
-        } catch (error) {
+        } catch (_error) {
           // Error is already recorded via inputs.chaiFail
         } finally {
           // Clear current test context
@@ -2408,7 +2408,7 @@
       // This keeps QuickJS handles alive during execution
 
       // Create test descriptor metadata
-      const testDescriptor = inputs.preTest(descriptor)
+      const _testDescriptor = inputs.preTest(descriptor)
 
       // Chain this test to execute after previous tests
       __testExecutionChain = __testExecutionChain.then(async () => {
@@ -2419,7 +2419,7 @@
         try {
           // Execute test callback immediately (while handles are alive)
           await testFn()
-        } catch (error) {
+        } catch (_error) {
           // Error is already recorded via inputs.chaiFail
         } finally {
           // Clear current test context
@@ -3768,7 +3768,8 @@
               params.append(pair.key, pair.value)
             })
             options.body = params.toString()
-            options.headers["Content-Type"] = "application/x-www-form-urlencoded"
+            options.headers["Content-Type"] =
+              "application/x-www-form-urlencoded"
           } else if (urlOrRequest.body.mode === "formdata") {
             const formData = new FormData()
             urlOrRequest.body.formdata?.forEach((pair) => {
@@ -3788,12 +3789,10 @@
             const pmResponse = {
               code: response.status,
               status: response.statusText,
-              headers: Array.from(response.headers.entries()).map(
-                ([k, v]) => ({
-                  key: k,
-                  value: v,
-                })
-              ),
+              headers: Array.from(response.headers.entries()).map(([k, v]) => ({
+                key: k,
+                value: v,
+              })),
               body,
               json: () => {
                 try {

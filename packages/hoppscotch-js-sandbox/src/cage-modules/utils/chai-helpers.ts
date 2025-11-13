@@ -20,7 +20,10 @@ export const createChaiMethods: (
    * Prefers test context over stack position
    */
   const getCurrentTest = (): TestDescriptor | null => {
-    return getCurrentTestContext?.() || (testStack.length > 0 ? testStack[testStack.length - 1] : null)
+    return (
+      getCurrentTestContext?.() ||
+      (testStack.length > 0 ? testStack[testStack.length - 1] : null)
+    )
   }
 
   /**
@@ -885,7 +888,7 @@ export const createChaiMethods: (
           : `have ${methodName || "lengthOf"}`
         if (actualSize !== undefined && typeName) {
           const targetTest = getCurrentTest()
-        if (!targetTest) return
+          if (!targetTest) return
           const matches = Number(actualSize) === Number(length)
           const negated = mods.includes("not")
           const pass = negated ? !matches : matches
@@ -908,7 +911,7 @@ export const createChaiMethods: (
           })
         } else if (value instanceof Set) {
           const targetTest = getCurrentTest()
-        if (!targetTest) return
+          if (!targetTest) return
           const matches = value.size === Number(length)
           const negated = mods.includes("not")
           const pass = negated ? !matches : matches
@@ -919,7 +922,7 @@ export const createChaiMethods: (
           })
         } else if (value instanceof Map) {
           const targetTest = getCurrentTest()
-        if (!targetTest) return
+          if (!targetTest) return
           const matches = value.size === Number(length)
           const negated = mods.includes("not")
           const pass = negated ? !matches : matches
@@ -1822,9 +1825,7 @@ export const createChaiMethods: (
 
         // Update the last result (from chaiChange)
         const lastResult =
-          targetTest.expectResults[
-            targetTest.expectResults.length - 1
-          ]
+          targetTest.expectResults[targetTest.expectResults.length - 1]
         lastResult.status = byShouldPass ? "pass" : "fail"
         lastResult.message = `Expected [Function]${mods} change {}.'${prop}' by ${numExpectedDelta}`
       }
@@ -1865,9 +1866,7 @@ export const createChaiMethods: (
 
         // Update the last result (from chaiIncrease)
         const lastResult =
-          targetTest.expectResults[
-            targetTest.expectResults.length - 1
-          ]
+          targetTest.expectResults[targetTest.expectResults.length - 1]
         lastResult.status = byShouldPass ? "pass" : "fail"
         lastResult.message = `Expected [Function]${mods} increase {}.'${prop}' by ${numExpectedDelta}`
       }
@@ -1909,9 +1908,7 @@ export const createChaiMethods: (
 
         // Update the last result (from chaiDecrease)
         const lastResult =
-          targetTest.expectResults[
-            targetTest.expectResults.length - 1
-          ]
+          targetTest.expectResults[targetTest.expectResults.length - 1]
         lastResult.status = byShouldPass ? "pass" : "fail"
         lastResult.message = `Expected [Function]${mods} decrease {}.'${prop}' by ${numExpectedDelta}`
       }
@@ -2131,7 +2128,8 @@ export const createChaiMethods: (
 
         const shouldPass = isNegated ? !passes : passes
 
-        const args = expectedValue !== undefined ? [path, expectedValue] : [path]
+        const args =
+          expectedValue !== undefined ? [path, expectedValue] : [path]
 
         executeChaiAssertion(
           () => {
@@ -2174,7 +2172,7 @@ export const createChaiMethods: (
     // expect.fail(actual, expected, message, operator)
     chaiFail: defineSandboxFn(ctx, "chaiFail", (...args: unknown[]) => {
       const targetTest = getCurrentTest()
-        if (!targetTest) return
+      if (!targetTest) return
 
       const [actual, expected, message, operator] = args
       let errorMessage: string

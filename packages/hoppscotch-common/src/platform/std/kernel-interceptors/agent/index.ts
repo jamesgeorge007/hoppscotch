@@ -162,8 +162,14 @@ export class AgentKernelInterceptorService
         reqID
       )
 
-      console.log('[agent-interceptor] Auth key present:', !!this.store.authKey.value)
-      console.log('[agent-interceptor] Auth key (first 10 chars):', this.store.authKey.value?.substring(0, 10))
+      console.log(
+        "[agent-interceptor] Auth key present:",
+        !!this.store.authKey.value
+      )
+      console.log(
+        "[agent-interceptor] Auth key (first 10 chars):",
+        this.store.authKey.value?.substring(0, 10)
+      )
 
       const response = await axios.post(
         "http://localhost:9119/execute",

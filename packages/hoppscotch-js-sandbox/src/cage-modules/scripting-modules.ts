@@ -3,7 +3,6 @@ import {
   CageModuleCtx,
   defineCageModule,
   defineSandboxFn,
-  defineSandboxFunctionRaw,
   defineSandboxObject,
 } from "faraday-cage/modules"
 import { cloneDeep } from "lodash-es"
@@ -84,15 +83,15 @@ function registerAfterScriptExecutionHook(
 
 /**
  * Implementation of the hook registration function
- * 
+ *
  * CRITICAL FIX: Environment variable mutations from async callbacks
  * ===============================================================
  * Problem: Environment variables set inside async callbacks (like hopp.fetch().then())
  * were being lost because handleSandboxResults was called BEFORE async operations completed.
- * 
+ *
  * Solution: We snapshot existing keepAlivePromises and wait for them to resolve BEFORE
  * capturing results. This ensures all async env mutations are captured.
- * 
+ *
  * Execution flow:
  * 1. Script runs (sync part)
  * 2. afterScriptExecutionHooks called → starts waiting for existingPromises
@@ -353,7 +352,8 @@ const createScriptingModule = (
     ctx.keepAlivePromises.push(testPromiseKeepAlive)
 
     // Wrap onTestPromise to track in testPromises array
-    const originalOnTestPromise = (config as PostRequestModuleConfig).onTestPromise
+    const originalOnTestPromise = (config as PostRequestModuleConfig)
+      .onTestPromise
     if (originalOnTestPromise) {
       ;(config as PostRequestModuleConfig).onTestPromise = (promise) => {
         testPromises.push(promise)
@@ -375,10 +375,15 @@ const createScriptingModule = (
       const preConfig = config as PreRequestModuleConfig
 
       captureHook.capture = () => {
-        const capturedEnvs = (inputsObj as any).getUpdatedEnvs?.() || { global: [], selected: [] }
+        const capturedEnvs = (inputsObj as any).getUpdatedEnvs?.() || {
+          global: [],
+          selected: [],
+        }
         // Use the getUpdatedRequest from request setters (via createRequestSetterMethods)
         // This returns the mutated request, not the original
-        const finalRequest = getUpdatedRequest ? getUpdatedRequest() : config.request
+        const finalRequest = getUpdatedRequest
+          ? getUpdatedRequest()
+          : config.request
 
         preConfig.handleSandboxResults({
           envs: capturedEnvs,
@@ -394,7 +399,10 @@ const createScriptingModule = (
         // the same object being displayed in the UI, causing flickering test results
 
         postConfig.handleSandboxResults({
-          envs: (inputsObj as any).getUpdatedEnvs?.() || { global: [], selected: [] },
+          envs: (inputsObj as any).getUpdatedEnvs?.() || {
+            global: [],
+            selected: [],
+          },
           testRunStack: cloneDeep(postConfig.testRunStack),
           cookies: (inputsObj as any).getUpdatedCookies?.() || null,
         })
@@ -403,12 +411,19 @@ const createScriptingModule = (
 
     const sandboxInputsObj = defineSandboxObject(ctx, inputsObj)
 
-    const bootstrapResult = ctx.vm.callFunction(funcHandle, ctx.vm.undefined, sandboxInputsObj)
+    const bootstrapResult = ctx.vm.callFunction(
+      funcHandle,
+      ctx.vm.undefined,
+      sandboxInputsObj
+    )
 
     // Extract the test execution chain promise from the bootstrap function's return value
     let testExecutionChainPromise: any = null
     if (bootstrapResult.error) {
-      console.error('[SCRIPTING] Bootstrap function error:', ctx.vm.dump(bootstrapResult.error))
+      console.error(
+        "[SCRIPTING] Bootstrap function error:",
+        ctx.vm.dump(bootstrapResult.error)
+      )
       bootstrapResult.error.dispose()
     } else if (bootstrapResult.value) {
       testExecutionChainPromise = bootstrapResult.value
@@ -421,12 +436,17 @@ const createScriptingModule = (
       setTimeout(async () => {
         // If we have a test execution chain, await it
         if (testExecutionChainPromise) {
-          const resolvedPromise = ctx.vm.resolvePromise(testExecutionChainPromise)
+          const resolvedPromise = ctx.vm.resolvePromise(
+            testExecutionChainPromise
+          )
           testExecutionChainPromise.dispose()
 
           const awaitResult = await resolvedPromise
           if (awaitResult.error) {
-            console.error('[SCRIPTING] Test execution chain error:', ctx.vm.dump(awaitResult.error))
+            console.error(
+              "[SCRIPTING] Test execution chain error:",
+              ctx.vm.dump(awaitResult.error)
+            )
             awaitResult.error.dispose()
           } else {
             awaitResult.value?.dispose()
@@ -452,4 +472,5 @@ export const preRequestModule = (
 export const postRequestModule = (
   config: PostRequestModuleConfig,
   captureHook?: { capture?: () => void }
-) => createScriptingModule("post", postRequestBootstrapCode, config, captureHook)
+) =>
+  createScriptingModule("post", postRequestBootstrapCode, config, captureHook)

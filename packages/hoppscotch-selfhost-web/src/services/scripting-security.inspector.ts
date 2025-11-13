@@ -101,6 +101,7 @@ export class ScriptingSecurityInspectorService
    */
   getInspections(
     req: Readonly<Ref<HoppRESTRequest | HoppRESTResponseOriginalRequest>>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _res: Readonly<Ref<HoppRESTResponse | null | undefined>>
   ): Ref<InspectorResult[]> {
     return computed(() => {

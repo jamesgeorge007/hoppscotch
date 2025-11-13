@@ -289,22 +289,28 @@ export class KernelInterceptorAgentStore extends Service {
     reqID: number
   ): Promise<[string, ArrayBuffer]> {
     const fullRequest = { ...request, id: reqID }
-    console.log('[agent-store] Encrypting request:', {
+    console.log("[agent-store] Encrypting request:", {
       id: reqID,
       method: request.method,
       url: request.url,
       hasBody: !!request.body,
       headerCount: Object.keys(request.headers || {}).length,
-      hasAuth: !!request.auth
+      hasAuth: !!request.auth,
     })
     const reqJSON = JSON.stringify(fullRequest)
-    console.log('[agent-store] Request JSON length:', reqJSON.length)
-    console.log('[agent-store] Full request (first 500 chars):', reqJSON.substring(0, 500))
+    console.log("[agent-store] Request JSON length:", reqJSON.length)
+    console.log(
+      "[agent-store] Full request (first 500 chars):",
+      reqJSON.substring(0, 500)
+    )
     const reqJSONBytes = new TextEncoder().encode(reqJSON)
     const nonce = window.crypto.getRandomValues(new Uint8Array(12))
     const nonceB16 = base16.encode(nonce).toLowerCase()
 
-    console.log('[agent-store] Shared secret present:', !!this.sharedSecretB16.value)
+    console.log(
+      "[agent-store] Shared secret present:",
+      !!this.sharedSecretB16.value
+    )
 
     const sharedSecretKeyBytes = base16.decode(
       this.sharedSecretB16.value!.toUpperCase()

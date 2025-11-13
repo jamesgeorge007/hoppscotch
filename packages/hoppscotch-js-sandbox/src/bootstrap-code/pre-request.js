@@ -1269,7 +1269,8 @@
               params.append(pair.key, pair.value)
             })
             options.body = params.toString()
-            options.headers["Content-Type"] = "application/x-www-form-urlencoded"
+            options.headers["Content-Type"] =
+              "application/x-www-form-urlencoded"
           } else if (urlOrRequest.body.mode === "formdata") {
             const formData = new FormData()
             urlOrRequest.body.formdata?.forEach((pair) => {
@@ -1289,12 +1290,10 @@
             const pmResponse = {
               code: response.status,
               status: response.statusText,
-              headers: Array.from(response.headers.entries()).map(
-                ([k, v]) => ({
-                  key: k,
-                  value: v,
-                })
-              ),
+              headers: Array.from(response.headers.entries()).map(([k, v]) => ({
+                key: k,
+                value: v,
+              })),
               body,
               json: () => {
                 try {
@@ -1311,7 +1310,6 @@
         .catch((error) => {
           callback(error, null)
         })
-
     },
 
     // Collection variables (unsupported)
