@@ -236,13 +236,33 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
               }
               ctx.vm.setProp(responseObj, "_bodyBytes", bodyBytesArray)
 
+              // Track body consumption
+              let fetchBodyConsumed = false
+              ctx.vm.setProp(responseObj, "bodyUsed", ctx.vm.false)
+
+              const markFetchBodyConsumed = () => {
+                if (fetchBodyConsumed) return false
+                fetchBodyConsumed = true
+                ctx.vm.setProp(responseObj, "bodyUsed", ctx.vm.true)
+                return true
+              }
+
               // Add json() method - returns promise
               const jsonFn = defineSandboxFunctionRaw(ctx, "json", () => {
-                // Parse synchronously and create a VM promise that resolves immediately
                 const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+                  if (!markFetchBodyConsumed()) {
+                    reject(
+                      ctx.scope.manage(
+                        ctx.vm.newError({
+                          name: "TypeError",
+                          message: "Body has already been consumed",
+                        })
+                      )
+                    )
+                    return
+                  }
                   try {
                     // Filter out null bytes (some interceptors add trailing null bytes)
-                    // Find the first null byte and truncate there, or use all bytes if no null
                     const nullByteIndex = bodyBytes.indexOf(0)
                     const cleanBytes =
                       nullByteIndex >= 0
@@ -277,8 +297,18 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
               // Add text() method - returns promise
               const textFn = defineSandboxFunctionRaw(ctx, "text", () => {
-                // Parse synchronously and create a VM promise that resolves immediately
                 const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+                  if (!markFetchBodyConsumed()) {
+                    reject(
+                      ctx.scope.manage(
+                        ctx.vm.newError({
+                          name: "TypeError",
+                          message: "Body has already been consumed",
+                        })
+                      )
+                    )
+                    return
+                  }
                   try {
                     // Filter out null bytes (some interceptors add trailing null bytes)
                     const nullByteIndex = bodyBytes.indexOf(0)
@@ -313,6 +343,547 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
               })
 
               ctx.vm.setProp(responseObj, "text", textFn)
+
+              // Add arrayBuffer() method
+              const arrayBufferFn = defineSandboxFunctionRaw(
+                ctx,
+                "arrayBuffer",
+                () => {
+                  const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+                    if (!markFetchBodyConsumed()) {
+                      reject(
+                        ctx.scope.manage(
+                          ctx.vm.newError({
+                            name: "TypeError",
+                            message: "Body has already been consumed",
+                          })
+                        )
+                      )
+                      return
+                    }
+                    try {
+                      const arr = ctx.scope.manage(ctx.vm.newArray())
+                      bodyBytes.forEach((byte, i) => {
+                        ctx.vm.setProp(
+                          arr,
+                          i,
+                          ctx.scope.manage(ctx.vm.newNumber(byte))
+                        )
+                      })
+                      resolve(arr)
+                    } catch (error) {
+                      reject(
+                        ctx.scope.manage(
+                          ctx.vm.newError({
+                            name: "TypeError",
+                            message:
+                              error instanceof Error
+                                ? error.message
+                                : "ArrayBuffer conversion failed",
+                          })
+                        )
+                      )
+                    }
+                  })
+                  return ctx.scope.manage(vmPromise).handle
+                }
+              )
+              ctx.vm.setProp(responseObj, "arrayBuffer", arrayBufferFn)
+
+              // Add blob() method
+              const blobFn = defineSandboxFunctionRaw(ctx, "blob", () => {
+                const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+                  if (!markFetchBodyConsumed()) {
+                    reject(
+                      ctx.scope.manage(
+                        ctx.vm.newError({
+                          name: "TypeError",
+                          message: "Body has already been consumed",
+                        })
+                      )
+                    )
+                    return
+                  }
+                  try {
+                    const blobObj = ctx.scope.manage(ctx.vm.newObject())
+                    ctx.vm.setProp(
+                      blobObj,
+                      "size",
+                      ctx.scope.manage(ctx.vm.newNumber(bodyBytes.length))
+                    )
+                    ctx.vm.setProp(
+                      blobObj,
+                      "type",
+                      ctx.scope.manage(
+                        ctx.vm.newString("application/octet-stream")
+                      )
+                    )
+                    const arr = ctx.scope.manage(ctx.vm.newArray())
+                    bodyBytes.forEach((byte, i) => {
+                      ctx.vm.setProp(
+                        arr,
+                        i,
+                        ctx.scope.manage(ctx.vm.newNumber(byte))
+                      )
+                    })
+                    ctx.vm.setProp(blobObj, "bytes", arr)
+                    resolve(blobObj)
+                  } catch (error) {
+                    reject(
+                      ctx.scope.manage(
+                        ctx.vm.newError({
+                          name: "TypeError",
+                          message:
+                            error instanceof Error
+                              ? error.message
+                              : "Blob conversion failed",
+                        })
+                      )
+                    )
+                  }
+                })
+                return ctx.scope.manage(vmPromise).handle
+              })
+              ctx.vm.setProp(responseObj, "blob", blobFn)
+
+              // Add formData() method
+              const formDataFn = defineSandboxFunctionRaw(
+                ctx,
+                "formData",
+                () => {
+                  const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+                    if (!markFetchBodyConsumed()) {
+                      reject(
+                        ctx.scope.manage(
+                          ctx.vm.newError({
+                            name: "TypeError",
+                            message: "Body has already been consumed",
+                          })
+                        )
+                      )
+                      return
+                    }
+                    try {
+                      const text = new TextDecoder().decode(
+                        new Uint8Array(bodyBytes)
+                      )
+                      const formDataObj = ctx.scope.manage(ctx.vm.newObject())
+                      const pairs = text.split("&")
+                      for (const pair of pairs) {
+                        const [key, value] = pair
+                          .split("=")
+                          .map(decodeURIComponent)
+                        if (key) {
+                          ctx.vm.setProp(
+                            formDataObj,
+                            key,
+                            ctx.scope.manage(ctx.vm.newString(value || ""))
+                          )
+                        }
+                      }
+                      resolve(formDataObj)
+                    } catch (error) {
+                      reject(
+                        ctx.scope.manage(
+                          ctx.vm.newError({
+                            name: "TypeError",
+                            message:
+                              error instanceof Error
+                                ? error.message
+                                : "FormData parsing failed",
+                          })
+                        )
+                      )
+                    }
+                  })
+                  return ctx.scope.manage(vmPromise).handle
+                }
+              )
+              ctx.vm.setProp(responseObj, "formData", formDataFn)
+
+              // Add clone() method for fetch response
+              const cloneFetchResponseFn = defineSandboxFunctionRaw(
+                ctx,
+                "clone",
+                () => {
+                  // Can only clone if body hasn't been consumed
+                  if (fetchBodyConsumed) {
+                    const errorResponse = ctx.scope.manage(ctx.vm.newObject())
+                    ctx.vm.setProp(errorResponse, "_error", ctx.vm.true)
+                    return errorResponse
+                  }
+
+                  // Create a new response object
+                  const clonedResponseObj = ctx.scope.manage(ctx.vm.newObject())
+
+                  // Copy all basic properties
+                  ctx.vm.setProp(
+                    clonedResponseObj,
+                    "status",
+                    ctx.scope.manage(
+                      ctx.vm.newNumber(serializableResponse.status)
+                    )
+                  )
+                  ctx.vm.setProp(
+                    clonedResponseObj,
+                    "statusText",
+                    ctx.scope.manage(
+                      ctx.vm.newString(serializableResponse.statusText)
+                    )
+                  )
+                  ctx.vm.setProp(
+                    clonedResponseObj,
+                    "ok",
+                    serializableResponse.ok ? ctx.vm.true : ctx.vm.false
+                  )
+
+                  // Clone headers
+                  const clonedHeadersObj = ctx.scope.manage(ctx.vm.newObject())
+                  for (const [key, value] of Object.entries(headersMap)) {
+                    ctx.vm.setProp(
+                      clonedHeadersObj,
+                      key,
+                      ctx.scope.manage(ctx.vm.newString(String(value)))
+                    )
+                  }
+
+                  // Add headers methods to cloned object
+                  const clonedEntriesFn = defineSandboxFunctionRaw(
+                    ctx,
+                    "entries",
+                    () => {
+                      const entriesArray = ctx.scope.manage(ctx.vm.newArray())
+                      let index = 0
+                      for (const [key, value] of Object.entries(headersMap)) {
+                        const entry = ctx.scope.manage(ctx.vm.newArray())
+                        ctx.vm.setProp(
+                          entry,
+                          0,
+                          ctx.scope.manage(ctx.vm.newString(key))
+                        )
+                        ctx.vm.setProp(
+                          entry,
+                          1,
+                          ctx.scope.manage(ctx.vm.newString(String(value)))
+                        )
+                        ctx.vm.setProp(entriesArray, index++, entry)
+                      }
+                      return entriesArray
+                    }
+                  )
+                  ctx.vm.setProp(clonedHeadersObj, "entries", clonedEntriesFn)
+
+                  const clonedGetFn = defineSandboxFunctionRaw(
+                    ctx,
+                    "get",
+                    (...args) => {
+                      const key = String(ctx.vm.dump(args[0]))
+                      const value =
+                        headersMap[key] || headersMap[key.toLowerCase()]
+                      return value
+                        ? ctx.scope.manage(ctx.vm.newString(value))
+                        : ctx.vm.null
+                    }
+                  )
+                  ctx.vm.setProp(clonedHeadersObj, "get", clonedGetFn)
+
+                  ctx.vm.setProp(clonedResponseObj, "headers", clonedHeadersObj)
+
+                  // Clone body bytes
+                  const clonedBodyBytes = [...bodyBytes]
+                  let clonedBodyConsumed = false
+                  ctx.vm.setProp(clonedResponseObj, "bodyUsed", ctx.vm.false)
+
+                  const markClonedBodyConsumed = () => {
+                    if (clonedBodyConsumed) return false
+                    clonedBodyConsumed = true
+                    ctx.vm.setProp(clonedResponseObj, "bodyUsed", ctx.vm.true)
+                    return true
+                  }
+
+                  // Add all body methods to cloned response
+                  const clonedJsonFn = defineSandboxFunctionRaw(
+                    ctx,
+                    "json",
+                    () => {
+                      const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+                        if (!markClonedBodyConsumed()) {
+                          reject(
+                            ctx.scope.manage(
+                              ctx.vm.newError({
+                                name: "TypeError",
+                                message: "Body has already been consumed",
+                              })
+                            )
+                          )
+                          return
+                        }
+                        try {
+                          const nullByteIndex = clonedBodyBytes.indexOf(0)
+                          const cleanBytes =
+                            nullByteIndex >= 0
+                              ? clonedBodyBytes.slice(0, nullByteIndex)
+                              : clonedBodyBytes
+
+                          const text = new TextDecoder().decode(
+                            new Uint8Array(cleanBytes)
+                          )
+                          const parsed = JSON.parse(text)
+                          resolve(marshalValue(parsed))
+                        } catch (error) {
+                          reject(
+                            ctx.scope.manage(
+                              ctx.vm.newError({
+                                name: "JSONError",
+                                message:
+                                  error instanceof Error
+                                    ? error.message
+                                    : "JSON parse failed",
+                              })
+                            )
+                          )
+                        }
+                      })
+                      return ctx.scope.manage(vmPromise).handle
+                    }
+                  )
+                  ctx.vm.setProp(clonedResponseObj, "json", clonedJsonFn)
+
+                  const clonedTextFn = defineSandboxFunctionRaw(
+                    ctx,
+                    "text",
+                    () => {
+                      const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+                        if (!markClonedBodyConsumed()) {
+                          reject(
+                            ctx.scope.manage(
+                              ctx.vm.newError({
+                                name: "TypeError",
+                                message: "Body has already been consumed",
+                              })
+                            )
+                          )
+                          return
+                        }
+                        try {
+                          const nullByteIndex = clonedBodyBytes.indexOf(0)
+                          const cleanBytes =
+                            nullByteIndex >= 0
+                              ? clonedBodyBytes.slice(0, nullByteIndex)
+                              : clonedBodyBytes
+
+                          const text = new TextDecoder().decode(
+                            new Uint8Array(cleanBytes)
+                          )
+                          resolve(
+                            ctx.scope.manage(ctx.vm.newString(String(text)))
+                          )
+                        } catch (error) {
+                          reject(
+                            ctx.scope.manage(
+                              ctx.vm.newError({
+                                name: "TextError",
+                                message:
+                                  error instanceof Error
+                                    ? error.message
+                                    : "Text decode failed",
+                              })
+                            )
+                          )
+                        }
+                      })
+                      return ctx.scope.manage(vmPromise).handle
+                    }
+                  )
+                  ctx.vm.setProp(clonedResponseObj, "text", clonedTextFn)
+
+                  const clonedArrayBufferFn = defineSandboxFunctionRaw(
+                    ctx,
+                    "arrayBuffer",
+                    () => {
+                      const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+                        if (!markClonedBodyConsumed()) {
+                          reject(
+                            ctx.scope.manage(
+                              ctx.vm.newError({
+                                name: "TypeError",
+                                message: "Body has already been consumed",
+                              })
+                            )
+                          )
+                          return
+                        }
+                        try {
+                          const arr = ctx.scope.manage(ctx.vm.newArray())
+                          clonedBodyBytes.forEach((byte, i) => {
+                            ctx.vm.setProp(
+                              arr,
+                              i,
+                              ctx.scope.manage(ctx.vm.newNumber(byte))
+                            )
+                          })
+                          resolve(arr)
+                        } catch (error) {
+                          reject(
+                            ctx.scope.manage(
+                              ctx.vm.newError({
+                                name: "TypeError",
+                                message:
+                                  error instanceof Error
+                                    ? error.message
+                                    : "ArrayBuffer conversion failed",
+                              })
+                            )
+                          )
+                        }
+                      })
+                      return ctx.scope.manage(vmPromise).handle
+                    }
+                  )
+                  ctx.vm.setProp(
+                    clonedResponseObj,
+                    "arrayBuffer",
+                    clonedArrayBufferFn
+                  )
+
+                  const clonedBlobFn = defineSandboxFunctionRaw(
+                    ctx,
+                    "blob",
+                    () => {
+                      const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+                        if (!markClonedBodyConsumed()) {
+                          reject(
+                            ctx.scope.manage(
+                              ctx.vm.newError({
+                                name: "TypeError",
+                                message: "Body has already been consumed",
+                              })
+                            )
+                          )
+                          return
+                        }
+                        try {
+                          const blobObj = ctx.scope.manage(ctx.vm.newObject())
+                          ctx.vm.setProp(
+                            blobObj,
+                            "size",
+                            ctx.scope.manage(
+                              ctx.vm.newNumber(clonedBodyBytes.length)
+                            )
+                          )
+                          ctx.vm.setProp(
+                            blobObj,
+                            "type",
+                            ctx.scope.manage(
+                              ctx.vm.newString("application/octet-stream")
+                            )
+                          )
+                          const arr = ctx.scope.manage(ctx.vm.newArray())
+                          clonedBodyBytes.forEach((byte, i) => {
+                            ctx.vm.setProp(
+                              arr,
+                              i,
+                              ctx.scope.manage(ctx.vm.newNumber(byte))
+                            )
+                          })
+                          ctx.vm.setProp(blobObj, "bytes", arr)
+                          resolve(blobObj)
+                        } catch (error) {
+                          reject(
+                            ctx.scope.manage(
+                              ctx.vm.newError({
+                                name: "TypeError",
+                                message:
+                                  error instanceof Error
+                                    ? error.message
+                                    : "Blob conversion failed",
+                              })
+                            )
+                          )
+                        }
+                      })
+                      return ctx.scope.manage(vmPromise).handle
+                    }
+                  )
+                  ctx.vm.setProp(clonedResponseObj, "blob", clonedBlobFn)
+
+                  const clonedFormDataFn = defineSandboxFunctionRaw(
+                    ctx,
+                    "formData",
+                    () => {
+                      const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+                        if (!markClonedBodyConsumed()) {
+                          reject(
+                            ctx.scope.manage(
+                              ctx.vm.newError({
+                                name: "TypeError",
+                                message: "Body has already been consumed",
+                              })
+                            )
+                          )
+                          return
+                        }
+                        try {
+                          const nullByteIndex = clonedBodyBytes.indexOf(0)
+                          const cleanBytes =
+                            nullByteIndex >= 0
+                              ? clonedBodyBytes.slice(0, nullByteIndex)
+                              : clonedBodyBytes
+
+                          const text = new TextDecoder().decode(
+                            new Uint8Array(cleanBytes)
+                          )
+                          const formDataObj = ctx.scope.manage(
+                            ctx.vm.newObject()
+                          )
+                          const pairs = text.split("&")
+                          for (const pair of pairs) {
+                            const [key, value] = pair
+                              .split("=")
+                              .map(decodeURIComponent)
+                            if (key) {
+                              ctx.vm.setProp(
+                                formDataObj,
+                                key,
+                                ctx.scope.manage(ctx.vm.newString(value || ""))
+                              )
+                            }
+                          }
+                          resolve(formDataObj)
+                        } catch (error) {
+                          reject(
+                            ctx.scope.manage(
+                              ctx.vm.newError({
+                                name: "TypeError",
+                                message:
+                                  error instanceof Error
+                                    ? error.message
+                                    : "FormData parsing failed",
+                              })
+                            )
+                          )
+                        }
+                      })
+                      return ctx.scope.manage(vmPromise).handle
+                    }
+                  )
+                  ctx.vm.setProp(
+                    clonedResponseObj,
+                    "formData",
+                    clonedFormDataFn
+                  )
+
+                  // Add clone() method to cloned response (recursively)
+                  ctx.vm.setProp(
+                    clonedResponseObj,
+                    "clone",
+                    cloneFetchResponseFn
+                  )
+
+                  return clonedResponseObj
+                }
+              )
+              ctx.vm.setProp(responseObj, "clone", cloneFetchResponseFn)
 
               resolve(responseObj)
             })
@@ -564,6 +1135,9 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       // body property (simplified - most use cases don't need body in Request objects)
       ctx.vm.setProp(requestInstance, "body", ctx.vm.null)
 
+      // bodyUsed property - always false since we don't support reading request bodies yet
+      ctx.vm.setProp(requestInstance, "bodyUsed", ctx.vm.false)
+
       // mode property
       ctx.vm.setProp(
         requestInstance,
@@ -623,6 +1197,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
           ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.method))
         )
         ctx.vm.setProp(clonedRequest, "body", ctx.vm.null)
+        ctx.vm.setProp(clonedRequest, "bodyUsed", ctx.vm.false)
         ctx.vm.setProp(
           clonedRequest,
           "mode",
@@ -762,9 +1337,36 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
           }
         }
 
+        // Track body consumption state
+        let bodyConsumed = false
+
+        // bodyUsed getter property
+        ctx.vm.setProp(responseInstance, "bodyUsed", ctx.vm.false)
+
+        // Helper to mark body as consumed
+        const markBodyConsumed = () => {
+          if (bodyConsumed) {
+            return false // Already consumed
+          }
+          bodyConsumed = true
+          ctx.vm.setProp(responseInstance, "bodyUsed", ctx.vm.true)
+          return true
+        }
+
         // json() method
         const jsonFn = defineSandboxFunctionRaw(ctx, "json", () => {
           const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+            if (!markBodyConsumed()) {
+              reject(
+                ctx.scope.manage(
+                  ctx.vm.newError({
+                    name: "TypeError",
+                    message: "Body has already been consumed",
+                  })
+                )
+              )
+              return
+            }
             try {
               const text = new TextDecoder().decode(new Uint8Array(bodyBytes))
               const parsed = JSON.parse(text)
@@ -790,6 +1392,17 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         // text() method
         const textFn = defineSandboxFunctionRaw(ctx, "text", () => {
           const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+            if (!markBodyConsumed()) {
+              reject(
+                ctx.scope.manage(
+                  ctx.vm.newError({
+                    name: "TypeError",
+                    message: "Body has already been consumed",
+                  })
+                )
+              )
+              return
+            }
             try {
               const text = new TextDecoder().decode(new Uint8Array(bodyBytes))
               resolve(ctx.scope.manage(ctx.vm.newString(text)))
@@ -811,9 +1424,168 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         })
         ctx.vm.setProp(responseInstance, "text", textFn)
 
+        // arrayBuffer() method
+        const arrayBufferFn = defineSandboxFunctionRaw(
+          ctx,
+          "arrayBuffer",
+          () => {
+            const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+              if (!markBodyConsumed()) {
+                reject(
+                  ctx.scope.manage(
+                    ctx.vm.newError({
+                      name: "TypeError",
+                      message: "Body has already been consumed",
+                    })
+                  )
+                )
+                return
+              }
+              try {
+                // Create a VM array with the byte values
+                const arr = ctx.scope.manage(ctx.vm.newArray())
+                bodyBytes.forEach((byte, i) => {
+                  ctx.vm.setProp(
+                    arr,
+                    i,
+                    ctx.scope.manage(ctx.vm.newNumber(byte))
+                  )
+                })
+                resolve(arr)
+              } catch (error) {
+                reject(
+                  ctx.scope.manage(
+                    ctx.vm.newError({
+                      name: "TypeError",
+                      message:
+                        error instanceof Error
+                          ? error.message
+                          : "ArrayBuffer conversion failed",
+                    })
+                  )
+                )
+              }
+            })
+            return ctx.scope.manage(vmPromise).handle
+          }
+        )
+        ctx.vm.setProp(responseInstance, "arrayBuffer", arrayBufferFn)
+
+        // blob() method
+        const blobFn = defineSandboxFunctionRaw(ctx, "blob", () => {
+          const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+            if (!markBodyConsumed()) {
+              reject(
+                ctx.scope.manage(
+                  ctx.vm.newError({
+                    name: "TypeError",
+                    message: "Body has already been consumed",
+                  })
+                )
+              )
+              return
+            }
+            try {
+              // Create a simple blob-like object with byte data
+              const blobObj = ctx.scope.manage(ctx.vm.newObject())
+              ctx.vm.setProp(
+                blobObj,
+                "size",
+                ctx.scope.manage(ctx.vm.newNumber(bodyBytes.length))
+              )
+              ctx.vm.setProp(
+                blobObj,
+                "type",
+                ctx.scope.manage(ctx.vm.newString("application/octet-stream"))
+              )
+              // Store bytes as array
+              const arr = ctx.scope.manage(ctx.vm.newArray())
+              bodyBytes.forEach((byte, i) => {
+                ctx.vm.setProp(arr, i, ctx.scope.manage(ctx.vm.newNumber(byte)))
+              })
+              ctx.vm.setProp(blobObj, "bytes", arr)
+              resolve(blobObj)
+            } catch (error) {
+              reject(
+                ctx.scope.manage(
+                  ctx.vm.newError({
+                    name: "TypeError",
+                    message:
+                      error instanceof Error
+                        ? error.message
+                        : "Blob conversion failed",
+                  })
+                )
+              )
+            }
+          })
+          return ctx.scope.manage(vmPromise).handle
+        })
+        ctx.vm.setProp(responseInstance, "blob", blobFn)
+
+        // formData() method
+        const formDataFn = defineSandboxFunctionRaw(ctx, "formData", () => {
+          const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+            if (!markBodyConsumed()) {
+              reject(
+                ctx.scope.manage(
+                  ctx.vm.newError({
+                    name: "TypeError",
+                    message: "Body has already been consumed",
+                  })
+                )
+              )
+              return
+            }
+            try {
+              // Parse as URL-encoded form data or multipart
+              const text = new TextDecoder().decode(new Uint8Array(bodyBytes))
+              const formDataObj = ctx.scope.manage(ctx.vm.newObject())
+
+              // Simple URL-encoded parsing
+              const pairs = text.split("&")
+              for (const pair of pairs) {
+                const [key, value] = pair.split("=").map(decodeURIComponent)
+                if (key) {
+                  ctx.vm.setProp(
+                    formDataObj,
+                    key,
+                    ctx.scope.manage(ctx.vm.newString(value || ""))
+                  )
+                }
+              }
+
+              resolve(formDataObj)
+            } catch (error) {
+              reject(
+                ctx.scope.manage(
+                  ctx.vm.newError({
+                    name: "TypeError",
+                    message:
+                      error instanceof Error
+                        ? error.message
+                        : "FormData parsing failed",
+                  })
+                )
+              )
+            }
+          })
+          return ctx.scope.manage(vmPromise).handle
+        })
+        ctx.vm.setProp(responseInstance, "formData", formDataFn)
+
         // clone() method
         const cloneFn = defineSandboxFunctionRaw(ctx, "clone", () => {
-          // Create a new response instance manually to avoid callFunction type issues
+          // Can only clone if body hasn't been consumed
+          if (bodyConsumed) {
+            // In QuickJS, we can't throw synchronously from sandbox function
+            // Return an error response marked as unusable
+            const errorResponse = ctx.scope.manage(ctx.vm.newObject())
+            ctx.vm.setProp(errorResponse, "_error", ctx.vm.true)
+            return errorResponse
+          }
+
+          // Create a new response instance manually
           const clonedResponse = ctx.scope.manage(ctx.vm.newObject())
 
           // Copy all properties
@@ -859,12 +1631,35 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
             init.redirected ? ctx.vm.true : ctx.vm.false
           )
 
-          // Clone body bytes array so modifications to one don't affect the other
+          // Clone body bytes array and consumption state
           const clonedBodyBytes = [...bodyBytes]
+          let clonedBodyConsumed = false
 
-          // Add json() method to cloned response
+          // bodyUsed property for cloned response
+          ctx.vm.setProp(clonedResponse, "bodyUsed", ctx.vm.false)
+
+          // Helper for cloned response
+          const markClonedBodyConsumed = () => {
+            if (clonedBodyConsumed) return false
+            clonedBodyConsumed = true
+            ctx.vm.setProp(clonedResponse, "bodyUsed", ctx.vm.true)
+            return true
+          }
+
+          // Add all body methods to cloned response
           const clonedJsonFn = defineSandboxFunctionRaw(ctx, "json", () => {
             const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+              if (!markClonedBodyConsumed()) {
+                reject(
+                  ctx.scope.manage(
+                    ctx.vm.newError({
+                      name: "TypeError",
+                      message: "Body has already been consumed",
+                    })
+                  )
+                )
+                return
+              }
               try {
                 const text = new TextDecoder().decode(
                   new Uint8Array(clonedBodyBytes)
@@ -889,9 +1684,19 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
           })
           ctx.vm.setProp(clonedResponse, "json", clonedJsonFn)
 
-          // Add text() method to cloned response
           const clonedTextFn = defineSandboxFunctionRaw(ctx, "text", () => {
             const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+              if (!markClonedBodyConsumed()) {
+                reject(
+                  ctx.scope.manage(
+                    ctx.vm.newError({
+                      name: "TypeError",
+                      message: "Body has already been consumed",
+                    })
+                  )
+                )
+                return
+              }
               try {
                 const text = new TextDecoder().decode(
                   new Uint8Array(clonedBodyBytes)
@@ -914,6 +1719,160 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
             return ctx.scope.manage(vmPromise).handle
           })
           ctx.vm.setProp(clonedResponse, "text", clonedTextFn)
+
+          const clonedArrayBufferFn = defineSandboxFunctionRaw(
+            ctx,
+            "arrayBuffer",
+            () => {
+              const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+                if (!markClonedBodyConsumed()) {
+                  reject(
+                    ctx.scope.manage(
+                      ctx.vm.newError({
+                        name: "TypeError",
+                        message: "Body has already been consumed",
+                      })
+                    )
+                  )
+                  return
+                }
+                try {
+                  const arr = ctx.scope.manage(ctx.vm.newArray())
+                  clonedBodyBytes.forEach((byte, i) => {
+                    ctx.vm.setProp(
+                      arr,
+                      i,
+                      ctx.scope.manage(ctx.vm.newNumber(byte))
+                    )
+                  })
+                  resolve(arr)
+                } catch (error) {
+                  reject(
+                    ctx.scope.manage(
+                      ctx.vm.newError({
+                        name: "TypeError",
+                        message:
+                          error instanceof Error
+                            ? error.message
+                            : "ArrayBuffer conversion failed",
+                      })
+                    )
+                  )
+                }
+              })
+              return ctx.scope.manage(vmPromise).handle
+            }
+          )
+          ctx.vm.setProp(clonedResponse, "arrayBuffer", clonedArrayBufferFn)
+
+          const clonedBlobFn = defineSandboxFunctionRaw(ctx, "blob", () => {
+            const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+              if (!markClonedBodyConsumed()) {
+                reject(
+                  ctx.scope.manage(
+                    ctx.vm.newError({
+                      name: "TypeError",
+                      message: "Body has already been consumed",
+                    })
+                  )
+                )
+                return
+              }
+              try {
+                const blobObj = ctx.scope.manage(ctx.vm.newObject())
+                ctx.vm.setProp(
+                  blobObj,
+                  "size",
+                  ctx.scope.manage(ctx.vm.newNumber(clonedBodyBytes.length))
+                )
+                ctx.vm.setProp(
+                  blobObj,
+                  "type",
+                  ctx.scope.manage(ctx.vm.newString("application/octet-stream"))
+                )
+                const arr = ctx.scope.manage(ctx.vm.newArray())
+                clonedBodyBytes.forEach((byte, i) => {
+                  ctx.vm.setProp(
+                    arr,
+                    i,
+                    ctx.scope.manage(ctx.vm.newNumber(byte))
+                  )
+                })
+                ctx.vm.setProp(blobObj, "bytes", arr)
+                resolve(blobObj)
+              } catch (error) {
+                reject(
+                  ctx.scope.manage(
+                    ctx.vm.newError({
+                      name: "TypeError",
+                      message:
+                        error instanceof Error
+                          ? error.message
+                          : "Blob conversion failed",
+                    })
+                  )
+                )
+              }
+            })
+            return ctx.scope.manage(vmPromise).handle
+          })
+          ctx.vm.setProp(clonedResponse, "blob", clonedBlobFn)
+
+          const clonedFormDataFn = defineSandboxFunctionRaw(
+            ctx,
+            "formData",
+            () => {
+              const vmPromise = ctx.vm.newPromise((resolve, reject) => {
+                if (!markClonedBodyConsumed()) {
+                  reject(
+                    ctx.scope.manage(
+                      ctx.vm.newError({
+                        name: "TypeError",
+                        message: "Body has already been consumed",
+                      })
+                    )
+                  )
+                  return
+                }
+                try {
+                  const text = new TextDecoder().decode(
+                    new Uint8Array(clonedBodyBytes)
+                  )
+                  const formDataObj = ctx.scope.manage(ctx.vm.newObject())
+                  const pairs = text.split("&")
+                  for (const pair of pairs) {
+                    const [key, value] = pair.split("=").map(decodeURIComponent)
+                    if (key) {
+                      ctx.vm.setProp(
+                        formDataObj,
+                        key,
+                        ctx.scope.manage(ctx.vm.newString(value || ""))
+                      )
+                    }
+                  }
+                  resolve(formDataObj)
+                } catch (error) {
+                  reject(
+                    ctx.scope.manage(
+                      ctx.vm.newError({
+                        name: "TypeError",
+                        message:
+                          error instanceof Error
+                            ? error.message
+                            : "FormData parsing failed",
+                      })
+                    )
+                  )
+                }
+              })
+              return ctx.scope.manage(vmPromise).handle
+            }
+          )
+          ctx.vm.setProp(clonedResponse, "formData", clonedFormDataFn)
+
+          // Add clone() method to cloned response
+          const nestedCloneFn = cloneFn // Reuse the same clone function
+          ctx.vm.setProp(clonedResponse, "clone", nestedCloneFn)
 
           return clonedResponse
         })

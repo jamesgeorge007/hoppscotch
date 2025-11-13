@@ -185,81 +185,68 @@ describe("pm namespace - unsupported features", () => {
   )
 
   test("pm.collectionVariables.get() throws error", async () => {
-    const result = await runTest(`pm.collectionVariables.get("test")`, {
-      global: [],
-      selected: [],
-    })()
-
-    expect(result._tag).toBe("Left")
-    if (result._tag === "Left") {
-      expect(result.left).toContain(
-        "pm.collectionVariables.get() is not supported"
-      )
-    }
+    await expect(
+      runTest(`pm.collectionVariables.get("test")`, {
+        global: [],
+        selected: [],
+      })()
+    ).resolves.toEqualLeft(
+      expect.stringContaining("pm.collectionVariables.get() is not supported")
+    )
   })
 
   test("pm.vault.get() throws error", async () => {
-    const result = await runTest(`pm.vault.get("test")`, {
-      global: [],
-      selected: [],
-    })()
-
-    expect(result._tag).toBe("Left")
-    if (result._tag === "Left") {
-      expect(result.left).toContain("pm.vault.get() is not supported")
-    }
+    await expect(
+      runTest(`pm.vault.get("test")`, {
+        global: [],
+        selected: [],
+      })()
+    ).resolves.toEqualLeft(
+      expect.stringContaining("pm.vault.get() is not supported")
+    )
   })
 
   test("pm.iterationData.get() throws error", async () => {
-    const result = await runTest(`pm.iterationData.get("test")`, {
-      global: [],
-      selected: [],
-    })()
-
-    expect(result._tag).toBe("Left")
-    if (result._tag === "Left") {
-      expect(result.left).toContain("pm.iterationData.get() is not supported")
-    }
+    await expect(
+      runTest(`pm.iterationData.get("test")`, {
+        global: [],
+        selected: [],
+      })()
+    ).resolves.toEqualLeft(
+      expect.stringContaining("pm.iterationData.get() is not supported")
+    )
   })
 
   test("pm.execution.setNextRequest() throws error", async () => {
-    const result = await runTest(
-      `pm.execution.setNextRequest("next-request")`,
-      {
+    await expect(
+      runTest(`pm.execution.setNextRequest("next-request")`, {
         global: [],
         selected: [],
-      }
-    )()
-
-    expect(result._tag).toBe("Left")
-    if (result._tag === "Left") {
-      expect(result.left).toContain(
-        "pm.execution.setNextRequest() is not supported"
-      )
-    }
+      })()
+    ).resolves.toEqualLeft(
+      expect.stringContaining("pm.execution.setNextRequest() is not supported")
+    )
   })
 
   test("pm.visualizer.set() throws error", async () => {
-    const result = await runTest(`pm.visualizer.set("<h1>Test</h1>")`, {
-      global: [],
-      selected: [],
-    })()
-
-    expect(result._tag).toBe("Left")
-    if (result._tag === "Left") {
-      expect(result.left).toContain("pm.visualizer.set() is not supported")
-    }
+    await expect(
+      runTest(`pm.visualizer.set("<h1>Test</h1>")`, {
+        global: [],
+        selected: [],
+      })()
+    ).resolves.toEqualLeft(
+      expect.stringContaining("pm.visualizer.set() is not supported")
+    )
   })
 
   test("pm.visualizer.clear() throws error", async () => {
-    const result = await runTest(`pm.visualizer.clear()`, {
-      global: [],
-      selected: [],
-    })()
-
-    expect(result._tag).toBe("Left")
-    if (result._tag === "Left") {
-      expect(result.left).toContain("pm.visualizer.clear() is not supported")
-    }
+    await expect(
+      runTest(`pm.visualizer.clear()`, {
+        global: [],
+        selected: [],
+      })()
+    ).resolves.toEqualLeft(
+      expect.stringContaining("pm.visualizer.clear() is not supported")
+    )
   })
 })
