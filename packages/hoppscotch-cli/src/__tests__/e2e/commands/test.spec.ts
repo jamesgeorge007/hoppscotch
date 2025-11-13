@@ -276,32 +276,31 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
       expect(error).toBeNull();
     });
 
-    test("Supports the new scripting API method additions under the `hopp` and `pm` namespaces", async () => {
-      const args = `test ${getTestJsonFilePath(
+    test(
+      "Supports the new scripting API method additions under the `hopp` and `pm` namespaces and validates JUnit report structure",
+      async () => {
+      // First, run without JUnit report to ensure basic functionality works
+      const basicArgs = `test ${getTestJsonFilePath(
         "scripting-revamp-coll.json",
         "collection"
       )}`;
-      const { error } = await runCLI(args);
+      const { error: basicError } = await runCLI(basicArgs);
+      expect(basicError).toBeNull();
 
-      expect(error).toBeNull();
-    });
-
-    test(
-      "Validates JUnit report structure snapshot for scripting-revamp collection (comprehensive regression test)",
-      async () => {
+      // Then, run with JUnit report and validate structure
       const junitPath = path.join(__dirname, "scripting-revamp-snapshot-junit.xml");
 
       if (fs.existsSync(junitPath)) {
         fs.unlinkSync(junitPath);
       }
 
-      const args = `test ${getTestJsonFilePath(
+      const junitArgs = `test ${getTestJsonFilePath(
         "scripting-revamp-coll.json",
         "collection"
       )} --reporter-junit ${junitPath}`;
 
-      const { error } = await runCLI(args);
-      expect(error).toBeNull();
+      const { error: junitError } = await runCLI(junitArgs);
+      expect(junitError).toBeNull();
 
       let junitXml = fs.readFileSync(junitPath, "utf-8");
 

@@ -37,10 +37,10 @@ describe("runTestScript", () => {
   })
 
   // NOTE: QuickJS doesn't always catch all syntax errors at compile time.
-  // This particular syntax error (incomplete expression on line 46) is not caught,
+  // This particular syntax error (incomplete expression on line 49) is not caught,
   // so the test passes even with invalid syntax. This is a known QuickJS limitation.
-  // Updated test to reflect actual QuickJS behavior.
-  test("rejects for invalid syntax on tests", () => {
+  // The test validates that QuickJS continues execution despite the syntax error.
+  test("continues execution despite certain syntax errors (QuickJS limitation)", () => {
     return expect(
       runTest(
         `
