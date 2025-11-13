@@ -130,11 +130,6 @@ const unsupportedApis = [
       "pm.execution.runRequest() is not supported in Hoppscotch (Collection Runner feature)",
   },
   {
-    api: "pm.sendRequest()",
-    script: 'pm.sendRequest("https://example.com", () => {})',
-    errorMessage: "pm.sendRequest() is not yet implemented in Hoppscotch",
-  },
-  {
     api: "pm.visualizer.set()",
     script: 'pm.visualizer.set("<h1>Test</h1>")',
     errorMessage:
