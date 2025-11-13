@@ -165,13 +165,22 @@ describe("pm namespace - unsupported features", () => {
 
   test.each(unsupportedApis)(
     "$api throws error in test script",
-    ({ script, errorMessage }) => {
-      return expect(
-        runTest(script, {
-          global: [],
-          selected: [],
-        })()
-      ).resolves.toEqualLeft(`Script execution failed: Error: ${errorMessage}`)
+    async ({ script, errorMessage }) => {
+      const result = await runTest(script, {
+        global: [],
+        selected: [],
+      })()
+
+      // Check that we got a Left (error) result
+      expect(result._tag).toBe("Left")
+
+      if (result._tag === "Left") {
+        // Check that the error message contains the expected error text
+        // We use .toContain() because QuickJS may append GC disposal errors
+        expect(result.left).toContain(
+          `Script execution failed: Error: ${errorMessage}`
+        )
+      }
     }
   )
 
