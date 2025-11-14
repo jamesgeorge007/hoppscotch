@@ -32,6 +32,7 @@ export const runPostRequestScriptWithFaradayCage = (
 
         const cage = await FaradayCage.create()
 
+        // Wrap entire execution in try-catch to handle QuickJS GC errors that can occur at any point
         try {
           const captureHook: { capture?: () => void } = {}
 
@@ -60,7 +61,9 @@ export const runPostRequestScriptWithFaradayCage = (
             ),
           ])
 
+          // Check for script execution errors first
           if (result.type === "error") {
+            // Just throw the error - it will be wrapped by the TaskEither error handler
             throw result.err
           }
 
@@ -78,20 +81,10 @@ export const runPostRequestScriptWithFaradayCage = (
           //   ✓ Predictable, deterministic behavior
           //   ✓ No race conditions
           if (testPromises.length > 0) {
-            console.log(
-              `[EXPERIMENTAL] Executing ${testPromises.length} tests sequentially...`
-            )
-
             // Execute each test promise one at a time, waiting for completion
             for (let i = 0; i < testPromises.length; i++) {
-              console.log(
-                `[EXPERIMENTAL] Executing test ${i + 1}/${testPromises.length}...`
-              )
               await testPromises[i]
-              console.log(`[EXPERIMENTAL] Test ${i + 1} completed`)
             }
-
-            console.log("[EXPERIMENTAL] All tests completed sequentially")
           }
 
           // Capture results AFTER all async tests complete
@@ -100,9 +93,15 @@ export const runPostRequestScriptWithFaradayCage = (
             captureHook.capture()
           }
 
+          // CRITICAL FIX: Deep clone ALL results before returning
+          // This breaks the connection to QuickJS runtime objects and prevents GC errors
+          // when QuickJS tries to free the runtime while objects are still referenced
+          const safeTestResults = cloneDeep(finalTestResults)
+          const safeEnvs = cloneDeep(finalEnvs)
+
           return {
-            tests: finalTestResults,
-            envs: finalEnvs,
+            tests: safeTestResults,
+            envs: safeEnvs,
           }
         } finally {
           // NOTE: Do NOT dispose the cage here - it causes QuickJS lifetime errors

@@ -1,8 +1,8 @@
 import * as TE from "fp-ts/lib/TaskEither"
+import { pipe } from "fp-ts/function"
 import { RunPreRequestScriptOptions, SandboxPreRequestResult } from "~/types"
 
 import { runPreRequestScriptWithFaradayCage } from "./experimental"
-import { runPreRequestScriptWithIsolatedVm } from "./legacy"
 
 export const runPreRequestScript = (
   preRequestScript: string,
@@ -25,5 +25,15 @@ export const runPreRequestScript = (
     )
   }
 
-  return runPreRequestScriptWithIsolatedVm(preRequestScript, envs)
+  // Dynamically import legacy runner to avoid loading isolated-vm unless needed
+  return pipe(
+    TE.tryCatch(
+      async () => {
+        const { runPreRequestScriptWithIsolatedVm } = await import("./legacy")
+        return runPreRequestScriptWithIsolatedVm(preRequestScript, envs)
+      },
+      (error) => `Legacy sandbox execution failed: ${error}`
+    ),
+    TE.chain((taskEither) => taskEither)
+  )
 }

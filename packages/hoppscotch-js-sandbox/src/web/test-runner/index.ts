@@ -139,6 +139,18 @@ export const runTestScript = async (
   testScript: string,
   options: RunPostRequestScriptOptions
 ): Promise<E.Either<string, SandboxTestResult>> => {
+  // Pre-parse the script to catch syntax errors before execution
+  // Use AsyncFunction to support top-level await (required for hopp.fetch, etc.)
+  try {
+    // eslint-disable-next-line no-new-func
+    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
+    new (AsyncFunction as any)(testScript)
+  } catch (e) {
+    const err = e as Error
+    const reason = `${"name" in err ? (err as any).name : "SyntaxError"}: ${err.message}`
+    return E.left(`Script execution failed: ${reason}`)
+  }
+
   const responseObjHandle = preventCyclicObjects<TestResponse>(options.response)
 
   if (E.isLeft(responseObjHandle)) {

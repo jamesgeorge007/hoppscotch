@@ -3,6 +3,7 @@
 ## Problem Statement
 
 Environment variables set inside async callbacks in pre-request scripts were NOT persisting to post-request scripts. This affected any async operation including:
+
 - `hopp.fetch()` calls
 - Manual Promises with `setTimeout`
 - Any other async/await code
@@ -11,14 +12,14 @@ Environment variables set inside async callbacks in pre-request scripts were NOT
 
 ```javascript
 // Pre-request script
-const response = await hopp.fetch('https://echo.hoppscotch.io?foo=bar')
+const response = await hopp.fetch("https://echo.hoppscotch.io?foo=bar")
 const data = await response.json()
 
-hopp.env.active.set('query_foo', data.args.foo) // ✗ Lost!
-console.log(hopp.env.active.get('query_foo'))   // ✓ Works in pre-request
+hopp.env.active.set("query_foo", data.args.foo) // ✗ Lost!
+console.log(hopp.env.active.get("query_foo")) // ✓ Works in pre-request
 
-// Post-request script  
-console.log(hopp.env.active.get('query_foo'))   // ✗ Returns null (BEFORE FIX)
+// Post-request script
+console.log(hopp.env.active.get("query_foo")) // ✗ Returns null (BEFORE FIX)
 ```
 
 ## Root Cause
@@ -37,10 +38,11 @@ Since step 2 happened before step 4, environment mutations from async callbacks 
 Modified `/packages/hoppscotch-js-sandbox/src/cage-modules/scripting-modules.ts` in the `registerAfterScriptExecutionHook` function:
 
 ### Before (Broken)
+
 ```typescript
 ctx.afterScriptExecutionHooks.push(() => {
   preConfig.handleSandboxResults({
-    envs: baseInputs.getUpdatedEnvs(),  // ✗ Called too early
+    envs: baseInputs.getUpdatedEnvs(), // ✗ Called too early
     request: getUpdatedRequest(),
     cookies: baseInputs.getUpdatedCookies(),
   })
@@ -48,6 +50,7 @@ ctx.afterScriptExecutionHooks.push(() => {
 ```
 
 ### After (Fixed)
+
 ```typescript
 // Snapshot existing keepAlivePromises (includes fetch module's promise)
 const existingPromises = [...ctx.keepAlivePromises]
@@ -64,11 +67,11 @@ ctx.afterScriptExecutionHooks.push(() => {
   Promise.all(existingPromises).then(() => {
     // NOW all env mutations from async callbacks are done
     preConfig.handleSandboxResults({
-      envs: baseInputs.getUpdatedEnvs(),  // ✓ Captures async mutations
+      envs: baseInputs.getUpdatedEnvs(), // ✓ Captures async mutations
       request: getUpdatedRequest(),
       cookies: baseInputs.getUpdatedCookies(),
     })
-    
+
     // Signal completion
     if (resolveCapture) {
       resolveCapture()
@@ -97,20 +100,23 @@ New execution flow:
 ## Testing
 
 ### Manual Test
+
 ```javascript
 // Pre-request
-const response = await hopp.fetch('https://echo.hoppscotch.io?test=value')
+const response = await hopp.fetch("https://echo.hoppscotch.io?test=value")
 const data = await response.json()
-hopp.env.active.set('test_var', data.args.test)
+hopp.env.active.set("test_var", data.args.test)
 
 // Post-request
-hopp.test('Environment variable persists', () => {
-  hopp.expect(hopp.env.active.get('test_var')).toBe('value') // ✓ Now passes
+hopp.test("Environment variable persists", () => {
+  hopp.expect(hopp.env.active.get("test_var")).toBe("value") // ✓ Now passes
 })
 ```
 
 ### Validation Collection
+
 The `hopp-fetch-validation-collection.json` contains 25 comprehensive test cases that should now ALL pass:
+
 - Basic GET/POST/PUT/DELETE/PATCH requests
 - Query parameters
 - JSON/FormData/URL-encoded bodies
@@ -138,6 +144,7 @@ The `hopp-fetch-validation-collection.json` contains 25 comprehensive test cases
 ## Related Issues
 
 This fix resolves the core blocker preventing `hopp.fetch()` from being usable in pre-request scripts for:
+
 - API chaining (auth → fetch → process)
 - Dynamic data fetching
 - Environment variable setup from external APIs

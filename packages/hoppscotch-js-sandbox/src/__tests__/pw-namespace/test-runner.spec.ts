@@ -36,11 +36,7 @@ describe("runTestScript", () => {
     ).resolves.toBeRight()
   })
 
-  // NOTE: QuickJS doesn't always catch all syntax errors at compile time.
-  // This particular syntax error (incomplete expression on line 49) is not caught,
-  // so the test passes even with invalid syntax. This is a known QuickJS limitation.
-  // The test validates that QuickJS continues execution despite the syntax error.
-  test("continues execution despite certain syntax errors (QuickJS limitation)", () => {
+  test("rejects for invalid syntax on tests", () => {
     return expect(
       runTest(
         `
@@ -54,17 +50,6 @@ describe("runTestScript", () => {
         `,
         fakeResponse
       )()
-    ).resolves.toEqualRight(
-      expect.arrayContaining([
-        expect.objectContaining({
-          descriptor: "root",
-          children: expect.arrayContaining([
-            expect.objectContaining({
-              descriptor: "Arithmetic operations",
-            }),
-          ]),
-        }),
-      ])
-    )
+    ).resolves.toBeLeft()
   })
 })
