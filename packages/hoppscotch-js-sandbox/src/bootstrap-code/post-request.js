@@ -2158,24 +2158,37 @@
       return expectation
     },
     test: (descriptor, testFn) => {
-      // Execute test IMMEDIATELY but chain sequentially
-      // This keeps QuickJS handles alive during execution
+      // Best of both worlds: Execute test IMMEDIATELY (catches syntax errors)
+      // but handle async results via promise chain
 
-      // Create test descriptor metadata
-      const _testDescriptor = inputs.preTest(descriptor)
+      // Create test descriptor
+      inputs.preTest(descriptor)
 
-      // Chain this test to execute after previous tests
-      __testExecutionChain = __testExecutionChain.then(async () => {
-        // Set current test context by descriptor name (not the object itself)
-        // This ensures we use the actual object from testRunStack, not a serialized copy
-        inputs.setCurrentTest(descriptor)
+      // Set current test context so expectations get recorded to this test
+      inputs.setCurrentTest(descriptor)
 
-        // Execute test callback - errors will propagate and fail the execution
-        await testFn()
-
-        // Clear current test context
+      // CRITICAL: Call testFn() SYNCHRONOUSLY during script evaluation
+      // This ensures syntax errors and typos throw immediately and fail cage.runCode()
+      let testResult
+      try {
+        testResult = testFn()
+      } catch (error) {
+        // Synchronous errors (syntax, typos) - throw immediately to fail script
         inputs.clearCurrentTest()
-      })
+        throw error
+      }
+
+      // If the test is async (returns a promise), chain it for sequential execution
+      if (testResult && typeof testResult.then === 'function') {
+        __testExecutionChain = __testExecutionChain.then(async () => {
+          // Test context already set above, just await the async work
+          await testResult
+          inputs.clearCurrentTest()
+        })
+      } else {
+        // Synchronous test completed successfully
+        inputs.clearCurrentTest()
+      }
     },
     response: pwResponse,
   }
@@ -2400,24 +2413,42 @@
       },
     ),
     test: (descriptor, testFn) => {
-      // Execute test IMMEDIATELY but chain sequentially
-      // This keeps QuickJS handles alive during execution
+      // Best of both worlds: Execute test IMMEDIATELY (catches syntax errors)
+      // but handle async results via promise chain
 
-      // Create test descriptor metadata
-      const _testDescriptor = inputs.preTest(descriptor)
+      // Create test descriptor
+      inputs.preTest(descriptor)
 
-      // Chain this test to execute after previous tests
-      __testExecutionChain = __testExecutionChain.then(async () => {
-        // Set current test context by descriptor name (not the object itself)
-        // This ensures we use the actual object from testRunStack, not a serialized copy
-        inputs.setCurrentTest(descriptor)
+      // Set current test context so expectations get recorded to this test
+      inputs.setCurrentTest(descriptor)
 
-        // Execute test callback - errors will propagate and fail the execution
-        await testFn()
+      // CRITICAL: Call testFn() SYNCHRONOUSLY during script evaluation
+      // This ensures syntax errors and typos throw immediately and fail cage.runCode()
+      // BUT for hopp/pm.test (Postman compatibility), we catch assertion errors silently
+      let testResult
+      try {
+        testResult = testFn()
+      } catch (error) {
+        // hopp/pm.test: Catch errors silently (Postman behavior - assertions can throw)
+        // Error could be from assertion failure or syntax error, but we allow test to complete
+        testResult = null
+      }
 
-        // Clear current test context
+      // If the test is async (returns a promise), chain it for sequential execution
+      if (testResult && typeof testResult.then === 'function') {
+        __testExecutionChain = __testExecutionChain.then(async () => {
+          // Test context already set above, just await the async work
+          try {
+            await testResult
+          } catch (asyncError) {
+            // Async errors caught silently (Postman behavior)
+          }
+          inputs.clearCurrentTest()
+        })
+      } else {
+        // Synchronous test completed (possibly with error caught above)
         inputs.clearCurrentTest()
-      })
+      }
     },
     response: hoppResponse,
   }

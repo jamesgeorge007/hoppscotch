@@ -342,11 +342,13 @@ const createScriptingModule = (
     // Track test promises for keepAlive
     const testPromises: Promise<unknown>[] = []
     let resolveKeepAlive: (() => void) | null = null
+    let rejectKeepAlive: ((error: Error) => void) | null = null
 
     // Create keepAlive promise that waits for all test promises
     // This promise is created BEFORE the script runs, but only resolves after tests complete
-    const testPromiseKeepAlive = new Promise<void>((resolve) => {
+    const testPromiseKeepAlive = new Promise<void>((resolve, reject) => {
       resolveKeepAlive = resolve
+      rejectKeepAlive = reject
     })
 
     ctx.keepAlivePromises.push(testPromiseKeepAlive)
@@ -434,31 +436,44 @@ const createScriptingModule = (
     // This ensures all tests complete before results are captured
     ctx.afterScriptExecutionHooks.push(() => {
       setTimeout(async () => {
-        // If we have a test execution chain, await it
-        if (testExecutionChainPromise) {
-          const resolvedPromise = ctx.vm.resolvePromise(
-            testExecutionChainPromise
-          )
-          testExecutionChainPromise.dispose()
-
-          const awaitResult = await resolvedPromise
-          if (awaitResult.error) {
-            console.error(
-              "[SCRIPTING] Test execution chain error:",
-              ctx.vm.dump(awaitResult.error)
+        try {
+          // If we have a test execution chain, await it
+          if (testExecutionChainPromise) {
+            const resolvedPromise = ctx.vm.resolvePromise(
+              testExecutionChainPromise
             )
-            awaitResult.error.dispose()
-          } else {
-            awaitResult.value?.dispose()
+            testExecutionChainPromise.dispose()
+
+            const awaitResult = await resolvedPromise
+            if (awaitResult.error) {
+              const errorDump = ctx.vm.dump(awaitResult.error)
+              awaitResult.error.dispose()
+              // CRITICAL FIX: Propagate test execution errors
+              // These errors represent actual failures in test scripts (e.g., syntax errors,
+              // undefined variable access) and must cause the entire script to fail
+              const error = new Error(
+                typeof errorDump === "string"
+                  ? errorDump
+                  : JSON.stringify(errorDump)
+              )
+              rejectKeepAlive?.(error)
+              return
+            } else {
+              awaitResult.value?.dispose()
+            }
           }
-        }
 
-        // Also wait for any old-style test promises (for backwards compatibility)
-        if (testPromises.length > 0) {
-          await Promise.allSettled(testPromises)
-        }
+          // Also wait for any old-style test promises (for backwards compatibility)
+          if (testPromises.length > 0) {
+            await Promise.allSettled(testPromises)
+          }
 
-        resolveKeepAlive?.()
+          resolveKeepAlive?.()
+        } catch (error) {
+          rejectKeepAlive?.(
+            error instanceof Error ? error : new Error(String(error))
+          )
+        }
       }, 0)
     })
   })
