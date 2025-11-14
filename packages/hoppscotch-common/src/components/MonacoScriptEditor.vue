@@ -77,7 +77,7 @@ const ensureCompilerOptions = (() => {
       moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
       module: monaco.languages.typescript.ModuleKind.ESNext,
       noEmit: true,
-      target: monaco.languages.typescript.ScriptTarget.ES2020,
+      target: monaco.languages.typescript.ScriptTarget.ES2022,
       allowNonTsExtensions: true,
     })
 
