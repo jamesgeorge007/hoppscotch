@@ -3737,8 +3737,12 @@
             options.headers["Content-Type"] =
               "application/x-www-form-urlencoded"
           } else if (urlOrRequest.body.mode === "formdata") {
-            // Convert formdata to URLSearchParams because FormData is not available in the QuickJS sandbox,
-            // which is used in both CLI and web contexts. This fallback ensures compatibility across both environments.
+            // LIMITATION: FormData is not available in QuickJS sandbox (used in both CLI and web).
+            // Converting to URLSearchParams as fallback, which has limitations:
+            // - File uploads are NOT supported
+            // - Changes Content-Type from multipart/form-data to application/x-www-form-urlencoded
+            // - May cause issues with servers expecting multipart data
+            // This is a known limitation of the scripting environment.
             const params = new URLSearchParams()
             urlOrRequest.body.formdata?.forEach((pair) => {
               params.append(pair.key, pair.value)

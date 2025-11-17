@@ -20,14 +20,14 @@ import Worker from "./worker?worker&inline"
 const runPostRequestScriptWithWebWorker = (
   testScript: string,
   envs: TestResult["envs"],
-  response: TestResponse
+  response: TestResponse,
 ): Promise<E.Either<string, SandboxTestResult>> => {
   return new Promise((resolve) => {
     const worker = new Worker()
 
     // Listen for the results from the web worker
     worker.addEventListener("message", (event: MessageEvent) =>
-      resolve(event.data.results)
+      resolve(event.data.results),
     )
 
     // Send the script to the web worker
@@ -45,8 +45,9 @@ const runPostRequestScriptWithFaradayCage = async (
   request: HoppRESTRequest,
   response: TestResponse,
   cookies: Cookie[] | null,
-  hoppFetchHook?: HoppFetchHook
+  hoppFetchHook?: HoppFetchHook,
 ): Promise<E.Either<string, SandboxTestResult>> => {
+  console.error(`Hello world`)
   const testRunStack: TestDescriptor[] = [
     { descriptor: "root", expectResults: [], children: [] },
   ]
@@ -85,7 +86,7 @@ const runPostRequestScriptWithFaradayCage = async (
             testPromises.push(promise)
           },
         },
-        captureHook
+        captureHook,
       ),
     ])
 
@@ -137,14 +138,14 @@ const runPostRequestScriptWithFaradayCage = async (
 
 export const runTestScript = async (
   testScript: string,
-  options: RunPostRequestScriptOptions
+  options: RunPostRequestScriptOptions,
 ): Promise<E.Either<string, SandboxTestResult>> => {
   // Pre-parse the script to catch syntax errors before execution
   // Use AsyncFunction to support top-level await (required for hopp.fetch, etc.)
   try {
     // eslint-disable-next-line no-new-func
     const AsyncFunction = Object.getPrototypeOf(
-      async function () {}
+      async function () {},
     ).constructor
     new (AsyncFunction as any)(testScript)
   } catch (e) {
@@ -175,7 +176,7 @@ export const runTestScript = async (
       request,
       resolvedResponse,
       cookies,
-      hoppFetchHook
+      hoppFetchHook,
     )
   }
 

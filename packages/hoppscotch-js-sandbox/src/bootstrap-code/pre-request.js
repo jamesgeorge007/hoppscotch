@@ -163,11 +163,7 @@
   // Make global fetch() an alias to hopp.fetch()
   // Both fetch() and hopp.fetch() respect interceptor settings
   if (typeof fetch !== "undefined") {
-    const originalFetch = fetch
-    // Make hopp.fetch available
-    globalThis.hopp.fetch = originalFetch
-    // Make fetch an alias to hopp.fetch
-    globalThis.fetch = originalFetch
+    globalThis.fetch = globalThis.hopp.fetch
   }
 
   // PM Namespace - Postman Compatibility Layer
