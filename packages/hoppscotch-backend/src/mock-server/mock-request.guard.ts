@@ -49,7 +49,7 @@ export class MockRequestGuard implements CanActivate {
       // Note: Manual newline sanitization prevents log injection attacks
       // Consider migrating to a structured logging library for automatic escaping
       console.warn(
-        `Mock server lookup failed for subdomain: ${String(mockServerSubdomain).replace(/\r|\n/g, "")}, error: ${String(mockServerResult.left).replace(/\r|\n/g, "")}`,
+        `Mock server lookup failed for subdomain: ${String(mockServerSubdomain).replace(/\r|\n/g, '')}, error: ${String(mockServerResult.left).replace(/\r|\n/g, '')}`,
       );
       throw new NotFoundException(
         `Mock server '${mockServerSubdomain}' not found`,

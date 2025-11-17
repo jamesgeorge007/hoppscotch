@@ -5,7 +5,10 @@
 
   // Sequential test execution promise chain
   // Initialize with a resolved promise to start the chain
-  let __testExecutionChain = Promise.resolve()
+  // Store on globalThis so pm.sendRequest() and test() can both access and modify it
+  if (!globalThis.__testExecutionChain) {
+    globalThis.__testExecutionChain = Promise.resolve()
+  }
 
   // Chai proxy builder - creates a Chai-like API using actual Chai SDK
   if (!globalThis.__createChaiProxy) {
@@ -2171,7 +2174,7 @@
       // Capture the current test execution chain state BEFORE calling testFn()
       // If testFn() calls pm.sendRequest(), it will add promises to the chain
       // We need to detect this and wait for those promises even if testFn() returns undefined
-      const chainBeforeTest = __testExecutionChain
+      const chainBeforeTest = globalThis.__testExecutionChain
 
       // CRITICAL: Call testFn() SYNCHRONOUSLY during script evaluation
       // This ensures syntax errors and typos throw immediately and fail cage.runCode()
@@ -2186,22 +2189,27 @@
 
       // Check if the test execution chain was modified by testFn()
       // This happens when pm.sendRequest() is called inside the test
-      const chainWasModified = __testExecutionChain !== chainBeforeTest
+      const chainWasModified =
+        globalThis.__testExecutionChain !== chainBeforeTest
 
       // If the test is async (returns a promise), chain it for sequential execution
       if (testResult && typeof testResult.then === "function") {
-        __testExecutionChain = __testExecutionChain.then(async () => {
-          // Test context already set above, just await the async work
-          await testResult
-          inputs.clearCurrentTest()
-        })
+        globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
+          async () => {
+            // Test context already set above, just await the async work
+            await testResult
+            inputs.clearCurrentTest()
+          },
+        )
       } else if (chainWasModified) {
         // Test didn't return a promise, but pm.sendRequest() was called
         // The chain has been extended with pm.sendRequest() promises
         // We need to wait for those before clearing the test context
-        __testExecutionChain = __testExecutionChain.then(() => {
-          inputs.clearCurrentTest()
-        })
+        globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
+          () => {
+            inputs.clearCurrentTest()
+          },
+        )
       } else {
         // Synchronous test completed successfully
         inputs.clearCurrentTest()
@@ -2443,7 +2451,7 @@
       // Capture the current test execution chain state BEFORE calling testFn()
       // If testFn() calls pm.sendRequest(), it will add promises to the chain
       // We need to detect this and wait for those promises even if testFn() returns undefined
-      const chainBeforeTest = __testExecutionChain
+      const chainBeforeTest = globalThis.__testExecutionChain
 
       // CRITICAL: Call testFn() SYNCHRONOUSLY during script evaluation
       // This ensures syntax errors and typos throw immediately and fail cage.runCode()
@@ -2458,22 +2466,27 @@
 
       // Check if the test execution chain was modified by testFn()
       // This happens when pm.sendRequest() is called inside the test
-      const chainWasModified = __testExecutionChain !== chainBeforeTest
+      const chainWasModified =
+        globalThis.__testExecutionChain !== chainBeforeTest
 
       // If the test is async (returns a promise), chain it for sequential execution
       if (testResult && typeof testResult.then === "function") {
-        __testExecutionChain = __testExecutionChain.then(async () => {
-          // Test context already set above, just await the async work
-          await testResult
-          inputs.clearCurrentTest()
-        })
+        globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
+          async () => {
+            // Test context already set above, just await the async work
+            await testResult
+            inputs.clearCurrentTest()
+          },
+        )
       } else if (chainWasModified) {
         // Test didn't return a promise, but pm.sendRequest() was called
         // The chain has been extended with pm.sendRequest() promises
         // We need to wait for those before clearing the test context
-        __testExecutionChain = __testExecutionChain.then(() => {
-          inputs.clearCurrentTest()
-        })
+        globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
+          () => {
+            inputs.clearCurrentTest()
+          },
+        )
       } else {
         // Synchronous test completed successfully
         inputs.clearCurrentTest()
@@ -3808,7 +3821,7 @@
               json: () => {
                 try {
                   return JSON.parse(bodyText)
-                } catch {
+                } catch (_err) {
                   return null
                 }
               },
@@ -3821,18 +3834,37 @@
         })
 
       // Add to test execution chain with callback execution
+      // IMPORTANT: Test context must be maintained when callback executes
+      // so that expect() calls inside the callback record results to the correct test
       if (globalThis.__testExecutionChain) {
+        // Capture current test descriptor NAME when pm.sendRequest is called
+        // getCurrentTest() now returns the descriptor name (string) directly
+        const currentTestName = inputs.getCurrentTest
+          ? inputs.getCurrentTest()
+          : null
+
         globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
           () => {
             // Wait for fetch to complete
             return fetchPromise.then(() => {
+              // Restore test context before executing callback
+              // setCurrentTest() expects the descriptor name (string)
+              if (currentTestName && inputs.setCurrentTest) {
+                inputs.setCurrentTest(currentTestName)
+              }
+
               // Now execute the callback synchronously (QuickJS handles still valid)
               if (!callbackData.executed) {
                 callbackData.executed = true
-                if (callbackData.error) {
-                  callbackData.callback(callbackData.error, null)
-                } else {
-                  callbackData.callback(null, callbackData.response)
+                try {
+                  if (callbackData.error) {
+                    callbackData.callback(callbackData.error, null)
+                  } else {
+                    callbackData.callback(null, callbackData.response)
+                  }
+                } finally {
+                  // Test context will be cleared by the test() wrapper after all chains complete
+                  // Don't clear it here as multiple pm.sendRequest calls in same test need it
                 }
               }
             })
@@ -3986,5 +4018,5 @@
 
   // Return the test execution chain promise so the host can await it
   // This ensures all tests complete before results are captured
-  return __testExecutionChain
+  return globalThis.__testExecutionChain
 }
