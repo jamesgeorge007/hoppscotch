@@ -3437,7 +3437,7 @@
             // Validate schema
             if (!inputs.validateJsonSchema) {
               throw new Error(
-                "JSON schema validation is not available in this environment. Please ensure your environment supports JSON schema validation."
+                "JSON schema validation is not available in this environment. To use this feature, please enable the experimental scripting sandbox or upgrade to a supported version of Hoppscotch that includes JSON schema validation support."
               )
             }
             const validation = inputs.validateJsonSchema(jsonData, schema)
