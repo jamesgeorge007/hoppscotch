@@ -347,7 +347,8 @@ const newSendRequest = async () => {
   }
 
   // Set response to loading type IMMEDIATELY - this changes Send -> Cancel button
-  // This must be synchronous for instant UI feedback
+  // This must be synchronous for instant UI feedback.
+  // Done inline rather than in a helper function because it's context-specific and only used here.
   tab.value.document.response = {
     type: "loading" as const,
     req: tab.value.document.request,

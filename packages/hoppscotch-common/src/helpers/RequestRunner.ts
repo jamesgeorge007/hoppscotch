@@ -770,8 +770,12 @@ export async function runTestRunnerRequest(
 
   // Give browser time to paint the loading state before starting pre-request script
   // Double RAF ensures browser has actually rendered the DOM update (Send -> Cancel button)
-  // This is needed for ALL requests, not just those with pre-request scripts, because
-  // the loading state must be visible before any script execution or network request begins
+  //
+  // IMPORTANT: This is needed for ALL requests, not just those with pre-request scripts.
+  // Even requests without pre-request scripts can take time (network delay), and users need
+  // immediate visual feedback that their request is executing. Making this conditional would
+  // mean requests without pre-request scripts don't show the Cancel button until after the
+  // network request starts, which creates a poor UX where the button appears to be stuck.
   await new Promise((resolve) => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {

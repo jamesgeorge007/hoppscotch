@@ -273,7 +273,8 @@ export class ExtensionKernelInterceptorService
                 requestData = request.content.content
               }
             } else if (request.content.content instanceof Uint8Array) {
-              // Pass Uint8Array directly - extension will handle it
+              // Pass Uint8Array directly - extension receives it and converts to ArrayBuffer for transmission
+              // The extension's sendRequest() method handles Uint8Array by accessing its underlying buffer
               requestData = request.content.content
             } else {
               console.warn(

@@ -3755,6 +3755,8 @@
       }
 
       // CRITICAL FIX for CLI QuickJS sandbox async callback issue
+      // This solves the problem where pm.sendRequest() callbacks executed after the test context
+      // was cleared, causing QuickJS garbage collection errors and test failures.
       //
       // The Problem:
       // Callbacks contain QuickJS handles (pm.expect, etc.) that become invalid when

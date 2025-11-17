@@ -94,9 +94,8 @@ async function convertFetchToRelayRequest(
   if (init?.body) {
     if (typeof init.body === "string") {
       // Text/JSON body - use proper ContentType structure
-      // Case-insensitive header lookup (Headers API normalizes to lowercase)
-      const mediaType =
-        headers["content-type"] || headers["Content-Type"] || "text/plain"
+      // Headers API normalizes keys to lowercase during forEach iteration
+      const mediaType = headers["content-type"] || "text/plain"
 
       // Use "text" kind for string bodies (including JSON strings)
       // The interceptor layer handles content correctly based on the mediaType field
