@@ -291,8 +291,8 @@ export class TestRunnerService extends Service {
         error: undefined,
       })
 
-      // Force Vue to flush DOM updates before starting async work
-      // This ensures the loading state (Send -> Cancel button) appears immediately
+      // Force Vue to flush DOM updates before starting async work.
+      // This ensures components consuming the isLoading state (such as those rendering the Send/Cancel button) update immediately.
       await nextTick()
 
       // Capture the initial environment state for a test run so that it remains consistent and unchanged when current environment changes

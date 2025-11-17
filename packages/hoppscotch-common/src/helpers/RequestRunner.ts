@@ -769,8 +769,9 @@ export async function runTestRunnerRequest(
   } = initialEnvironmentState
 
   // Give browser time to paint the loading state before starting pre-request script
-  // Double RAF ensures browser has actually rendered the DOM update
-  // This is critical for requests with async pre-request scripts
+  // Double RAF ensures browser has actually rendered the DOM update (Send -> Cancel button)
+  // This is needed for ALL requests, not just those with pre-request scripts, because
+  // the loading state must be visible before any script execution or network request begins
   await new Promise((resolve) => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {

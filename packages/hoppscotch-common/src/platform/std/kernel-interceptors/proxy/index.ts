@@ -132,8 +132,7 @@ export class ProxyKernelInterceptorService
               requestData = request.content.content
             }
           } else if (request.content.content instanceof Uint8Array) {
-            // Convert Uint8Array to Blob for proxy compatibility
-            // Pass the Uint8Array directly, not .buffer, to avoid offset issues
+            // Wrap Uint8Array in Blob for proxy compatibility, avoiding .buffer to prevent offset issues
             requestData = new Blob([request.content.content])
           } else {
             requestData = request.content.content

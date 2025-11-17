@@ -231,14 +231,6 @@ export class ExtensionKernelInterceptorService
       let requestData: any = null
 
       if (request.content) {
-        console.log("[Extension Interceptor] Processing request content:", {
-          kind: request.content.kind,
-          contentType: typeof request.content.content,
-          isUint8Array: request.content.content instanceof Uint8Array,
-          isBlob: request.content.content instanceof Blob,
-          isString: typeof request.content.content === "string",
-        })
-
         switch (request.content.kind) {
           case "text":
             // Text content - pass string directly
@@ -283,10 +275,6 @@ export class ExtensionKernelInterceptorService
             } else if (request.content.content instanceof Uint8Array) {
               // Pass Uint8Array directly - extension will handle it
               requestData = request.content.content
-              console.log(
-                "[Extension Interceptor] Passing Uint8Array directly, length:",
-                request.content.content.length
-              )
             } else {
               console.warn(
                 "[Extension Interceptor] Unknown binary content type:",
@@ -328,16 +316,6 @@ export class ExtensionKernelInterceptorService
             requestData = request.content.content
         }
       }
-
-      console.log("[Extension Interceptor] Sending to extension:", {
-        url: request.url,
-        method: request.method,
-        dataType: typeof requestData,
-        isUint8Array: requestData instanceof Uint8Array,
-        isBlob: requestData instanceof Blob,
-        isString: typeof requestData === "string",
-        dataLength: requestData?.length || requestData?.byteLength || 0,
-      })
 
       // Always use wantsBinary: true - required for correct data handling
       // Note: Extension may log TypeError in console, but this doesn't affect functionality

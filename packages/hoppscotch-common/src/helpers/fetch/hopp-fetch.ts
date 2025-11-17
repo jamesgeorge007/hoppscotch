@@ -98,7 +98,8 @@ async function convertFetchToRelayRequest(
       const mediaType =
         headers["content-type"] || headers["Content-Type"] || "text/plain"
 
-      // Use "text" kind for string bodies - Axios will handle it correctly
+      // Use "text" kind for string bodies (including JSON strings)
+      // The interceptor layer handles content correctly based on the mediaType field
       content = {
         kind: "text",
         content: init.body,

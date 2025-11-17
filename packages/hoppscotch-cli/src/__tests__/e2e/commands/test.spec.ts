@@ -276,7 +276,7 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
       expect(error).toBeNull();
     });
 
-    test.only("Supports the new scripting API method additions under the `hopp` and `pm` namespaces and validates JUnit report structure", async () => {
+    test("Supports the new scripting API method additions under the `hopp` and `pm` namespaces and validates JUnit report structure", async () => {
       // First, run without JUnit report to ensure basic functionality works
       const basicArgs = `test ${getTestJsonFilePath(
         "scripting-revamp-coll.json",

@@ -3700,7 +3700,7 @@
       // Check if fetch is available
       if (typeof globalThis.hopp?.fetch === "undefined") {
         const error = new Error(
-          "pm.sendRequest() requires experimental scripting sandbox to be enabled",
+          "pm.sendRequest() requires the fetch API to be available in the scripting environment (usually provided by enabling the experimental scripting sandbox).",
         )
         callback(error, null)
         return
@@ -3737,8 +3737,8 @@
             options.headers["Content-Type"] =
               "application/x-www-form-urlencoded"
           } else if (urlOrRequest.body.mode === "formdata") {
-            // Convert formdata to URLSearchParams for CLI compatibility
-            // (FormData is not available in QuickJS sandbox)
+            // Convert formdata to URLSearchParams because FormData is not available in the QuickJS sandbox,
+            // which is used in both CLI and web contexts. This fallback ensures compatibility across both environments.
             const params = new URLSearchParams()
             urlOrRequest.body.formdata?.forEach((pair) => {
               params.append(pair.key, pair.value)

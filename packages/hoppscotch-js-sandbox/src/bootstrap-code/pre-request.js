@@ -156,7 +156,7 @@
       delete: (domain, name) => inputs.cookieDelete(domain, name),
       clear: (domain) => inputs.cookieClear(domain),
     },
-    // Expose fetch as hopp.fetch() - save reference before we override global
+    // Expose fetch as hopp.fetch() for explicit access
     fetch: typeof fetch !== "undefined" ? fetch : undefined,
   }
 
@@ -1235,7 +1235,7 @@
       // Check if fetch is available
       if (typeof fetch === "undefined") {
         const error = new Error(
-          "pm.sendRequest() requires experimental scripting sandbox to be enabled"
+          "pm.sendRequest() requires fetch API support. Enable experimental scripting sandbox or ensure fetch is available in your environment."
         )
         callback(error, null)
         return
