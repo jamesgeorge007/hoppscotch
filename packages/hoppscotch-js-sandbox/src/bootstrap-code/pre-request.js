@@ -160,7 +160,7 @@
     // Note: This exposes the fetch implementation provided by the host environment via hoppFetchHook
     // (injected in cage.ts during sandbox initialization), not the native browser fetch.
     // This allows requests to respect interceptor settings.
-    fetch: typeof fetch !== "undefined" ? fetch : undefined,
+    fetch: fetch,
   }
 
   // Make global fetch() an alias to hopp.fetch()

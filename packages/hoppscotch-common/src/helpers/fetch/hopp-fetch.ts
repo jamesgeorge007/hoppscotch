@@ -98,6 +98,7 @@ async function convertFetchToRelayRequest(
       const mediaType = headers["content-type"] || "text/plain"
 
       // Use "text" kind for string bodies (including JSON strings)
+      // Note: JSON strings with Content-Type: application/json are properly parsed by interceptors
       // The interceptor layer handles content correctly based on the mediaType field
       content = {
         kind: "text",

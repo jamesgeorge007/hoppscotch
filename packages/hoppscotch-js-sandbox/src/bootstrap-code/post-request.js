@@ -3742,10 +3742,9 @@
           } else if (urlOrRequest.body.mode === "formdata") {
             // LIMITATION: FormData is not available in QuickJS sandbox (used in both CLI and web).
             // Converting to URLSearchParams as fallback, which has limitations:
-            // - File uploads are NOT supported
+            // - File uploads are NOT supported (only key-value pairs)
             // - Changes Content-Type from multipart/form-data to application/x-www-form-urlencoded
             // - May cause issues with servers expecting multipart data
-            // - File uploads will NOT work with this conversion (only key-value pairs supported)
             // This is a known limitation of the scripting environment.
             const params = new URLSearchParams()
             urlOrRequest.body.formdata?.forEach((pair) => {
