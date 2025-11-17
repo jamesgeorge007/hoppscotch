@@ -87,6 +87,24 @@ export type InitialEnvironmentState = {
 }
 
 /**
+ * Waits for the browser to commit and paint DOM updates.
+ * Uses double requestAnimationFrame to ensure the browser has actually rendered changes.
+ * This is critical for ensuring loading states (like Send → Cancel button) are visible
+ * before starting async work like script execution or network requests.
+ *
+ * @returns Promise that resolves after the browser has painted
+ */
+export const waitForBrowserPaint = (): Promise<void> => {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        resolve(undefined)
+      })
+    })
+  })
+}
+
+/**
  * Captures the initial environment state before request execution
  * So that we can compare and update environment variables after test script execution
  * because the current environment can change during the request execution.
@@ -768,21 +786,9 @@ export async function runTestRunnerRequest(
     initialEnvsForComparison,
   } = initialEnvironmentState
 
-  // Give browser time to paint the loading state before starting pre-request script
-  // Double RAF ensures browser has actually rendered the DOM update (Send -> Cancel button)
-  //
-  // IMPORTANT: This is needed for ALL requests, not just those with pre-request scripts.
-  // Even requests without pre-request scripts can take time (network delay), and users need
-  // immediate visual feedback that their request is executing. Making this conditional would
-  // mean requests without pre-request scripts don't show the Cancel button until after the
-  // network request starts, which creates a poor UX where the button appears to be stuck.
-  await new Promise((resolve) => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        resolve(undefined)
-      })
-    })
-  })
+  // Wait for browser to paint the loading state (Send -> Cancel button)
+  // IMPORTANT: This is needed for ALL requests to ensure immediate visual feedback
+  await waitForBrowserPaint()
 
   return delegatePreRequestScriptRunner(
     request,

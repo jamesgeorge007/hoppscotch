@@ -248,7 +248,7 @@ import { defineActionHandler, invokeAction } from "~/helpers/actions"
 import { runMutation } from "~/helpers/backend/GQLClient"
 import { UpdateRequestDocument } from "~/helpers/backend/graphql"
 import { getPlatformSpecialKey as getSpecialKey } from "~/helpers/platformutils"
-import { runRESTRequest$ } from "~/helpers/RequestRunner"
+import { runRESTRequest$, waitForBrowserPaint } from "~/helpers/RequestRunner"
 import { HoppRESTResponse } from "~/helpers/types/HoppRESTResponse"
 import { editRESTRequest } from "~/newstore/collections"
 import IconChevronDown from "~icons/lucide/chevron-down"
@@ -361,16 +361,9 @@ const newSendRequest = async () => {
   // Also set loading ref for internal state
   loading.value = true
 
-  // Force Vue to flush DOM updates AND wait for browser to paint
-  // Double RAF ensures the loading state is actually visible before any blocking work
+  // Force Vue to flush DOM updates AND wait for browser to paint the loading state
   await nextTick()
-  await new Promise((resolve) => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        resolve(undefined)
-      })
-    })
-  })
+  await waitForBrowserPaint()
 
   ensureMethodInEndpoint()
 
