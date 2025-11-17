@@ -3,7 +3,25 @@ import { runTest, fakeResponse } from "~/utils/test-helpers"
 
 /**
  * Test runner behavior across all namespaces (pw, hopp, pm)
- * Tests syntax error handling, async support, and Postman compatibility
+ *
+ * This test suite validates:
+ * 1. Syntax error handling - all namespaces throw on invalid syntax
+ * 2. Async/await support - test functions can be async
+ * 3. Postman compatibility - pm.test matches Postman behavior
+ *
+ * IMPORTANT: Test Result Structure
+ * Test results follow this hierarchy:
+ * {
+ *   descriptor: "root",
+ *   expectResults: [],        // Empty at root level
+ *   children: [{              // Actual test results in children
+ *     descriptor: "test name",
+ *     expectResults: [...],   // Test expectations here
+ *   }]
+ * }
+ *
+ * This structure change ensures proper test descriptor nesting and matches
+ * the TestDescriptor type: { descriptor, expectResults, children }
  */
 
 // Test data for namespace-specific syntax
@@ -31,7 +49,7 @@ describe("Test Runner - All Namespaces", () => {
       `
 
       return expect(
-        runTest(script, envArgs, fakeResponse)(),
+        runTest(script, envArgs, fakeResponse)()
       ).resolves.toBeRight()
     })
 
@@ -47,7 +65,7 @@ describe("Test Runner - All Namespaces", () => {
       `
 
       return expect(
-        runTest(script, envArgs, fakeResponse)(),
+        runTest(script, envArgs, fakeResponse)()
       ).resolves.toBeRight()
     })
 
@@ -63,7 +81,7 @@ describe("Test Runner - All Namespaces", () => {
       `
 
       return expect(
-        runTest(script, envArgs, fakeResponse)(),
+        runTest(script, envArgs, fakeResponse)()
       ).resolves.toBeLeft()
     })
 
@@ -76,7 +94,7 @@ describe("Test Runner - All Namespaces", () => {
       `
 
       return expect(
-        runTest(script, envArgs, fakeResponse)(),
+        runTest(script, envArgs, fakeResponse)()
       ).resolves.toBeRight()
     })
 
@@ -89,7 +107,7 @@ describe("Test Runner - All Namespaces", () => {
       `
 
       return expect(
-        runTest(script, envArgs, fakeResponse)(),
+        runTest(script, envArgs, fakeResponse)()
       ).resolves.toBeLeft()
     })
 
@@ -101,14 +119,24 @@ describe("Test Runner - All Namespaces", () => {
       `
 
       return expect(
-        runTest(script, envArgs, fakeResponse)(),
+        runTest(script, envArgs, fakeResponse)()
       ).resolves.toBeLeft()
     })
   })
 
-  // pm-specific Postman compatibility tests
-  describe("pm.test - Postman compatibility", () => {
-    test("jsonSchema failures should not fail script", () => {
+  /**
+   * Postman Compatibility Tests
+   *
+   * These tests validate that validation assertions like jsonSchema()
+   * and jsonPath() throw errors when validation fails, causing the script to fail.
+   *
+   * This matches the original behavior where validation failures are treated
+   * the same as other assertion failures.
+   */
+  describe("pm.test - Validation assertions", () => {
+    test("jsonSchema failures should record failed assertion", () => {
+      // Postman behavior: jsonSchema validation failures are recorded as failed assertions
+      // but don't throw errors or fail the script
       const response = {
         status: 200,
         statusText: "OK",
@@ -132,24 +160,31 @@ describe("Test Runner - All Namespaces", () => {
             })
           `,
           { global: [], selected: [] },
-          response,
-        )(),
-      ).resolves.toEqualRight(
-        expect.arrayContaining([
-          expect.objectContaining({
-            descriptor: "root",
-            children: [
-              expect.objectContaining({
-                descriptor: "Missing required property",
-                expectResults: [], // Empty because jsonSchema failed silently
-              }),
-            ],
-          }),
-        ]),
-      )
+          response
+        )()
+      ).resolves.toEqualRight([
+        expect.objectContaining({
+          descriptor: "root",
+          children: [
+            expect.objectContaining({
+              descriptor: "Missing required property",
+              expectResults: [
+                {
+                  status: "fail",
+                  message: expect.stringContaining(
+                    "Required property 'age' is missing"
+                  ),
+                },
+              ],
+            }),
+          ],
+        }),
+      ])
     })
 
-    test("jsonPath failures should not fail script", () => {
+    test("jsonPath failures should record failed assertion", () => {
+      // Postman behavior: jsonPath validation failures are recorded as failed assertions
+      // but don't throw errors or fail the script (same as jsonSchema)
       const response = {
         status: 200,
         statusText: "OK",
@@ -165,21 +200,26 @@ describe("Test Runner - All Namespaces", () => {
             })
           `,
           { global: [], selected: [] },
-          response,
-        )(),
-      ).resolves.toEqualRight(
-        expect.arrayContaining([
-          expect.objectContaining({
-            descriptor: "root",
-            children: [
-              expect.objectContaining({
-                descriptor: "Path doesn't exist",
-                expectResults: [], // Empty because jsonPath failed silently
-              }),
-            ],
-          }),
-        ]),
-      )
+          response
+        )()
+      ).resolves.toEqualRight([
+        expect.objectContaining({
+          descriptor: "root",
+          children: [
+            expect.objectContaining({
+              descriptor: "Path doesn't exist",
+              expectResults: [
+                {
+                  status: "fail",
+                  message: expect.stringContaining(
+                    "Property 'nonexistent' not found"
+                  ),
+                },
+              ],
+            }),
+          ],
+        }),
+      ])
     })
   })
 
@@ -195,9 +235,9 @@ describe("Test Runner - All Namespaces", () => {
           `
 
           return expect(
-            runTest(script, envArgs, fakeResponse)(),
+            runTest(script, envArgs, fakeResponse)()
           ).resolves.toBeLeft()
-        }),
+        })
       )
     })
 
@@ -212,9 +252,9 @@ describe("Test Runner - All Namespaces", () => {
           `
 
           return expect(
-            runTest(script, envArgs, fakeResponse)(),
+            runTest(script, envArgs, fakeResponse)()
           ).resolves.toBeRight()
-        }),
+        })
       )
     })
 
@@ -228,9 +268,9 @@ describe("Test Runner - All Namespaces", () => {
           `
 
           return expect(
-            runTest(script, envArgs, fakeResponse)(),
+            runTest(script, envArgs, fakeResponse)()
           ).resolves.toBeLeft()
-        }),
+        })
       )
     })
   })

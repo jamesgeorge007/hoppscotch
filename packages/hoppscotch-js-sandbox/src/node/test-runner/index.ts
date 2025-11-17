@@ -16,7 +16,9 @@ export const runTestScript = (
   // Use AsyncFunction to support top-level await (required for hopp.fetch, etc.)
   try {
     // eslint-disable-next-line no-new-func
-    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
+    const AsyncFunction = Object.getPrototypeOf(
+      async function () {}
+    ).constructor
     new (AsyncFunction as any)(testScript)
   } catch (e) {
     const err = e as Error
@@ -53,7 +55,11 @@ export const runTestScript = (
     TE.tryCatch(
       async () => {
         const { runPostRequestScriptWithIsolatedVm } = await import("./legacy")
-        return runPostRequestScriptWithIsolatedVm(testScript, envs, resolvedResponse)
+        return runPostRequestScriptWithIsolatedVm(
+          testScript,
+          envs,
+          resolvedResponse
+        )
       },
       (error) => `Legacy sandbox execution failed: ${error}`
     ),

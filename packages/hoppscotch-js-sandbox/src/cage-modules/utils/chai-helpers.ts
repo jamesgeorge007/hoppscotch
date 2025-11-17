@@ -1989,6 +1989,97 @@ export const createChaiMethods: (
       }
     ),
 
+    // Helper function for pm.response.to.have.jsonSchema() to validate without Chai infrastructure
+    validateJsonSchema: defineSandboxFn(
+      ctx,
+      "validateJsonSchema",
+      function (value: SandboxValue, schema: SandboxValue) {
+        // Validation helper - same logic as chaiJsonSchema
+        const validateSchema = (
+          data: SandboxValue,
+          schema: SandboxValue
+        ): boolean => {
+          // Type validation
+          if (schema.type !== undefined) {
+            const actualType = Array.isArray(data) ? "array" : typeof data
+            if (actualType !== schema.type) return false
+          }
+
+          // Required properties
+          if (schema.required && Array.isArray(schema.required)) {
+            for (const key of schema.required) {
+              if (!(key in data)) return false
+            }
+          }
+
+          // Properties validation
+          if (schema.properties && typeof data === "object" && data !== null) {
+            for (const key in schema.properties) {
+              if (key in data) {
+                const propSchema = schema.properties[key]
+                if (!validateSchema(data[key], propSchema)) return false
+              }
+            }
+          }
+
+          return true
+        }
+
+        const isValid = validateSchema(value, schema)
+
+        // Generate error message if validation failed
+        let errorMessage = ""
+        if (!isValid) {
+          // Check for required property errors
+          if (schema.required && Array.isArray(schema.required)) {
+            for (const key of schema.required) {
+              if (!(key in value)) {
+                errorMessage = `Required property '${key}' is missing`
+                break
+              }
+            }
+          }
+
+          // Check for root type errors
+          if (!errorMessage && schema.type !== undefined) {
+            const actualType = Array.isArray(value) ? "array" : typeof value
+            if (actualType !== schema.type) {
+              errorMessage = `Expected type ${schema.type}, got ${actualType}`
+            }
+          }
+
+          // Check for nested property type errors
+          if (
+            !errorMessage &&
+            schema.properties &&
+            typeof value === "object" &&
+            value !== null
+          ) {
+            for (const key in schema.properties) {
+              if (key in value) {
+                const propSchema = schema.properties[key]
+                if (propSchema.type !== undefined) {
+                  const actualPropType = Array.isArray(value[key])
+                    ? "array"
+                    : typeof value[key]
+                  if (actualPropType !== propSchema.type) {
+                    errorMessage = `Expected type ${propSchema.type}, got ${actualPropType}`
+                    break
+                  }
+                }
+              }
+            }
+          }
+
+          if (!errorMessage) {
+            errorMessage = "Schema validation failed"
+          }
+        }
+
+        return { isValid, errorMessage }
+      }
+    ),
+
     chaiCharset: defineSandboxFn(
       ctx,
       "chaiCharset",

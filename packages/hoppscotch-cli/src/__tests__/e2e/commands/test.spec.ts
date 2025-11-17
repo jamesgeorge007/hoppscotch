@@ -276,9 +276,7 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
       expect(error).toBeNull();
     });
 
-    test(
-      "Supports the new scripting API method additions under the `hopp` and `pm` namespaces and validates JUnit report structure",
-      async () => {
+    test.only("Supports the new scripting API method additions under the `hopp` and `pm` namespaces and validates JUnit report structure", async () => {
       // First, run without JUnit report to ensure basic functionality works
       const basicArgs = `test ${getTestJsonFilePath(
         "scripting-revamp-coll.json",
@@ -288,7 +286,10 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
       expect(basicError).toBeNull();
 
       // Then, run with JUnit report and validate structure
-      const junitPath = path.join(__dirname, "scripting-revamp-snapshot-junit.xml");
+      const junitPath = path.join(
+        __dirname,
+        "scripting-revamp-snapshot-junit.xml"
+      );
 
       if (fs.existsSync(junitPath)) {
         fs.unlinkSync(junitPath);
@@ -309,9 +310,9 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
         .replace(/time="[^"]*"/g, 'time="NORMALIZED"')
         .replace(/timestamp="[^"]*"/g, 'timestamp="NORMALIZED"')
         // Normalize test execution timestamps that might vary
-        .replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g, 'TIMESTAMP')
+        .replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g, "TIMESTAMP")
         // Normalize any duration values in milliseconds
-        .replace(/\d+ms/g, 'NORMALIZEDms')
+        .replace(/\d+ms/g, "NORMALIZEDms")
         // Normalize any numeric IDs that might be generated
         .replace(/id="[^"]*"/g, 'id="NORMALIZED"');
 
@@ -322,7 +323,10 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
 
       // Validate test structure: testcases should have meaningful names from test blocks
       const testcasePattern = /<testcase name="([^"]+)"/g;
-      const testcaseNames = Array.from(junitXml.matchAll(testcasePattern), m => m[1]);
+      const testcaseNames = Array.from(
+        junitXml.matchAll(testcasePattern),
+        (m) => m[1]
+      );
 
       // Ensure we have testcases
       expect(testcaseNames.length).toBeGreaterThan(0);
@@ -333,15 +337,13 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
         expect(name).not.toBe("root");
       }
 
-        // Snapshot test with normalized values
-        // This will catch any future regression where assertions leak to root level
-        expect(junitXml).toMatchSnapshot();
+      // Snapshot test with normalized values
+      // This will catch any future regression where assertions leak to root level
+      expect(junitXml).toMatchSnapshot();
 
-        // Clean up
-        fs.unlinkSync(junitPath);
-      },
-      150000 // 150 second timeout for comprehensive collection test
-    );
+      // Clean up
+      fs.unlinkSync(junitPath);
+    }, 150000); // 150 second timeout for comprehensive collection test
   });
 
   describe("Test `hopp test <file_path_or_id> --env <file_path_or_id>` command:", () => {
@@ -844,7 +846,7 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
       );
     });
 
-    test("Generates a JUnit report at the default path", async () => {
+    test.only("Generates a JUnit report at the default path", async () => {
       const exportPath = "hopp-junit-report.xml";
 
       const COLL_PATH = getTestJsonFilePath(
@@ -873,7 +875,7 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
       expect(replaceDynamicValuesInStr(fileContents)).toMatchSnapshot();
     });
 
-    test("Generates a JUnit report at the specified path", async () => {
+    test.only("Generates a JUnit report at the specified path", async () => {
       const exportPath = "outer-dir/inner-dir/report.xml";
 
       const COLL_PATH = getTestJsonFilePath(
