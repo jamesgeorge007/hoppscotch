@@ -3431,6 +3431,7 @@
           },
           jsonSchema: (schema) => {
             // Manual jsonSchema validation with Postman-compatible messages
+            // Delegates to external AJV-based validator provided via inputs.validateJsonSchema
             // This matches Postman's behavior: record assertion but don't throw
             const jsonData = globalThis.hopp.response.body.asJSON()
 

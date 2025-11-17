@@ -17,7 +17,7 @@ export const createHoppFetchHook = (): HoppFetchHook => {
       method: (init?.method || "GET") as Method,
       headers: init?.headers ? headersToObject(init.headers) : {},
       data: init?.body,
-      responseType: "arraybuffer", // For binary safety
+      responseType: "arraybuffer", // For binary safety: Prevents corruption from string encoding/decoding
       validateStatus: () => true, // Don't throw on any status code
     }
 

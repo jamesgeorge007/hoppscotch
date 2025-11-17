@@ -157,8 +157,9 @@
       clear: (domain) => inputs.cookieClear(domain),
     },
     // Expose fetch as hopp.fetch() for explicit access
-    // Note: This exposes the fetch implementation provided by the host environment via hoppFetchHook,
-    // not the native browser fetch. This allows requests to respect interceptor settings.
+    // Note: This exposes the fetch implementation provided by the host environment via hoppFetchHook
+    // (injected in cage.ts during sandbox initialization), not the native browser fetch.
+    // This allows requests to respect interceptor settings.
     fetch: typeof fetch !== "undefined" ? fetch : undefined,
   }
 
