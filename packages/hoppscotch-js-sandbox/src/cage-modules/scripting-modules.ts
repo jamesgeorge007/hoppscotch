@@ -250,7 +250,7 @@ const createScriptingInputsObj = (
         function pushExpectResult(status: unknown, message: unknown) {
           if (currentExecutingTest) {
             currentExecutingTest.expectResults.push({
-              status: status as string,
+              status: status as "pass" | "fail" | "error",
               message: message as string,
             })
           }
@@ -454,47 +454,54 @@ const createScriptingModule = (
 
     // IMPORTANT: Wait for test execution chain BEFORE resolving keepAlive
     // This ensures all tests complete before results are captured
-    ctx.afterScriptExecutionHooks.push(() => {
-      setTimeout(async () => {
-        try {
-          // If we have a test execution chain, await it
-          if (testExecutionChainPromise) {
-            const resolvedPromise = ctx.vm.resolvePromise(
-              testExecutionChainPromise,
-            )
-            testExecutionChainPromise.dispose()
-
-            const awaitResult = await resolvedPromise
-            if (awaitResult.error) {
-              const errorDump = ctx.vm.dump(awaitResult.error)
-              awaitResult.error.dispose()
-              // CRITICAL FIX: Propagate test execution errors
-              // These errors represent actual failures in test scripts (e.g., syntax errors,
-              // undefined variable access) and must cause the entire script to fail
-              const error = new Error(
-                typeof errorDump === "string"
-                  ? errorDump
-                  : JSON.stringify(errorDump),
-              )
-              rejectKeepAlive?.(error)
-              return
-            } else {
-              awaitResult.value?.dispose()
-            }
-          }
-
-          // Also wait for any old-style test promises (for backwards compatibility)
-          if (testPromises.length > 0) {
-            await Promise.allSettled(testPromises)
-          }
-
-          resolveKeepAlive?.()
-        } catch (error) {
-          rejectKeepAlive?.(
-            error instanceof Error ? error : new Error(String(error)),
+    //
+    // CRITICAL FIX for pm.sendRequest(): Remove setTimeout to execute synchronously
+    // The setTimeout was causing the hook to run in the next event loop tick,
+    // AFTER the cage context started cleanup. This caused QuickJS handles in
+    // pm.sendRequest() callbacks to become invalid before they could execute.
+    //
+    // By removing setTimeout, the test execution chain is awaited IMMEDIATELY
+    // while the QuickJS context is still fully active, allowing callbacks to
+    // access QuickJS handles (pm.expect, etc.) without errors.
+    ctx.afterScriptExecutionHooks.push(async () => {
+      try {
+        // If we have a test execution chain, await it
+        if (testExecutionChainPromise) {
+          const resolvedPromise = ctx.vm.resolvePromise(
+            testExecutionChainPromise,
           )
+          testExecutionChainPromise.dispose()
+
+          const awaitResult = await resolvedPromise
+          if (awaitResult.error) {
+            const errorDump = ctx.vm.dump(awaitResult.error)
+            awaitResult.error.dispose()
+            // CRITICAL FIX: Propagate test execution errors
+            // These errors represent actual failures in test scripts (e.g., syntax errors,
+            // undefined variable access) and must cause the entire script to fail
+            const error = new Error(
+              typeof errorDump === "string"
+                ? errorDump
+                : JSON.stringify(errorDump),
+            )
+            rejectKeepAlive?.(error)
+            return
+          } else {
+            awaitResult.value?.dispose()
+          }
         }
-      }, 0)
+
+        // Also wait for any old-style test promises (for backwards compatibility)
+        if (testPromises.length > 0) {
+          await Promise.allSettled(testPromises)
+        }
+
+        resolveKeepAlive?.()
+      } catch (error) {
+        rejectKeepAlive?.(
+          error instanceof Error ? error : new Error(String(error)),
+        )
+      }
     })
   })
 }

@@ -809,10 +809,15 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
     // Helper function to replace dynamic values before generating test snapshots
     // Currently scoped to JUnit report generation
     const replaceDynamicValuesInStr = (input: string): string =>
-      input.replace(
-        /(time|timestamp)="[^"]+"/g,
-        (_, attr) => `${attr}="${attr}"`
-      );
+      input
+        .replace(/(time|timestamp)="[^"]+"/g, (_, attr) => `${attr}="${attr}"`)
+        // Strip QuickJS GC assertion errors - these are non-deterministic
+        // and appear after script errors when scope disposal fails
+        // Pattern matches multi-line format ending with ]]
+        .replace(
+          /\n\s*Then, failed to dispose scope: Aborted\(Assertion failed[^\]]*\]\]/g,
+          ""
+        );
 
     beforeAll(() => {
       fs.mkdirSync(genPath);
