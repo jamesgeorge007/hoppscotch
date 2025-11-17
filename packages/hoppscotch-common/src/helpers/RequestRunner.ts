@@ -788,6 +788,7 @@ export async function runTestRunnerRequest(
 
   // Wait for browser to paint the loading state (Send -> Cancel button)
   // IMPORTANT: This is needed for ALL requests to ensure immediate visual feedback
+  // Performance impact: Adds ~32ms latency (2 animation frames) but provides critical UX improvement
   await waitForBrowserPaint()
 
   return delegatePreRequestScriptRunner(

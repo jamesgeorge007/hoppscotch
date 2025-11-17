@@ -851,7 +851,7 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
       );
     });
 
-    test.only("Generates a JUnit report at the default path", async () => {
+    test("Generates a JUnit report at the default path", async () => {
       const exportPath = "hopp-junit-report.xml";
 
       const COLL_PATH = getTestJsonFilePath(
@@ -880,7 +880,7 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
       expect(replaceDynamicValuesInStr(fileContents)).toMatchSnapshot();
     });
 
-    test.only("Generates a JUnit report at the specified path", async () => {
+    test("Generates a JUnit report at the specified path", async () => {
       const exportPath = "outer-dir/inner-dir/report.xml";
 
       const COLL_PATH = getTestJsonFilePath(

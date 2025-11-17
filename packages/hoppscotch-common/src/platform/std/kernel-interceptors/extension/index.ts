@@ -319,8 +319,8 @@ export class ExtensionKernelInterceptorService
       }
 
       // Always use wantsBinary: true - required for correct data handling
-      // Note: Extension may log TypeError in console, but this doesn't affect functionality
-      // The error occurs in the extension's internal code after successfully returning data
+      // Note: Extension may log TypeError in console due to internal ArrayBuffer conversion,
+      // but this is expected behavior and doesn't affect response data integrity
       const extensionResponse =
         await window.__POSTWOMAN_EXTENSION_HOOK__.sendRequest({
           url: request.url,
