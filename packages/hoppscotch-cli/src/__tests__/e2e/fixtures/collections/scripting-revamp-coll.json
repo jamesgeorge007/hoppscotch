@@ -1085,6 +1085,27 @@
     },
     {
       "v": "16",
+      "id": "pm-sendrequest-rfc-object-headers",
+      "name": "pm.sendRequest() - RFC pattern with object headers",
+      "method": "GET",
+      "endpoint": "https://echo.hoppscotch.io",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "pm.environment.set('token', 'test-bearer-token-12345')\n",
+      "testScript": "pm.test('pm.sendRequest() should support RFC pattern with object headers', () => {\n  const requestObject = {\n    url: 'https://echo.hoppscotch.io/post',\n    method: 'POST',\n    header: {\n      'Content-Type': 'application/json',\n      'Authorization': 'Bearer ' + pm.environment.get('token')\n    },\n    body: {\n      mode: 'raw',\n      raw: JSON.stringify({ name: 'John Doe', action: 'create' })\n    }\n  }\n\n  pm.sendRequest(requestObject, (error, response) => {\n    pm.expect(error).to.be.null\n    pm.expect(response.code).to.equal(200)\n    pm.expect(response.body).to.be.a('string')\n    \n    // Parse and validate response\n    const jsonResponse = response.json()\n    pm.expect(jsonResponse).to.be.an('object')\n    pm.expect(jsonResponse.data).to.be.a('string')\n    \n    // Store user ID from response\n    pm.environment.set('userId', 'user_' + response.code)\n  })\n})\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {}
+    },
+    {
+      "v": "16",
       "id": "fetch-pm-interop",
       "name": "hopp.fetch() and pm.sendRequest() - Interoperability",
       "method": "GET",

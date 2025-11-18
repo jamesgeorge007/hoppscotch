@@ -1249,13 +1249,24 @@
       } else {
         // Object format: { url, method, header, body }
         url = urlOrRequest.url
+
+        // Parse headers - support both array [{key, value}] and object {key: value} formats
+        let headers = {}
+        if (urlOrRequest.header) {
+          if (Array.isArray(urlOrRequest.header)) {
+            // Array format: [{ key: 'Content-Type', value: 'application/json' }]
+            headers = Object.fromEntries(
+              urlOrRequest.header.map((h) => [h.key, h.value]),
+            )
+          } else if (typeof urlOrRequest.header === "object") {
+            // Plain object format: { 'Content-Type': 'application/json' }
+            headers = urlOrRequest.header
+          }
+        }
+
         options = {
           method: urlOrRequest.method || "GET",
-          headers: urlOrRequest.header
-            ? Object.fromEntries(
-                urlOrRequest.header.map((h) => [h.key, h.value]),
-              )
-            : {},
+          headers,
         }
 
         // Handle body based on mode

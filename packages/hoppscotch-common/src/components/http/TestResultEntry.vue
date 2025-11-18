@@ -113,14 +113,13 @@ const shouldHideResultReport = computed(() => {
  * but allows rendering of test groups that contain nested tests
  */
 const hasResults = computed(() => {
-  const hasExpectResults = 
+  const hasExpectResults =
     props.testResults.expectResults &&
     props.testResults.expectResults.length > 0
-  
+
   const hasNestedTests =
-    props.testResults.tests &&
-    props.testResults.tests.length > 0
-  
+    props.testResults.tests && props.testResults.tests.length > 0
+
   return hasExpectResults || hasNestedTests
 })
 </script>

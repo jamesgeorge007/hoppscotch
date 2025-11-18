@@ -113,7 +113,7 @@ describe("pm.sendRequest()", () => {
   })
 
   describe("Request object format", () => {
-    test("pm.sendRequest accepts request object format with POST", async () => {
+    test("pm.sendRequest accepts request object format with POST (array headers)", async () => {
       const mockFetch: HoppFetchHook = vi.fn(async () => {
         return new Response(JSON.stringify({ created: true, id: 123 }), {
           status: 201,
@@ -165,6 +165,69 @@ describe("pm.sendRequest()", () => {
                 },
                 { status: "pass", message: "Expected 'true' to be 'true'" },
                 { status: "pass", message: "Expected '123' to be '123'" },
+              ],
+            }),
+          ],
+        }),
+      ])
+    })
+
+    test("pm.sendRequest accepts request object format with object headers (RFC pattern)", async () => {
+      const mockFetch: HoppFetchHook = vi.fn(async (_url, options) => {
+        // Verify headers were properly passed as object
+        expect(options?.headers).toEqual({
+          "Content-Type": "application/json",
+          Authorization: "Bearer test-token",
+        })
+
+        return new Response(JSON.stringify({ success: true, userId: 456 }), {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+        })
+      })
+
+      await expect(
+        runTest(
+          `
+            pm.test("RFC pattern - object headers", () => {
+              const requestObject = {
+                url: 'https://api.example.com/users',
+                method: 'POST',
+                header: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer test-token'
+                },
+                body: {
+                  mode: 'raw',
+                  raw: JSON.stringify({ name: 'John Doe' })
+                }
+              }
+
+              pm.sendRequest(requestObject, (error, response) => {
+                pm.expect(error).toBe(null)
+                pm.expect(response.code).toBe(200)
+                pm.expect(response.json().success).toBe(true)
+                pm.expect(response.json().userId).toBe(456)
+              })
+            })
+          `,
+          { global: [], selected: [] },
+          undefined,
+          undefined,
+          mockFetch,
+        )(),
+      ).resolves.toEqualRight([
+        expect.objectContaining({
+          descriptor: "root",
+          children: [
+            expect.objectContaining({
+              descriptor: "RFC pattern - object headers",
+              expectResults: [
+                { status: "pass", message: "Expected 'null' to be 'null'" },
+                { status: "pass", message: "Expected '200' to be '200'" },
+                { status: "pass", message: "Expected 'true' to be 'true'" },
+                { status: "pass", message: "Expected '456' to be '456'" },
               ],
             }),
           ],
