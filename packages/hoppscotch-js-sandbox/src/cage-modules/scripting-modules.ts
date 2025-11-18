@@ -8,7 +8,7 @@ import {
 import { cloneDeep } from "lodash-es"
 
 import { getStatusReason } from "~/constants/http-status-codes"
-import { TestDescriptor, TestResponse, TestResult } from "~/types"
+import { BaseInputs, TestDescriptor, TestResponse, TestResult } from "~/types"
 import postRequestBootstrapCode from "../bootstrap-code/post-request?raw"
 import preRequestBootstrapCode from "../bootstrap-code/pre-request?raw"
 import { createBaseInputs } from "./utils/base-inputs"
@@ -58,6 +58,29 @@ type ModuleConfig = PreRequestModuleConfig | PostRequestModuleConfig
 type HookRegistrationAdditionalResults = {
   getUpdatedRequest: () => HoppRESTRequest
 }
+
+/**
+ * Type for pre-request script inputs (includes BaseInputs + request setters)
+ */
+type PreRequestInputs = BaseInputs & ReturnType<typeof createRequestSetterMethods>["methods"]
+
+/**
+ * Type for post-request script inputs (includes BaseInputs + test/expectation methods)
+ */
+type PostRequestInputs = BaseInputs & 
+  ReturnType<typeof createExpectationMethods> & 
+  ReturnType<typeof createChaiMethods> & {
+    preTest: ReturnType<typeof defineSandboxFn>
+    postTest: ReturnType<typeof defineSandboxFn>
+    setCurrentTest: ReturnType<typeof defineSandboxFn>
+    clearCurrentTest: ReturnType<typeof defineSandboxFn>
+    getCurrentTest: ReturnType<typeof defineSandboxFn>
+    pushExpectResult: ReturnType<typeof defineSandboxFn>
+    getResponse: ReturnType<typeof defineSandboxFn>
+    responseReason: ReturnType<typeof defineSandboxFn>
+    responseDataURI: ReturnType<typeof defineSandboxFn>
+    responseJsonp: ReturnType<typeof defineSandboxFn>
+  }
 
 /**
  * Helper function to register after-script execution hooks with proper typing
@@ -116,13 +139,26 @@ function registerAfterScriptExecutionHook(
 
 /**
  * Creates input object for scripting modules with appropriate methods based on type
+ * Overloads ensure proper return types for pre vs post request contexts
  */
-const createScriptingInputsObj = (
+function createScriptingInputsObj(
+  ctx: CageModuleCtx,
+  type: "pre",
+  config: PreRequestModuleConfig,
+  captureGetUpdatedRequest?: (fn: () => HoppRESTRequest) => void,
+): PreRequestInputs
+function createScriptingInputsObj(
+  ctx: CageModuleCtx,
+  type: "post",
+  config: PostRequestModuleConfig,
+  captureGetUpdatedRequest?: (fn: () => HoppRESTRequest) => void,
+): PostRequestInputs
+function createScriptingInputsObj(
   ctx: CageModuleCtx,
   type: ModuleType,
   config: ModuleConfig,
   captureGetUpdatedRequest?: (fn: () => HoppRESTRequest) => void,
-) => {
+): PreRequestInputs | PostRequestInputs {
   if (type === "pre") {
     const preConfig = config as PreRequestModuleConfig
 
@@ -151,7 +187,7 @@ const createScriptingInputsObj = (
     return {
       ...baseInputs,
       ...requestSetterMethods,
-    }
+    } as PreRequestInputs
   }
 
   // Create base inputs shared across all namespaces (post-request path)
@@ -345,10 +381,11 @@ const createScriptingInputsObj = (
           return JSON.parse(text)
         },
       ),
-    }
+    } as PostRequestInputs
   }
 
-  return baseInputs
+  // This should never be reached due to the type guards above
+  throw new Error(`Invalid module type: ${type}`)
 }
 
 /**
@@ -389,17 +426,20 @@ const createScriptingModule = (
 
     // Capture getUpdatedRequest via callback for pre-request scripts
     let getUpdatedRequest: (() => HoppRESTRequest) | undefined = undefined
-    const inputsObj = createScriptingInputsObj(ctx, type, config, (fn) => {
+    // Type assertion needed here because TypeScript can't narrow ModuleType to "pre" | "post"
+    // in this generic context. The function overloads ensure type safety at call sites.
+    const inputsObj = createScriptingInputsObj(ctx, type as "pre", config as PreRequestModuleConfig, (fn) => {
       getUpdatedRequest = fn
-    })
+    }) as PreRequestInputs | PostRequestInputs
 
     // CRITICAL FIX: Set up the capture function before script runs
     // This allows the caller to capture results AFTER runCode() completes
     if (captureHook && type === "pre") {
       const preConfig = config as PreRequestModuleConfig
+      const preInputs = inputsObj as PreRequestInputs
 
       captureHook.capture = () => {
-        const capturedEnvs = (inputsObj as any).getUpdatedEnvs?.() || {
+        const capturedEnvs = preInputs.getUpdatedEnvs() || {
           global: [],
           selected: [],
         }
@@ -412,23 +452,25 @@ const createScriptingModule = (
         preConfig.handleSandboxResults({
           envs: capturedEnvs,
           request: finalRequest,
-          cookies: (inputsObj as any).getUpdatedCookies?.() || null,
+          cookies: preInputs.getUpdatedCookies() || null,
         })
       }
     } else if (captureHook && type === "post") {
       const postConfig = config as PostRequestModuleConfig
+      const postInputs = inputsObj as PostRequestInputs
+      
       captureHook.capture = () => {
         // Deep clone testRunStack to prevent UI reactivity to async mutations
         // Without this, async test callbacks that complete after capture will mutate
         // the same object being displayed in the UI, causing flickering test results
 
         postConfig.handleSandboxResults({
-          envs: (inputsObj as any).getUpdatedEnvs?.() || {
+          envs: postInputs.getUpdatedEnvs() || {
             global: [],
             selected: [],
           },
           testRunStack: cloneDeep(postConfig.testRunStack),
-          cookies: (inputsObj as any).getUpdatedCookies?.() || null,
+          cookies: postInputs.getUpdatedCookies() || null,
         })
       }
     }
