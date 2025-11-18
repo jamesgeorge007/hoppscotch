@@ -12,6 +12,7 @@ import {
 import { HoppRESTResponse } from "@hoppscotch/common/helpers/types/HoppRESTResponse"
 import IconAlertTriangle from "~icons/lucide/alert-triangle"
 import { getI18n } from "@hoppscotch/common/modules/i18n"
+import { KernelInterceptorService } from "@hoppscotch/common/services/kernel-interceptor.service"
 
 /**
  * Inspector service that warns about security issues in scripts for self-hosted instances.
@@ -32,6 +33,7 @@ export class ScriptingSecurityInspectorService
 
   private readonly t = getI18n()
   private readonly inspection = this.bind(InspectionService)
+  private readonly kernelInterceptor = this.bind(KernelInterceptorService)
 
   override onServiceInit() {
     this.inspection.registerInspector(this)
@@ -43,16 +45,26 @@ export class ScriptingSecurityInspectorService
    * 1. Relative URLs that would resolve to same origin
    * 2. Explicit references to window.location.origin
    * 3. Absolute URLs matching the current origin
+   *
+   * Returns the detected API name if found, or null if no same-origin fetch detected.
    */
-  private scriptContainsSameOriginFetch(script: string): boolean {
+  private scriptContainsSameOriginFetch(script: string): string | null {
     if (!script || script.trim() === "") {
-      return false
+      return null
     }
 
-    // Check if script contains fetch() calls
-    const hasFetchCalls = /(?:hopp\.)?fetch\s*\(/i.test(script)
-    if (!hasFetchCalls) {
-      return false
+    // Detect which API is being used
+    let detectedAPI: string | null = null
+    if (/pm\.sendRequest\s*\(/i.test(script)) {
+      detectedAPI = "pm.sendRequest()"
+    } else if (/hopp\.fetch\s*\(/i.test(script)) {
+      detectedAPI = "hopp.fetch()"
+    } else if (/(?<!hopp\.)fetch\s*\(/i.test(script)) {
+      detectedAPI = "fetch()"
+    }
+
+    if (!detectedAPI) {
+      return null
     }
 
     const currentOrigin = window.location.origin
@@ -60,23 +72,24 @@ export class ScriptingSecurityInspectorService
     // Check for patterns that indicate same-origin requests:
     // 1. Relative URLs: fetch('/api/...') or fetch('./api/...') or fetch('../api/...')
     const relativeUrlPatterns = [
-      /fetch\s*\(\s*['"`]\/[^/]/i, // Starts with single slash: '/api'
-      /fetch\s*\(\s*['"`]\.\//i, // Starts with './'
-      /fetch\s*\(\s*['"`]\.\.\//i, // Starts with '../'
+      /(?:fetch|sendRequest)\s*\(\s*['"`]\/[^/]/i, // Starts with single slash: '/api'
+      /(?:fetch|sendRequest)\s*\(\s*['"`]\.\//i, // Starts with './'
+      /(?:fetch|sendRequest)\s*\(\s*['"`]\.\.\//i, // Starts with '../'
     ]
 
     if (relativeUrlPatterns.some((pattern) => pattern.test(script))) {
-      return true
+      return detectedAPI
     }
 
     // 2. Check for explicit window.location.origin usage
     if (/(?:window\.)?location\.(?:origin|href|hostname)/i.test(script)) {
-      return true
+      return detectedAPI
     }
 
     // 3. Check for absolute URLs that match the current origin
-    // Extract all fetch() call arguments that look like URLs
-    const fetchUrlPattern = /fetch\s*\(\s*['"`](https?:\/\/[^'"`]+)['"`]/gi
+    // Extract all fetch()/sendRequest() call arguments that look like URLs
+    const fetchUrlPattern =
+      /(?:fetch|sendRequest)\s*\(\s*['"`](https?:\/\/[^'"`]+)['"`]/gi
     const matches = script.matchAll(fetchUrlPattern)
 
     for (const match of matches) {
@@ -84,7 +97,7 @@ export class ScriptingSecurityInspectorService
       try {
         const urlObj = new URL(url)
         if (urlObj.origin === currentOrigin) {
-          return true
+          return detectedAPI
         }
       } catch {
         // Invalid URL, skip
@@ -92,7 +105,7 @@ export class ScriptingSecurityInspectorService
       }
     }
 
-    return false
+    return null
   }
 
   /**
@@ -107,6 +120,12 @@ export class ScriptingSecurityInspectorService
     return computed(() => {
       const results: InspectorResult[] = []
 
+      // Only show warning when using browser interceptor
+      const currentInterceptorId = this.kernelInterceptor.getCurrentId()
+      if (currentInterceptorId !== "browser") {
+        return results
+      }
+
       if (!req.value) {
         return results
       }
@@ -119,21 +138,24 @@ export class ScriptingSecurityInspectorService
       const request = req.value as HoppRESTRequest
 
       // Check pre-request script
-      const hasPreRequestWarning = this.scriptContainsSameOriginFetch(
+      const preRequestAPI = this.scriptContainsSameOriginFetch(
         request.preRequestScript
       )
 
       // Check post-request script (testScript)
-      const hasPostRequestWarning = this.scriptContainsSameOriginFetch(
+      const postRequestAPI = this.scriptContainsSameOriginFetch(
         request.testScript
       )
 
-      if (hasPreRequestWarning || hasPostRequestWarning) {
-        const scriptType = hasPreRequestWarning
-          ? hasPostRequestWarning
+      if (preRequestAPI || postRequestAPI) {
+        const scriptType = preRequestAPI
+          ? postRequestAPI
             ? this.t("inspections.scripting_security.both_scripts")
             : this.t("inspections.scripting_security.pre_request")
           : this.t("inspections.scripting_security.post_request")
+
+        // Determine which API to mention in the warning
+        const apiUsed = preRequestAPI || postRequestAPI
 
         results.push({
           id: "same-origin-fetch-csrf",
@@ -142,7 +164,7 @@ export class ScriptingSecurityInspectorService
             type: "text",
             text: this.t(
               "inspections.scripting_security.same_origin_fetch_warning",
-              { scriptType }
+              { scriptType, apiUsed }
             ),
           },
           severity: 3, // High severity (red)
