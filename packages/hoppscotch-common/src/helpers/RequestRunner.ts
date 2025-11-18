@@ -366,9 +366,9 @@ const delegatePreRequestScriptRunner = (
 ): Promise<E.Either<string, SandboxPreRequestResult>> => {
   const { preRequestScript } = request
 
+  const cleanScript = stripModulePrefix(preRequestScript)
   if (!EXPERIMENTAL_SCRIPTING_SANDBOX.value) {
     // Strip `export {};\n` before executing in legacy sandbox to prevent syntax errors
-    const cleanScript = stripModulePrefix(preRequestScript)
 
     return runPreRequestScript(cleanScript, {
       envs,
@@ -379,7 +379,7 @@ const delegatePreRequestScriptRunner = (
   // Experimental sandbox enabled - use faraday-cage with hook
   const hoppFetchHook = createHoppFetchHook(kernelInterceptorService)
 
-  return runPreRequestScript(preRequestScript, {
+  return runPreRequestScript(cleanScript, {
     envs,
     request,
     cookies,
@@ -396,9 +396,9 @@ const runPostRequestScript = (
 ): Promise<E.Either<string, SandboxTestResult>> => {
   const { testScript } = request
 
+  const cleanScript = stripModulePrefix(testScript)
   if (!EXPERIMENTAL_SCRIPTING_SANDBOX.value) {
     // Strip `export {};\n` before executing in legacy sandbox to prevent syntax errors
-    const cleanScript = stripModulePrefix(testScript)
 
     return runTestScript(cleanScript, {
       envs,
@@ -410,7 +410,7 @@ const runPostRequestScript = (
   // Experimental sandbox enabled - use faraday-cage with hook
   const hoppFetchHook = createHoppFetchHook(kernelInterceptorService)
 
-  return runTestScript(testScript, {
+  return runTestScript(cleanScript, {
     envs,
     request,
     response,

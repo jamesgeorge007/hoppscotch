@@ -123,7 +123,9 @@
         >
           <HttpTestResultEntry
             v-for="(result, index) in testResults.tests.filter(
-              (test) => test.expectResults && test.expectResults.length > 0
+              (test) =>
+                (test.expectResults && test.expectResults.length > 0) ||
+                (test.tests && test.tests.length > 0)
             )"
             :key="`result-${index}`"
             :test-results="result"

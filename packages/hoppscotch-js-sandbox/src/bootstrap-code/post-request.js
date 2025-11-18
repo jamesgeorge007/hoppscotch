@@ -2161,59 +2161,27 @@
       return expectation
     },
     test: (descriptor, testFn) => {
-      // Best of both worlds: Execute test IMMEDIATELY (catches syntax errors)
-      // but handle async results via promise chain
-
-      // Create test descriptor
+      // Register the test immediately (preserves definition order)
       inputs.preTest(descriptor)
 
-      // Set current test context so expectations get recorded to this test
-      inputs.setCurrentTest(descriptor)
-
-      // CRITICAL FIX for pm.sendRequest() callback tracking
-      // Capture the current test execution chain state BEFORE calling testFn()
-      // If testFn() calls pm.sendRequest(), it will add promises to the chain
-      // We need to detect this and wait for those promises even if testFn() returns undefined
+      // Capture chain state BEFORE executing testFn() to detect pm.sendRequest() usage
       const chainBeforeTest = globalThis.__testExecutionChain
 
-      // CRITICAL: Call testFn() SYNCHRONOUSLY during script evaluation
-      // This ensures syntax errors and typos throw immediately and fail cage.runCode()
-      let testResult
-      try {
-        testResult = testFn()
-      } catch (error) {
-        // Synchronous errors (syntax, typos) - throw immediately to fail script
-        inputs.clearCurrentTest()
-        throw error
-      }
-
-      // Check if the test execution chain was modified by testFn()
-      // This happens when pm.sendRequest() is called inside the test
-      const chainWasModified =
-        globalThis.__testExecutionChain !== chainBeforeTest
-
-      // If the test is async (returns a promise), chain it for sequential execution
-      if (testResult && typeof testResult.then === "function") {
-        globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
-          async () => {
-            // Test context already set above, just await the async work
-            await testResult
+      // Add testFn execution to the chain to ensure correct context
+      globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
+        async () => {
+          inputs.setCurrentTest(descriptor)
+          try {
+            const testResult = testFn()
+            // If test returns a promise, await it
+            if (testResult && typeof testResult.then === "function") {
+              await testResult
+            }
+          } finally {
             inputs.clearCurrentTest()
-          },
-        )
-      } else if (chainWasModified) {
-        // Test didn't return a promise, but pm.sendRequest() was called
-        // The chain has been extended with pm.sendRequest() promises
-        // We need to wait for those before clearing the test context
-        globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
-          () => {
-            inputs.clearCurrentTest()
-          },
-        )
-      } else {
-        // Synchronous test completed successfully
-        inputs.clearCurrentTest()
-      }
+          }
+        },
+      )
     },
     response: pwResponse,
   }
@@ -2438,59 +2406,27 @@
       },
     ),
     test: (descriptor, testFn) => {
-      // Best of both worlds: Execute test IMMEDIATELY (catches syntax errors)
-      // but handle async results via promise chain
-
-      // Create test descriptor
+      // Register test immediately in definition order
       inputs.preTest(descriptor)
 
-      // Set current test context so expectations get recorded to this test
-      inputs.setCurrentTest(descriptor)
-
-      // CRITICAL FIX for pm.sendRequest() callback tracking
-      // Capture the current test execution chain state BEFORE calling testFn()
-      // If testFn() calls pm.sendRequest(), it will add promises to the chain
-      // We need to detect this and wait for those promises even if testFn() returns undefined
+      // Capture chain state BEFORE executing testFn() to detect pm.sendRequest() usage
       const chainBeforeTest = globalThis.__testExecutionChain
 
-      // CRITICAL: Call testFn() SYNCHRONOUSLY during script evaluation
-      // This ensures syntax errors and typos throw immediately and fail cage.runCode()
-      let testResult
-      try {
-        testResult = testFn()
-      } catch (error) {
-        // Synchronous errors (syntax, typos) - throw immediately to fail script
-        inputs.clearCurrentTest()
-        throw error
-      }
-
-      // Check if the test execution chain was modified by testFn()
-      // This happens when pm.sendRequest() is called inside the test
-      const chainWasModified =
-        globalThis.__testExecutionChain !== chainBeforeTest
-
-      // If the test is async (returns a promise), chain it for sequential execution
-      if (testResult && typeof testResult.then === "function") {
-        globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
-          async () => {
-            // Test context already set above, just await the async work
-            await testResult
+      // Add testFn execution to the chain to ensure correct context
+      globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
+        async () => {
+          inputs.setCurrentTest(descriptor)
+          try {
+            const testResult = testFn()
+            // If test returns a promise, await it
+            if (testResult && typeof testResult.then === "function") {
+              await testResult
+            }
+          } finally {
             inputs.clearCurrentTest()
-          },
-        )
-      } else if (chainWasModified) {
-        // Test didn't return a promise, but pm.sendRequest() was called
-        // The chain has been extended with pm.sendRequest() promises
-        // We need to wait for those before clearing the test context
-        globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
-          () => {
-            inputs.clearCurrentTest()
-          },
-        )
-      } else {
-        // Synchronous test completed successfully
-        inputs.clearCurrentTest()
-      }
+          }
+        },
+      )
     },
     response: hoppResponse,
   }

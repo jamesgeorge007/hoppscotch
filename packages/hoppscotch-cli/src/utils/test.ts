@@ -105,10 +105,11 @@ export const testDescriptorParser = (
   pipe(
     /**
      * Generate single TestReport from given testDescriptor.
+     * Skip "root" descriptor to avoid showing synthetic top-level test.
      */
     testDescriptor,
     ({ expectResults, descriptor }) =>
-      A.isNonEmpty(expectResults)
+      A.isNonEmpty(expectResults) && descriptor !== "root"
         ? pipe(
             expectResults,
             A.reduce({ failed: 0, passed: 0 }, (prev, { status }) =>

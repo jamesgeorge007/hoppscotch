@@ -660,6 +660,7 @@ export const createExpectation = (
 
   // Helper to get current test descriptor (prefers context over stack)
   const getCurrentTest = (): TestDescriptor | null => {
+    // Prefer explicit test context, but fallback to stack for top-level expectations
     return (
       getCurrentTestContext?.() ||
       (currTestStack.length > 0

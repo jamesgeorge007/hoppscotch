@@ -20,6 +20,7 @@ export const createChaiMethods: (
    * Prefers test context over stack position
    */
   const getCurrentTest = (): TestDescriptor | null => {
+    // Prefer explicit test context, but fallback to stack for top-level expectations
     return (
       getCurrentTestContext?.() ||
       (testStack.length > 0 ? testStack[testStack.length - 1] : null)
