@@ -832,7 +832,7 @@ describe("hopp.fetch() and global fetch()", () => {
       expect(result).toBeRight()
       expect(mockFetch).toHaveBeenCalledWith(
         "https://api.example.com/data",
-        expect.objectContaining({})
+        expect.objectContaining({}),
       )
     })
 

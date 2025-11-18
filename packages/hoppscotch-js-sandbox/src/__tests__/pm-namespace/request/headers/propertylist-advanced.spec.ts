@@ -35,8 +35,8 @@ describe("pm.request.headers.find()", () => {
         console.log("Header key:", result.key)
         console.log("Header value:", result.value)
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -54,7 +54,7 @@ describe("pm.request.headers.find()", () => {
             args: ["Header value:", "Bearer token123"],
           }),
         ]),
-      })
+      }),
     )
   })
 
@@ -67,8 +67,8 @@ describe("pm.request.headers.find()", () => {
         console.log("Found by string:", result)
         console.log("Value:", result.value)
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -83,7 +83,7 @@ describe("pm.request.headers.find()", () => {
           }),
           expect.objectContaining({ args: ["Value:", "application/json"] }),
         ]),
-      })
+      }),
     )
   })
 
@@ -96,15 +96,15 @@ describe("pm.request.headers.find()", () => {
         console.log("Result:", result)
         console.log("Is null:", result === null)
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Result:", null] }),
           expect.objectContaining({ args: ["Is null:", true] }),
         ]),
-      })
+      }),
     )
   })
 })
@@ -122,8 +122,8 @@ describe("pm.request.headers.indexOf()", () => {
         console.log("Index of AUTHORIZATION:", idx2)
         console.log("Index of X-Custom-Header:", idx3)
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -131,7 +131,7 @@ describe("pm.request.headers.indexOf()", () => {
           expect.objectContaining({ args: ["Index of AUTHORIZATION:", 1] }),
           expect.objectContaining({ args: ["Index of X-Custom-Header:", 2] }),
         ]),
-      })
+      }),
     )
   })
 
@@ -143,14 +143,14 @@ describe("pm.request.headers.indexOf()", () => {
 
         console.log("Index:", idx)
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Index:", 1] }),
         ]),
-      })
+      }),
     )
   })
 
@@ -163,15 +163,15 @@ describe("pm.request.headers.indexOf()", () => {
         console.log("Index:", idx)
         console.log("Is -1:", idx === -1)
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Index:", -1] }),
           expect.objectContaining({ args: ["Is -1:", true] }),
         ]),
-      })
+      }),
     )
   })
 })
@@ -186,8 +186,8 @@ describe("pm.request.headers.insert()", () => {
         const allHeaders = pm.request.headers.map((h) => h.key)
         console.log("All headers:", allHeaders)
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -198,7 +198,7 @@ describe("pm.request.headers.insert()", () => {
             ],
           }),
         ]),
-      })
+      }),
     )
   })
 
@@ -211,8 +211,8 @@ describe("pm.request.headers.insert()", () => {
         const allHeaders = pm.request.headers.map((h) => h.key)
         console.log("All headers:", allHeaders)
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -228,7 +228,7 @@ describe("pm.request.headers.insert()", () => {
             ],
           }),
         ]),
-      })
+      }),
     )
   })
 
@@ -241,8 +241,8 @@ describe("pm.request.headers.insert()", () => {
         const allHeaders = pm.request.headers.map((h) => h.key)
         console.log("All headers:", allHeaders)
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -258,7 +258,7 @@ describe("pm.request.headers.insert()", () => {
             ],
           }),
         ]),
-      })
+      }),
     )
   })
 
@@ -270,10 +270,12 @@ describe("pm.request.headers.insert()", () => {
         request: baseRequest,
         cookies: null,
         experimentalScriptingSandbox: true,
-      }
+      },
     )
 
-    expect(result).toEqualLeft(expect.stringContaining("Header must have a 'key' property"))
+    expect(result).toEqualLeft(
+      expect.stringContaining("Header must have a 'key' property"),
+    )
   })
 })
 
@@ -290,8 +292,8 @@ describe("pm.request.headers.append()", () => {
         console.log("All headers:", allHeaders)
         console.log("Content-Type value:", contentType)
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -305,7 +307,7 @@ describe("pm.request.headers.append()", () => {
             args: ["Content-Type value:", "application/xml"],
           }),
         ]),
-      })
+      }),
     )
   })
 
@@ -318,8 +320,8 @@ describe("pm.request.headers.append()", () => {
         const allHeaders = pm.request.headers.map((h) => h.key)
         console.log("All headers:", allHeaders)
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -335,7 +337,7 @@ describe("pm.request.headers.append()", () => {
             ],
           }),
         ]),
-      })
+      }),
     )
   })
 
@@ -347,10 +349,12 @@ describe("pm.request.headers.append()", () => {
         request: baseRequest,
         cookies: null,
         experimentalScriptingSandbox: true,
-      }
+      },
     )
 
-    expect(result).toEqualLeft(expect.stringContaining("Header must have a 'key' property"))
+    expect(result).toEqualLeft(
+      expect.stringContaining("Header must have a 'key' property"),
+    )
   })
 })
 
@@ -370,8 +374,8 @@ describe("pm.request.headers.assimilate()", () => {
         console.log("X-API-Key:", allHeaders['X-API-Key'])
         console.log("Count:", pm.request.headers.count())
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -382,7 +386,7 @@ describe("pm.request.headers.assimilate()", () => {
           expect.objectContaining({ args: ["X-API-Key:", "key123"] }),
           expect.objectContaining({ args: ["Count:", 4] }),
         ]),
-      })
+      }),
     )
   })
 
@@ -398,8 +402,8 @@ describe("pm.request.headers.assimilate()", () => {
         const allHeaders = pm.request.headers.all()
         console.log("All headers:", allHeaders)
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -415,7 +419,7 @@ describe("pm.request.headers.assimilate()", () => {
             ],
           }),
         ]),
-      })
+      }),
     )
   })
 
@@ -439,8 +443,8 @@ describe("pm.request.headers.assimilate()", () => {
         console.log("Has Authorization:", pm.request.headers.has('Authorization'))
         console.log("Has X-Custom-Header:", pm.request.headers.has('X-Custom-Header'))
         `,
-        { envs, request: baseRequest }
-      )
+        { envs, request: baseRequest },
+      ),
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -459,7 +463,7 @@ describe("pm.request.headers.assimilate()", () => {
             args: ["Has X-Custom-Header:", false],
           }),
         ]),
-      })
+      }),
     )
   })
 
@@ -471,9 +475,11 @@ describe("pm.request.headers.assimilate()", () => {
         request: baseRequest,
         cookies: null,
         experimentalScriptingSandbox: true,
-      }
+      },
     )
 
-    expect(result).toEqualLeft(expect.stringContaining("Source must be an array or object"))
+    expect(result).toEqualLeft(
+      expect.stringContaining("Source must be an array or object"),
+    )
   })
 })
