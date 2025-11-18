@@ -41,8 +41,8 @@ describe("pm.request.url.getHost()", () => {
         console.log("Host type:", typeof host)
         console.log("Is string:", typeof host === 'string')
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -50,7 +50,7 @@ describe("pm.request.url.getHost()", () => {
           expect.objectContaining({ args: ["Host type:", "string"] }),
           expect.objectContaining({ args: ["Is string:", true] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -64,8 +64,8 @@ describe("pm.request.url.getHost()", () => {
 
         console.log("Updated host:", pm.request.url.getHost())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -76,7 +76,7 @@ describe("pm.request.url.getHost()", () => {
             args: ["Updated host:", "newapi.test.com"],
           }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -90,15 +90,15 @@ describe("pm.request.url.getPath()", () => {
         console.log("Path:", path)
         console.log("Starts with slash:", path.startsWith('/'))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Path:", "/v1/users/profile"] }),
           expect.objectContaining({ args: ["Starts with slash:", true] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -115,15 +115,15 @@ describe("pm.request.url.getPath()", () => {
         console.log("Path:", path)
         console.log("Is root:", path === '/')
         `,
-        { envs, request: requestWithoutPath },
-      ),
+        { envs, request: requestWithoutPath }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Path:", "/"] }),
           expect.objectContaining({ args: ["Is root:", true] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -137,8 +137,8 @@ describe("pm.request.url.getPath()", () => {
 
         console.log("Updated path:", pm.request.url.getPath())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -147,7 +147,7 @@ describe("pm.request.url.getPath()", () => {
           }),
           expect.objectContaining({ args: ["Updated path:", "/api/v2/posts"] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -162,8 +162,8 @@ describe("pm.request.url.getPathWithQuery()", () => {
         console.log("Includes path:", pathWithQuery.includes('/v1/users/profile'))
         console.log("Includes query:", pathWithQuery.includes('filter=active'))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -176,7 +176,7 @@ describe("pm.request.url.getPathWithQuery()", () => {
           expect.objectContaining({ args: ["Includes path:", true] }),
           expect.objectContaining({ args: ["Includes query:", true] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -194,15 +194,15 @@ describe("pm.request.url.getPathWithQuery()", () => {
         console.log("Path with query:", pathWithQuery)
         console.log("Has question mark:", pathWithQuery.includes('?'))
         `,
-        { envs, request: requestWithoutQuery },
-      ),
+        { envs, request: requestWithoutQuery }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Path with query:", "/users"] }),
           expect.objectContaining({ args: ["Has question mark:", false] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -217,8 +217,8 @@ describe("pm.request.url.getPathWithQuery()", () => {
         console.log("Updated:", pm.request.url.getPathWithQuery())
         console.log("Includes new param:", pm.request.url.getPathWithQuery().includes('page=5'))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -233,7 +233,7 @@ describe("pm.request.url.getPathWithQuery()", () => {
           }),
           expect.objectContaining({ args: ["Includes new param:", true] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -248,8 +248,8 @@ describe("pm.request.url.getQueryString()", () => {
         console.log("Starts with question mark:", queryString.startsWith('?'))
         console.log("Contains filter:", queryString.includes('filter=active'))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -261,7 +261,7 @@ describe("pm.request.url.getQueryString()", () => {
           }),
           expect.objectContaining({ args: ["Contains filter:", true] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -280,8 +280,8 @@ describe("pm.request.url.getQueryString()", () => {
         console.log("Is empty:", queryString === '')
         console.log("Length:", queryString.length)
         `,
-        { envs, request: requestWithoutQuery },
-      ),
+        { envs, request: requestWithoutQuery }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -289,7 +289,7 @@ describe("pm.request.url.getQueryString()", () => {
           expect.objectContaining({ args: ["Is empty:", true] }),
           expect.objectContaining({ args: ["Length:", 0] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -303,8 +303,8 @@ describe("pm.request.url.getRemote()", () => {
         console.log("Remote:", remote)
         console.log("Includes port:", remote.includes(':8080'))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -313,7 +313,7 @@ describe("pm.request.url.getRemote()", () => {
           }),
           expect.objectContaining({ args: ["Includes port:", true] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -330,15 +330,15 @@ describe("pm.request.url.getRemote()", () => {
         console.log("Remote:", remote)
         console.log("Has port in string:", remote.includes(':'))
         `,
-        { envs, request: requestWithStandardPort },
-      ),
+        { envs, request: requestWithStandardPort }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Remote:", "api.example.com"] }),
           expect.objectContaining({ args: ["Has port in string:", false] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -355,8 +355,8 @@ describe("pm.request.url.getRemote()", () => {
         console.log("Remote with forced port:", remote)
         console.log("Has port in string:", remote.includes(':443'))
         `,
-        { envs, request: requestWithStandardPort },
-      ),
+        { envs, request: requestWithStandardPort }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -365,7 +365,7 @@ describe("pm.request.url.getRemote()", () => {
           }),
           expect.objectContaining({ args: ["Has port in string:", true] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -385,8 +385,8 @@ describe("pm.request.url.update()", () => {
         console.log("Port:", pm.request.url.port)
         console.log("Path:", pm.request.url.getPath())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         updatedRequest: expect.objectContaining({
@@ -398,7 +398,7 @@ describe("pm.request.url.update()", () => {
           expect.objectContaining({ args: ["Port:", "3000"] }),
           expect.objectContaining({ args: ["Path:", "/v2/posts"] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -414,8 +414,8 @@ describe("pm.request.url.update()", () => {
 
         console.log("Updated URL:", pm.request.url.toString())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         updatedRequest: expect.objectContaining({
@@ -426,7 +426,7 @@ describe("pm.request.url.update()", () => {
             args: ["Updated URL:", "https://custom.api.com/endpoint"],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -457,8 +457,8 @@ describe("pm.request.url.addQueryParams()", () => {
         console.log("Updated params:", pm.request.url.query.all())
         console.log("URL:", pm.request.url.toString())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         updatedRequest: expect.objectContaining({
@@ -472,7 +472,7 @@ describe("pm.request.url.addQueryParams()", () => {
             ],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -487,8 +487,8 @@ describe("pm.request.url.addQueryParams()", () => {
 
         console.log("Params:", pm.request.url.query.all())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -499,7 +499,7 @@ describe("pm.request.url.addQueryParams()", () => {
             ],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -511,7 +511,7 @@ describe("pm.request.url.addQueryParams()", () => {
         request: baseRequest,
         cookies: null,
         experimentalScriptingSandbox: true,
-      },
+      }
     )
 
     expect(result).toEqualLeft(expect.stringContaining("requires an array"))
@@ -530,8 +530,8 @@ describe("pm.request.url.removeQueryParams()", () => {
         console.log("Updated params:", pm.request.url.query.all())
         console.log("URL:", pm.request.url.toString())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         updatedRequest: expect.objectContaining({
@@ -542,7 +542,7 @@ describe("pm.request.url.removeQueryParams()", () => {
             args: ["Updated params:", { sort: "name" }],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -557,8 +557,8 @@ describe("pm.request.url.removeQueryParams()", () => {
         console.log("Updated params:", pm.request.url.query.all())
         console.log("Params object is empty:", Object.keys(pm.request.url.query.all()).length === 0)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         updatedRequest: expect.objectContaining({
@@ -572,7 +572,7 @@ describe("pm.request.url.removeQueryParams()", () => {
             args: ["Params object is empty:", true],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -586,8 +586,8 @@ describe("pm.request.url.removeQueryParams()", () => {
 
         console.log("Updated params:", pm.request.url.query.all())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -598,7 +598,7 @@ describe("pm.request.url.removeQueryParams()", () => {
             args: ["Updated params:", { filter: "active", sort: "name" }],
           }),
         ]),
-      }),
+      })
     )
   })
 })

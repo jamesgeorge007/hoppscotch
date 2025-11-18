@@ -70,7 +70,7 @@
           inputs.envGetResolve(key, {
             fallbackToNull: true,
             source: "all",
-          }),
+          })
         )
       },
       getRaw: (key) => {
@@ -78,7 +78,7 @@
           inputs.envGet(key, {
             fallbackToNull: true,
             source: "all",
-          }),
+          })
         )
       },
       set: (key, value) => inputs.envSet(key, value),
@@ -95,7 +95,7 @@
             inputs.envGetResolve(key, {
               fallbackToNull: true,
               source: "active",
-            }),
+            })
           )
         },
         getRaw: (key) => {
@@ -103,7 +103,7 @@
             inputs.envGet(key, {
               fallbackToNull: true,
               source: "active",
-            }),
+            })
           )
         },
         set: (key, value) => inputs.envSet(key, value, { source: "active" }),
@@ -111,7 +111,7 @@
         reset: (key) => inputs.envReset(key, { source: "active" }),
         getInitialRaw: (key) => {
           return convertMarkerToValue(
-            inputs.envGetInitialRaw(key, { source: "active" }),
+            inputs.envGetInitialRaw(key, { source: "active" })
           )
         },
         setInitial: (key, value) =>
@@ -124,7 +124,7 @@
             inputs.envGetResolve(key, {
               fallbackToNull: true,
               source: "global",
-            }),
+            })
           )
         },
         getRaw: (key) => {
@@ -132,7 +132,7 @@
             inputs.envGet(key, {
               fallbackToNull: true,
               source: "global",
-            }),
+            })
           )
         },
         set: (key, value) => inputs.envSet(key, value, { source: "global" }),
@@ -140,7 +140,7 @@
         reset: (key) => inputs.envReset(key, { source: "global" }),
         getInitialRaw: (key) => {
           return convertMarkerToValue(
-            inputs.envGetInitialRaw(key, { source: "global" }),
+            inputs.envGetInitialRaw(key, { source: "global" })
           )
         },
         setInitial: (key, value) =>
@@ -311,7 +311,7 @@
 
               // Get query params from URL
               const urlParams = Array.from(parsed.searchParams.entries()).map(
-                ([key, value]) => ({ key, value }),
+                ([key, value]) => ({ key, value })
               )
 
               // Only merge from hopp.request.params if URL has no query params
@@ -373,7 +373,7 @@
                   components.queryParams
                     .map(
                       (p) =>
-                        `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`,
+                        `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`
                     )
                     .join("&")
                 : ""
@@ -399,7 +399,7 @@
                   parsed.queryParams
                     .map(
                       (p) =>
-                        `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`,
+                        `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`
                     )
                     .join("&")
                 : ""
@@ -412,7 +412,7 @@
             return params
               .map(
                 (p) =>
-                  `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`,
+                  `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`
               )
               .join("&")
           },
@@ -436,7 +436,7 @@
               globalThis.hopp.request.setUrl(urlString.toString())
             } else {
               throw new Error(
-                "URL update requires a string or object with toString() method",
+                "URL update requires a string or object with toString() method"
               )
             }
           },
@@ -460,13 +460,13 @@
           removeQueryParams: (params) => {
             if (!Array.isArray(params) && typeof params !== "string") {
               throw new Error(
-                "removeQueryParams requires an array of param names or a single param name",
+                "removeQueryParams requires an array of param names or a single param name"
               )
             }
             const keysToRemove = Array.isArray(params) ? params : [params]
             const currentParsed = urlObj._parseUrl()
             const updatedParams = currentParsed.queryParams.filter(
-              (p) => !keysToRemove.includes(p.key),
+              (p) => !keysToRemove.includes(p.key)
             )
             currentParsed.queryParams = updatedParams
             globalThis.hopp.request.setUrl(urlObj._rebuildUrl(currentParsed))
@@ -477,7 +477,7 @@
                 value: p.value,
                 active: true,
                 description: "",
-              })),
+              }))
             )
           },
         }
@@ -572,7 +572,7 @@
                   value: param.value || "",
                 })
                 globalThis.hopp.request.setUrl(
-                  urlObj._rebuildUrl(currentParsed),
+                  urlObj._rebuildUrl(currentParsed)
                 )
               },
 
@@ -581,10 +581,10 @@
                   throw new Error("Query param key must be a string")
                 const currentParsed = urlObj._parseUrl()
                 currentParsed.queryParams = currentParsed.queryParams.filter(
-                  (p) => p.key !== key,
+                  (p) => p.key !== key
                 )
                 globalThis.hopp.request.setUrl(
-                  urlObj._rebuildUrl(currentParsed),
+                  urlObj._rebuildUrl(currentParsed)
                 )
               },
 
@@ -593,7 +593,7 @@
                   throw new Error("Query param must have a 'key' property")
                 const currentParsed = urlObj._parseUrl()
                 const idx = currentParsed.queryParams.findIndex(
-                  (p) => p.key === param.key,
+                  (p) => p.key === param.key
                 )
                 if (idx >= 0) {
                   currentParsed.queryParams[idx].value = param.value || ""
@@ -604,7 +604,7 @@
                   })
                 }
                 globalThis.hopp.request.setUrl(
-                  urlObj._rebuildUrl(currentParsed),
+                  urlObj._rebuildUrl(currentParsed)
                 )
               },
 
@@ -612,7 +612,7 @@
                 const currentParsed = urlObj._parseUrl()
                 currentParsed.queryParams = []
                 globalThis.hopp.request.setUrl(
-                  urlObj._rebuildUrl(currentParsed),
+                  urlObj._rebuildUrl(currentParsed)
                 )
                 // Also clear the params array to ensure consistency
                 globalThis.hopp.request.setParams([])
@@ -715,7 +715,7 @@
                 if (before) {
                   // Find position to insert before
                   const beforeIdx = currentParsed.queryParams.findIndex(
-                    (p) => p.key === before,
+                    (p) => p.key === before
                   )
                   if (beforeIdx >= 0) {
                     currentParsed.queryParams.splice(beforeIdx, 0, {
@@ -738,7 +738,7 @@
                 }
 
                 globalThis.hopp.request.setUrl(
-                  urlObj._rebuildUrl(currentParsed),
+                  urlObj._rebuildUrl(currentParsed)
                 )
               },
 
@@ -749,7 +749,7 @@
 
                 // Remove existing instances of this key
                 currentParsed.queryParams = currentParsed.queryParams.filter(
-                  (p) => p.key !== item.key,
+                  (p) => p.key !== item.key
                 )
 
                 // Add at end
@@ -759,7 +759,7 @@
                 })
 
                 globalThis.hopp.request.setUrl(
-                  urlObj._rebuildUrl(currentParsed),
+                  urlObj._rebuildUrl(currentParsed)
                 )
               },
 
@@ -786,7 +786,7 @@
                 sourceArray.forEach((item) => {
                   if (!item || !item.key) return
                   const idx = currentParsed.queryParams.findIndex(
-                    (p) => p.key === item.key,
+                    (p) => p.key === item.key
                   )
                   if (idx >= 0) {
                     // Update existing
@@ -806,12 +806,12 @@
                     .filter((i) => i && i.key)
                     .map((i) => i.key)
                   currentParsed.queryParams = currentParsed.queryParams.filter(
-                    (p) => sourceKeys.includes(p.key),
+                    (p) => sourceKeys.includes(p.key)
                   )
                 }
 
                 globalThis.hopp.request.setUrl(
-                  urlObj._rebuildUrl(currentParsed),
+                  urlObj._rebuildUrl(currentParsed)
                 )
               },
             }
@@ -839,7 +839,7 @@
         try {
           const parsed = new URL(urlString)
           const urlParams = Array.from(parsed.searchParams.entries()).map(
-            ([key, value]) => ({ key, value, active: true, description: "" }),
+            ([key, value]) => ({ key, value, active: true, description: "" })
           )
           globalThis.hopp.request.setParams(urlParams)
         } catch {
@@ -857,7 +857,7 @@
       set method(value) {
         if (typeof value !== "string") {
           throw new Error(
-            "Method must be a string (GET, POST, PUT, DELETE, etc.)",
+            "Method must be a string (GET, POST, PUT, DELETE, etc.)"
           )
         }
         globalThis.hopp.request.setMethod(value)
@@ -870,7 +870,7 @@
           get: (name) => {
             const headers = globalThis.hopp.request.headers
             const header = headers.find(
-              (h) => h.key.toLowerCase() === name.toLowerCase(),
+              (h) => h.key.toLowerCase() === name.toLowerCase()
             )
             return header ? header.value : null
           },
@@ -878,7 +878,7 @@
           has: (name) => {
             const headers = globalThis.hopp.request.headers
             return headers.some(
-              (h) => h.key.toLowerCase() === name.toLowerCase(),
+              (h) => h.key.toLowerCase() === name.toLowerCase()
             )
           },
 
@@ -903,7 +903,7 @@
           add: (header) => {
             if (!header || typeof header !== "object") {
               throw new Error(
-                "Header must be an object with 'key' and 'value' properties",
+                "Header must be an object with 'key' and 'value' properties"
               )
             }
             if (!header.key) {
@@ -922,7 +922,7 @@
           upsert: (header) => {
             if (!header || typeof header !== "object") {
               throw new Error(
-                "Header must be an object with 'key' and 'value' properties",
+                "Header must be an object with 'key' and 'value' properties"
               )
             }
             if (!header.key) {
@@ -968,7 +968,7 @@
             if (typeof rule === "string") {
               return (
                 headers.find(
-                  (h) => h.key.toLowerCase() === rule.toLowerCase(),
+                  (h) => h.key.toLowerCase() === rule.toLowerCase()
                 ) || null
               )
             }
@@ -980,13 +980,13 @@
             if (typeof item === "string") {
               // Find by key (case-insensitive)
               return headers.findIndex(
-                (h) => h.key.toLowerCase() === item.toLowerCase(),
+                (h) => h.key.toLowerCase() === item.toLowerCase()
               )
             }
             if (item && typeof item === "object" && item.key) {
               // Find by object with key (case-insensitive)
               return headers.findIndex(
-                (h) => h.key.toLowerCase() === item.key.toLowerCase(),
+                (h) => h.key.toLowerCase() === item.key.toLowerCase()
               )
             }
             return -1
@@ -1001,7 +1001,7 @@
             if (before) {
               // Find position to insert before (case-insensitive)
               const beforeIdx = headers.findIndex(
-                (h) => h.key.toLowerCase() === before.toLowerCase(),
+                (h) => h.key.toLowerCase() === before.toLowerCase()
               )
               if (beforeIdx >= 0) {
                 const newHeaders = [...headers]
@@ -1066,7 +1066,7 @@
                 .map((i) => i.key.toLowerCase())
               const currentHeaders = globalThis.hopp.request.headers
               const filteredHeaders = currentHeaders.filter((h) =>
-                sourceKeys.includes(h.key.toLowerCase()),
+                sourceKeys.includes(h.key.toLowerCase())
               )
               globalThis.hopp.request.setHeaders(filteredHeaders)
             }
@@ -1128,12 +1128,12 @@
 
                 default:
                   throw new Error(
-                    `Unsupported body mode: ${mode}. Supported modes: raw, urlencoded, formdata, file`,
+                    `Unsupported body mode: ${mode}. Supported modes: raw, urlencoded, formdata, file`
                   )
               }
             } else {
               throw new Error(
-                "Body spec must be a string or object with mode property",
+                "Body spec must be a string or object with mode property"
               )
             }
           },
@@ -1219,12 +1219,12 @@
       // Unsupported Collection Runner features
       get iteration() {
         throw new Error(
-          "pm.info.iteration is not supported in Hoppscotch (Collection Runner feature)",
+          "pm.info.iteration is not supported in Hoppscotch (Collection Runner feature)"
         )
       },
       get iterationCount() {
         throw new Error(
-          "pm.info.iterationCount is not supported in Hoppscotch (Collection Runner feature)",
+          "pm.info.iterationCount is not supported in Hoppscotch (Collection Runner feature)"
         )
       },
     },
@@ -1234,7 +1234,7 @@
       // Check if fetch is available
       if (typeof fetch === "undefined") {
         const error = new Error(
-          "pm.sendRequest() requires fetch API support. Enable experimental scripting sandbox or ensure fetch is available in your environment.",
+          "pm.sendRequest() requires fetch API support. Enable experimental scripting sandbox or ensure fetch is available in your environment."
         )
         callback(error, null)
         return
@@ -1256,7 +1256,7 @@
           if (Array.isArray(urlOrRequest.header)) {
             // Array format: [{ key: 'Content-Type', value: 'application/json' }]
             headers = Object.fromEntries(
-              urlOrRequest.header.map((h) => [h.key, h.value]),
+              urlOrRequest.header.map((h) => [h.key, h.value])
             )
           } else if (typeof urlOrRequest.header === "object") {
             // Plain object format: { 'Content-Type': 'application/json' }
@@ -1326,37 +1326,37 @@
     collectionVariables: {
       get: () => {
         throw new Error(
-          "pm.collectionVariables.get() is not supported in Hoppscotch (use environment or request variables instead)",
+          "pm.collectionVariables.get() is not supported in Hoppscotch (use environment or request variables instead)"
         )
       },
       set: () => {
         throw new Error(
-          "pm.collectionVariables.set() is not supported in Hoppscotch (use environment or request variables instead)",
+          "pm.collectionVariables.set() is not supported in Hoppscotch (use environment or request variables instead)"
         )
       },
       unset: () => {
         throw new Error(
-          "pm.collectionVariables.unset() is not supported in Hoppscotch (use environment or request variables instead)",
+          "pm.collectionVariables.unset() is not supported in Hoppscotch (use environment or request variables instead)"
         )
       },
       has: () => {
         throw new Error(
-          "pm.collectionVariables.has() is not supported in Hoppscotch (use environment or request variables instead)",
+          "pm.collectionVariables.has() is not supported in Hoppscotch (use environment or request variables instead)"
         )
       },
       clear: () => {
         throw new Error(
-          "pm.collectionVariables.clear() is not supported in Hoppscotch (use environment or request variables instead)",
+          "pm.collectionVariables.clear() is not supported in Hoppscotch (use environment or request variables instead)"
         )
       },
       toObject: () => {
         throw new Error(
-          "pm.collectionVariables.toObject() is not supported in Hoppscotch (use environment or request variables instead)",
+          "pm.collectionVariables.toObject() is not supported in Hoppscotch (use environment or request variables instead)"
         )
       },
       replaceIn: () => {
         throw new Error(
-          "pm.collectionVariables.replaceIn() is not supported in Hoppscotch (use environment or request variables instead)",
+          "pm.collectionVariables.replaceIn() is not supported in Hoppscotch (use environment or request variables instead)"
         )
       },
     },
@@ -1365,17 +1365,17 @@
     vault: {
       get: () => {
         throw new Error(
-          "pm.vault.get() is not supported in Hoppscotch (Postman Vault feature)",
+          "pm.vault.get() is not supported in Hoppscotch (Postman Vault feature)"
         )
       },
       set: () => {
         throw new Error(
-          "pm.vault.set() is not supported in Hoppscotch (Postman Vault feature)",
+          "pm.vault.set() is not supported in Hoppscotch (Postman Vault feature)"
         )
       },
       unset: () => {
         throw new Error(
-          "pm.vault.unset() is not supported in Hoppscotch (Postman Vault feature)",
+          "pm.vault.unset() is not supported in Hoppscotch (Postman Vault feature)"
         )
       },
     },
@@ -1384,12 +1384,12 @@
     visualizer: {
       set: () => {
         throw new Error(
-          "pm.visualizer.set() is not supported in Hoppscotch (Postman Visualizer feature)",
+          "pm.visualizer.set() is not supported in Hoppscotch (Postman Visualizer feature)"
         )
       },
       clear: () => {
         throw new Error(
-          "pm.visualizer.clear() is not supported in Hoppscotch (Postman Visualizer feature)",
+          "pm.visualizer.clear() is not supported in Hoppscotch (Postman Visualizer feature)"
         )
       },
     },
@@ -1398,32 +1398,32 @@
     iterationData: {
       get: () => {
         throw new Error(
-          "pm.iterationData.get() is not supported in Hoppscotch (Collection Runner feature)",
+          "pm.iterationData.get() is not supported in Hoppscotch (Collection Runner feature)"
         )
       },
       set: () => {
         throw new Error(
-          "pm.iterationData.set() is not supported in Hoppscotch (Collection Runner feature)",
+          "pm.iterationData.set() is not supported in Hoppscotch (Collection Runner feature)"
         )
       },
       unset: () => {
         throw new Error(
-          "pm.iterationData.unset() is not supported in Hoppscotch (Collection Runner feature)",
+          "pm.iterationData.unset() is not supported in Hoppscotch (Collection Runner feature)"
         )
       },
       has: () => {
         throw new Error(
-          "pm.iterationData.has() is not supported in Hoppscotch (Collection Runner feature)",
+          "pm.iterationData.has() is not supported in Hoppscotch (Collection Runner feature)"
         )
       },
       toObject: () => {
         throw new Error(
-          "pm.iterationData.toObject() is not supported in Hoppscotch (Collection Runner feature)",
+          "pm.iterationData.toObject() is not supported in Hoppscotch (Collection Runner feature)"
         )
       },
       toJSON: () => {
         throw new Error(
-          "pm.iterationData.toJSON() is not supported in Hoppscotch (Collection Runner feature)",
+          "pm.iterationData.toJSON() is not supported in Hoppscotch (Collection Runner feature)"
         )
       },
     },
@@ -1442,17 +1442,17 @@
       })(),
       setNextRequest: () => {
         throw new Error(
-          "pm.execution.setNextRequest() is not supported in Hoppscotch (Collection Runner feature)",
+          "pm.execution.setNextRequest() is not supported in Hoppscotch (Collection Runner feature)"
         )
       },
       skipRequest: () => {
         throw new Error(
-          "pm.execution.skipRequest() is not supported in Hoppscotch (Collection Runner feature)",
+          "pm.execution.skipRequest() is not supported in Hoppscotch (Collection Runner feature)"
         )
       },
       runRequest: () => {
         throw new Error(
-          "pm.execution.runRequest() is not supported in Hoppscotch (Collection Runner feature)",
+          "pm.execution.runRequest() is not supported in Hoppscotch (Collection Runner feature)"
         )
       },
     },
@@ -1460,7 +1460,7 @@
     // Package imports (unsupported)
     require: (packageName) => {
       throw new Error(
-        `pm.require('${packageName}') is not supported in Hoppscotch (Package Library feature)`,
+        `pm.require('${packageName}') is not supported in Hoppscotch (Package Library feature)`
       )
     },
   }

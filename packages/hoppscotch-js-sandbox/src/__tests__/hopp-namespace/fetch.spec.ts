@@ -35,8 +35,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -67,8 +67,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -86,7 +86,7 @@ describe("hopp.fetch() and global fetch()", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "https://api.example.com/data",
-        undefined,
+        undefined
       )
     })
 
@@ -114,8 +114,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -139,7 +139,7 @@ describe("hopp.fetch() and global fetch()", () => {
             "Content-Type": "application/json",
           }),
           body: JSON.stringify({ name: "test" }),
-        }),
+        })
       )
     })
 
@@ -158,8 +158,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -192,8 +192,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -232,8 +232,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -269,8 +269,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -311,8 +311,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -345,8 +345,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -377,8 +377,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -416,8 +416,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -436,7 +436,7 @@ describe("hopp.fetch() and global fetch()", () => {
             Authorization: "Bearer token123",
             "X-API-Key": "key456",
           }),
-        }),
+        })
       )
     })
   })
@@ -462,8 +462,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -498,8 +498,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -513,7 +513,7 @@ describe("hopp.fetch() and global fetch()", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "https://api.example.com/data",
-        undefined,
+        undefined
       )
     })
 
@@ -535,8 +535,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -568,8 +568,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -600,8 +600,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -619,7 +619,7 @@ describe("hopp.fetch() and global fetch()", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "https://api.example.com/data",
-        undefined,
+        undefined
       )
     })
 
@@ -643,8 +643,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -672,8 +672,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -689,12 +689,12 @@ describe("hopp.fetch() and global fetch()", () => {
       expect(mockFetch).toHaveBeenNthCalledWith(
         1,
         "https://api.example.com/test1",
-        undefined,
+        undefined
       )
       expect(mockFetch).toHaveBeenNthCalledWith(
         2,
         "https://api.example.com/test2",
-        undefined,
+        undefined
       )
     })
 
@@ -713,8 +713,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -750,8 +750,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -771,7 +771,7 @@ describe("hopp.fetch() and global fetch()", () => {
             authorization: "Bearer token123",
             accept: "application/json",
           }),
-        }),
+        })
       )
     })
 
@@ -794,8 +794,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -826,13 +826,13 @@ describe("hopp.fetch() and global fetch()", () => {
         { global: [], selected: [] },
         undefined,
         undefined,
-        mockFetch,
+        mockFetch
       )()
 
       expect(result).toBeRight()
       expect(mockFetch).toHaveBeenCalledWith(
         "https://api.example.com/data",
-        expect.objectContaining({}),
+        expect.objectContaining({})
       )
     })
 
@@ -853,8 +853,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -893,8 +893,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight(
         expect.arrayContaining([
           expect.objectContaining({
@@ -910,7 +910,7 @@ describe("hopp.fetch() and global fetch()", () => {
               }),
             ]),
           }),
-        ]),
+        ])
       )
     })
 
@@ -936,8 +936,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight(
         expect.arrayContaining([
           expect.objectContaining({
@@ -955,7 +955,7 @@ describe("hopp.fetch() and global fetch()", () => {
               }),
             ]),
           }),
-        ]),
+        ])
       )
     })
 
@@ -980,8 +980,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight(
         expect.arrayContaining([
           expect.objectContaining({
@@ -998,7 +998,7 @@ describe("hopp.fetch() and global fetch()", () => {
               }),
             ]),
           }),
-        ]),
+        ])
       )
     })
   })
@@ -1023,8 +1023,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight(
         expect.arrayContaining([
           expect.objectContaining({
@@ -1039,7 +1039,7 @@ describe("hopp.fetch() and global fetch()", () => {
               }),
             ]),
           }),
-        ]),
+        ])
       )
     })
 
@@ -1068,8 +1068,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight(
         expect.arrayContaining([
           expect.objectContaining({
@@ -1084,7 +1084,7 @@ describe("hopp.fetch() and global fetch()", () => {
               }),
             ]),
           }),
-        ]),
+        ])
       )
     })
 
@@ -1105,8 +1105,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight(
         expect.arrayContaining([
           expect.objectContaining({
@@ -1120,7 +1120,7 @@ describe("hopp.fetch() and global fetch()", () => {
               }),
             ]),
           }),
-        ]),
+        ])
       )
     })
   })
@@ -1156,8 +1156,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight(
         expect.arrayContaining([
           expect.objectContaining({
@@ -1177,7 +1177,7 @@ describe("hopp.fetch() and global fetch()", () => {
               }),
             ]),
           }),
-        ]),
+        ])
       )
     })
 
@@ -1210,8 +1210,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight(
         expect.arrayContaining([
           expect.objectContaining({
@@ -1228,7 +1228,7 @@ describe("hopp.fetch() and global fetch()", () => {
               }),
             ]),
           }),
-        ]),
+        ])
       )
     })
 
@@ -1254,8 +1254,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight(
         expect.arrayContaining([
           expect.objectContaining({
@@ -1270,7 +1270,7 @@ describe("hopp.fetch() and global fetch()", () => {
               }),
             ]),
           }),
-        ]),
+        ])
       )
     })
   })
@@ -1292,8 +1292,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1323,8 +1323,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1350,8 +1350,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1376,8 +1376,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1405,8 +1405,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1429,8 +1429,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1454,8 +1454,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1483,8 +1483,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1500,7 +1500,7 @@ describe("hopp.fetch() and global fetch()", () => {
           headers: expect.objectContaining({
             authorization: "Bearer token123",
           }),
-        }),
+        })
       )
     })
   })
@@ -1519,8 +1519,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1545,8 +1545,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1574,8 +1574,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1602,8 +1602,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1630,8 +1630,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1657,8 +1657,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          undefined,
-        )(),
+          undefined
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           expectResults: [
@@ -1689,8 +1689,8 @@ describe("hopp.fetch() and global fetch()", () => {
             { global: [], selected: [] },
             undefined,
             undefined,
-            mockFetch,
-          )(),
+            mockFetch
+          )()
         ).resolves.toBeRight()
       }
     })
@@ -1714,8 +1714,8 @@ describe("hopp.fetch() and global fetch()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight(
         expect.arrayContaining([
           expect.objectContaining({
@@ -1730,7 +1730,7 @@ describe("hopp.fetch() and global fetch()", () => {
               }),
             ]),
           }),
-        ]),
+        ])
       )
     })
   })

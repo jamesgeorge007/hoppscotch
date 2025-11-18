@@ -36,8 +36,8 @@ describe("pm.request.url.query.get()", () => {
         console.log("Sort value:", sortValue)
         console.log("Filter type:", typeof filterValue)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -45,7 +45,7 @@ describe("pm.request.url.query.get()", () => {
           expect.objectContaining({ args: ["Sort value:", "name"] }),
           expect.objectContaining({ args: ["Filter type:", "string"] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -58,15 +58,15 @@ describe("pm.request.url.query.get()", () => {
         console.log("Non-existent value:", value)
         console.log("Is null:", value === null)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Non-existent value:", null] }),
           expect.objectContaining({ args: ["Is null:", true] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -80,15 +80,15 @@ describe("pm.request.url.query.get()", () => {
 
         console.log("Updated limit:", pm.request.url.query.get('limit'))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Initial limit:", null] }),
           expect.objectContaining({ args: ["Updated limit:", "20"] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -102,8 +102,8 @@ describe("pm.request.url.query.has()", () => {
         console.log("Has sort:", pm.request.url.query.has('sort'))
         console.log("Has page:", pm.request.url.query.has('page'))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -111,7 +111,7 @@ describe("pm.request.url.query.has()", () => {
           expect.objectContaining({ args: ["Has sort:", true] }),
           expect.objectContaining({ args: ["Has page:", true] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -123,8 +123,8 @@ describe("pm.request.url.query.has()", () => {
         console.log("Has offset:", pm.request.url.query.has('offset'))
         console.log("Has nonexistent:", pm.request.url.query.has('nonexistent'))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -132,7 +132,7 @@ describe("pm.request.url.query.has()", () => {
           expect.objectContaining({ args: ["Has offset:", false] }),
           expect.objectContaining({ args: ["Has nonexistent:", false] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -150,8 +150,8 @@ describe("pm.request.url.query.has()", () => {
 
         console.log("Has status (after remove):", pm.request.url.query.has('status'))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -161,7 +161,7 @@ describe("pm.request.url.query.has()", () => {
             args: ["Has status (after remove):", false],
           }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -179,8 +179,8 @@ describe("pm.request.url.query.upsert()", () => {
         console.log("Limit value:", pm.request.url.query.get('limit'))
         console.log("URL:", pm.request.url.toString())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         updatedRequest: expect.objectContaining({
@@ -191,7 +191,7 @@ describe("pm.request.url.query.upsert()", () => {
           expect.objectContaining({ args: ["Has limit (after):", true] }),
           expect.objectContaining({ args: ["Limit value:", "50"] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -206,8 +206,8 @@ describe("pm.request.url.query.upsert()", () => {
         console.log("Updated filter:", pm.request.url.query.get('filter'))
         console.log("URL:", pm.request.url.toString())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         updatedRequest: expect.objectContaining({
@@ -217,7 +217,7 @@ describe("pm.request.url.query.upsert()", () => {
           expect.objectContaining({ args: ["Initial filter:", "active"] }),
           expect.objectContaining({ args: ["Updated filter:", "inactive"] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -230,15 +230,15 @@ describe("pm.request.url.query.upsert()", () => {
         console.log("Flag value:", pm.request.url.query.get('flag'))
         console.log("Flag exists:", pm.request.url.query.has('flag'))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Flag value:", ""] }),
           expect.objectContaining({ args: ["Flag exists:", true] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -250,10 +250,10 @@ describe("pm.request.url.query.upsert()", () => {
         request: baseRequest,
         cookies: null,
         experimentalScriptingSandbox: true,
-      },
+      }
     )
     expect(result).toEqualLeft(
-      expect.stringContaining("must have a 'key' property"),
+      expect.stringContaining("must have a 'key' property")
     )
   })
 })
@@ -272,8 +272,8 @@ describe("pm.request.url.query.clear()", () => {
         console.log("Count after:", pm.request.url.query.count())
         console.log("URL:", pm.request.url.toString())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         updatedRequest: expect.objectContaining({
@@ -290,7 +290,7 @@ describe("pm.request.url.query.clear()", () => {
           expect.objectContaining({ args: ["Params after:", {}] }),
           expect.objectContaining({ args: ["Count after:", 0] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -304,15 +304,15 @@ describe("pm.request.url.query.clear()", () => {
         pm.request.url.query.add({ key: 'new', value: 'param' })
         console.log("After add:", pm.request.url.query.all())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["After clear:", {}] }),
           expect.objectContaining({ args: ["After add:", { new: "param" }] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -334,8 +334,8 @@ describe("pm.request.url.query.each()", () => {
         console.log("Values:", values)
         console.log("Count:", keys.length)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -347,7 +347,7 @@ describe("pm.request.url.query.each()", () => {
           }),
           expect.objectContaining({ args: ["Count:", 3] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -361,15 +361,15 @@ describe("pm.request.url.query.each()", () => {
           return // Check only first param
         })
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Key:", "filter"] }),
           expect.objectContaining({ args: ["Value:", "active"] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -387,8 +387,8 @@ describe("pm.request.url.query.map()", () => {
         console.log("Array length:", mapped.length)
         console.log("First item:", mapped[0])
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -398,7 +398,7 @@ describe("pm.request.url.query.map()", () => {
           expect.objectContaining({ args: ["Array length:", 3] }),
           expect.objectContaining({ args: ["First item:", "FILTER=active"] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -419,8 +419,8 @@ describe("pm.request.url.query.map()", () => {
         console.log("After:", afterParams)
         console.log("Params unchanged:", JSON.stringify(originalParams) === JSON.stringify(afterParams))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -432,7 +432,7 @@ describe("pm.request.url.query.map()", () => {
           }),
           expect.objectContaining({ args: ["Params unchanged:", true] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -450,15 +450,15 @@ describe("pm.request.url.query.filter()", () => {
         console.log("Count:", filtered.length)
         console.log("Keys:", filtered.map(p => p.key))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Count:", 2] }),
           expect.objectContaining({ args: ["Keys:", ["sort", "page"]] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -474,8 +474,8 @@ describe("pm.request.url.query.filter()", () => {
         console.log("Is array:", Array.isArray(filtered))
         console.log("Length:", filtered.length)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -483,7 +483,7 @@ describe("pm.request.url.query.filter()", () => {
           expect.objectContaining({ args: ["Is array:", true] }),
           expect.objectContaining({ args: ["Length:", 0] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -499,8 +499,8 @@ describe("pm.request.url.query.count()", () => {
         console.log("Type:", typeof count)
         console.log("Matches all():", count === Object.keys(pm.request.url.query.all()).length)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -508,7 +508,7 @@ describe("pm.request.url.query.count()", () => {
           expect.objectContaining({ args: ["Type:", "number"] }),
           expect.objectContaining({ args: ["Matches all():", true] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -527,8 +527,8 @@ describe("pm.request.url.query.count()", () => {
         pm.request.url.query.clear()
         console.log("After clear:", pm.request.url.query.count())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -537,7 +537,7 @@ describe("pm.request.url.query.count()", () => {
           expect.objectContaining({ args: ["After remove:", 3] }),
           expect.objectContaining({ args: ["After clear:", 0] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -555,8 +555,8 @@ describe("pm.request.url.query.idx()", () => {
         console.log("Second:", second)
         console.log("Third:", third)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -570,7 +570,7 @@ describe("pm.request.url.query.idx()", () => {
             args: ["Third:", { key: "page", value: "1" }],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -583,15 +583,15 @@ describe("pm.request.url.query.idx()", () => {
         console.log("Out of bounds:", param)
         console.log("Is null:", param === null)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Out of bounds:", null] }),
           expect.objectContaining({ args: ["Is null:", true] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -604,15 +604,15 @@ describe("pm.request.url.query.idx()", () => {
         console.log("Negative index:", param)
         console.log("Is null:", param === null)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Negative index:", null] }),
           expect.objectContaining({ args: ["Is null:", true] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -630,8 +630,8 @@ describe("pm.request.url.query.toObject()", () => {
         console.log("Are equal:", JSON.stringify(obj) === JSON.stringify(all))
         console.log("Type:", typeof obj)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -644,7 +644,7 @@ describe("pm.request.url.query.toObject()", () => {
           expect.objectContaining({ args: ["Are equal:", true] }),
           expect.objectContaining({ args: ["Type:", "object"] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -672,8 +672,8 @@ describe("duplicate query parameter handling", () => {
         console.log("Array length:", params.tag.length)
         console.log("All values:", params.tag)
         `,
-        { envs, request: requestWithDuplicates },
-      ),
+        { envs, request: requestWithDuplicates }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -684,7 +684,7 @@ describe("duplicate query parameter handling", () => {
             args: ["All values:", ["js", "ts", "go"]],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -711,8 +711,8 @@ describe("duplicate query parameter handling", () => {
         console.log("tag is array:", Array.isArray(params.tag))
         console.log("sort is string:", typeof params.sort === 'string')
         `,
-        { envs, request: requestWithMixed },
-      ),
+        { envs, request: requestWithMixed }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -726,7 +726,7 @@ describe("duplicate query parameter handling", () => {
           expect.objectContaining({ args: ["tag is array:", true] }),
           expect.objectContaining({ args: ["sort is string:", true] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -749,8 +749,8 @@ describe("duplicate query parameter handling", () => {
         console.log("Is first value:", value === 'first')
         console.log("all() value:", pm.request.url.query.all().tag)
         `,
-        { envs, request: requestWithDuplicates },
-      ),
+        { envs, request: requestWithDuplicates }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -760,7 +760,7 @@ describe("duplicate query parameter handling", () => {
             args: ["all() value:", ["first", "second"]],
           }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -776,8 +776,8 @@ describe("pm.request.url.query.find()", () => {
         console.log("Param key:", result.key)
         console.log("Param value:", result.value)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -790,7 +790,7 @@ describe("pm.request.url.query.find()", () => {
           expect.objectContaining({ args: ["Param key:", "sort"] }),
           expect.objectContaining({ args: ["Param value:", "name"] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -803,8 +803,8 @@ describe("pm.request.url.query.find()", () => {
         console.log("Found by string:", result)
         console.log("Value:", result.value)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -816,7 +816,7 @@ describe("pm.request.url.query.find()", () => {
           }),
           expect.objectContaining({ args: ["Value:", "active"] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -829,15 +829,15 @@ describe("pm.request.url.query.find()", () => {
         console.log("Result:", result)
         console.log("Is null:", result === null)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Result:", null] }),
           expect.objectContaining({ args: ["Is null:", true] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -855,8 +855,8 @@ describe("pm.request.url.query.indexOf()", () => {
         console.log("Index of sort:", idx2)
         console.log("Index of page:", idx3)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -864,7 +864,7 @@ describe("pm.request.url.query.indexOf()", () => {
           expect.objectContaining({ args: ["Index of sort:", 1] }),
           expect.objectContaining({ args: ["Index of page:", 2] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -876,14 +876,14 @@ describe("pm.request.url.query.indexOf()", () => {
 
         console.log("Index:", idx)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Index:", 1] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -896,15 +896,15 @@ describe("pm.request.url.query.indexOf()", () => {
         console.log("Index:", idx)
         console.log("Is -1:", idx === -1)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
           expect.objectContaining({ args: ["Index:", -1] }),
           expect.objectContaining({ args: ["Is -1:", true] }),
         ]),
-      }),
+      })
     )
   })
 })
@@ -920,8 +920,8 @@ describe("pm.request.url.query.insert()", () => {
         console.log("All params:", allParams)
         console.log("URL:", pm.request.url.toString())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -935,7 +935,7 @@ describe("pm.request.url.query.insert()", () => {
             ],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -948,8 +948,8 @@ describe("pm.request.url.query.insert()", () => {
         const allParams = pm.request.url.query.map((p) => p.key)
         console.log("All params:", allParams)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -957,7 +957,7 @@ describe("pm.request.url.query.insert()", () => {
             args: ["All params:", ["filter", "sort", "page", "limit"]],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -970,8 +970,8 @@ describe("pm.request.url.query.insert()", () => {
         const allParams = pm.request.url.query.map((p) => p.key)
         console.log("All params:", allParams)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -979,7 +979,7 @@ describe("pm.request.url.query.insert()", () => {
             args: ["All params:", ["filter", "sort", "page", "limit"]],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -991,11 +991,11 @@ describe("pm.request.url.query.insert()", () => {
         request: baseRequest,
         cookies: null,
         experimentalScriptingSandbox: true,
-      },
+      }
     )
 
     expect(result).toEqualLeft(
-      expect.stringContaining("must have a 'key' property"),
+      expect.stringContaining("must have a 'key' property")
     )
   })
 })
@@ -1014,8 +1014,8 @@ describe("pm.request.url.query.append()", () => {
         console.log("Filter value:", filterValue)
         console.log("URL:", pm.request.url.toString())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -1030,7 +1030,7 @@ describe("pm.request.url.query.append()", () => {
             ],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -1043,8 +1043,8 @@ describe("pm.request.url.query.append()", () => {
         const allParams = pm.request.url.query.map((p) => p.key)
         console.log("All params:", allParams)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -1052,7 +1052,7 @@ describe("pm.request.url.query.append()", () => {
             args: ["All params:", ["filter", "sort", "page", "limit"]],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -1064,11 +1064,11 @@ describe("pm.request.url.query.append()", () => {
         request: baseRequest,
         cookies: null,
         experimentalScriptingSandbox: true,
-      },
+      }
     )
 
     expect(result).toEqualLeft(
-      expect.stringContaining("must have a 'key' property"),
+      expect.stringContaining("must have a 'key' property")
     )
   })
 })
@@ -1089,8 +1089,8 @@ describe("pm.request.url.query.assimilate()", () => {
         console.log("Limit:", allParams.limit)
         console.log("Count:", pm.request.url.query.count())
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -1099,7 +1099,7 @@ describe("pm.request.url.query.assimilate()", () => {
           expect.objectContaining({ args: ["Limit:", "20"] }),
           expect.objectContaining({ args: ["Count:", 4] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -1115,8 +1115,8 @@ describe("pm.request.url.query.assimilate()", () => {
         const allParams = pm.request.url.query.all()
         console.log("All params:", allParams)
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -1132,7 +1132,7 @@ describe("pm.request.url.query.assimilate()", () => {
             ],
           }),
         ]),
-      }),
+      })
     )
   })
 
@@ -1153,8 +1153,8 @@ describe("pm.request.url.query.assimilate()", () => {
         console.log("Has sort:", pm.request.url.query.has('sort'))
         console.log("Has page:", pm.request.url.query.has('page'))
         `,
-        { envs, request: baseRequest },
-      ),
+        { envs, request: baseRequest }
+      )
     ).resolves.toEqualRight(
       expect.objectContaining({
         consoleEntries: expect.arrayContaining([
@@ -1168,7 +1168,7 @@ describe("pm.request.url.query.assimilate()", () => {
           expect.objectContaining({ args: ["Has sort:", false] }),
           expect.objectContaining({ args: ["Has page:", false] }),
         ]),
-      }),
+      })
     )
   })
 
@@ -1180,11 +1180,11 @@ describe("pm.request.url.query.assimilate()", () => {
         request: baseRequest,
         cookies: null,
         experimentalScriptingSandbox: true,
-      },
+      }
     )
 
     expect(result).toEqualLeft(
-      expect.stringContaining("Source must be an array or object"),
+      expect.stringContaining("Source must be an array or object")
     )
   })
 })

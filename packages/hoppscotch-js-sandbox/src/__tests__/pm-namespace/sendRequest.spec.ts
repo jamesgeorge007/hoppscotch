@@ -49,8 +49,8 @@ describe("pm.sendRequest()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           descriptor: "root",
@@ -89,8 +89,8 @@ describe("pm.sendRequest()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           descriptor: "root",
@@ -148,8 +148,8 @@ describe("pm.sendRequest()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           descriptor: "root",
@@ -215,8 +215,8 @@ describe("pm.sendRequest()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           descriptor: "root",
@@ -244,7 +244,7 @@ describe("pm.sendRequest()", () => {
           {
             status: 200,
             headers: { "Content-Type": "application/json" },
-          },
+          }
         )
       })
 
@@ -273,8 +273,8 @@ describe("pm.sendRequest()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           descriptor: "root",
@@ -305,7 +305,7 @@ describe("pm.sendRequest()", () => {
           {
             status: 200,
             headers: { "Content-Type": "application/json" },
-          },
+          }
         )
       })
 
@@ -337,8 +337,8 @@ describe("pm.sendRequest()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           descriptor: "root",
@@ -371,7 +371,7 @@ describe("pm.sendRequest()", () => {
           {
             status: 200,
             headers: { "Content-Type": "application/json" },
-          },
+          }
         )
       })
 
@@ -397,8 +397,8 @@ describe("pm.sendRequest()", () => {
           { global: [], selected: [] },
           undefined,
           undefined,
-          mockFetch,
-        )(),
+          mockFetch
+        )()
       ).resolves.toEqualRight([
         expect.objectContaining({
           descriptor: "root",

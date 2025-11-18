@@ -177,19 +177,19 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
               ctx.vm.setProp(
                 responseObj,
                 "status",
-                ctx.scope.manage(ctx.vm.newNumber(serializableResponse.status)),
+                ctx.scope.manage(ctx.vm.newNumber(serializableResponse.status))
               )
               ctx.vm.setProp(
                 responseObj,
                 "statusText",
                 ctx.scope.manage(
-                  ctx.vm.newString(serializableResponse.statusText),
-                ),
+                  ctx.vm.newString(serializableResponse.statusText)
+                )
               )
               ctx.vm.setProp(
                 responseObj,
                 "ok",
-                serializableResponse.ok ? ctx.vm.true : ctx.vm.false,
+                serializableResponse.ok ? ctx.vm.true : ctx.vm.false
               )
 
               // Create headers object with Headers-like interface
@@ -204,7 +204,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                 ctx.vm.setProp(
                   headersObj,
                   key,
-                  ctx.scope.manage(ctx.vm.newString(String(value))),
+                  ctx.scope.manage(ctx.vm.newString(String(value)))
                 )
               }
 
@@ -219,12 +219,12 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                   ctx.vm.setProp(
                     entry,
                     0,
-                    ctx.scope.manage(ctx.vm.newString(key)),
+                    ctx.scope.manage(ctx.vm.newString(key))
                   )
                   ctx.vm.setProp(
                     entry,
                     1,
-                    ctx.scope.manage(ctx.vm.newString(String(value))),
+                    ctx.scope.manage(ctx.vm.newString(String(value)))
                   )
                   ctx.vm.setProp(entriesArray, index++, entry)
                 }
@@ -253,7 +253,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                 ctx.vm.setProp(
                   bodyBytesArray,
                   i,
-                  ctx.scope.manage(ctx.vm.newNumber(bodyBytes[i])),
+                  ctx.scope.manage(ctx.vm.newNumber(bodyBytes[i]))
                 )
               }
               ctx.vm.setProp(responseObj, "_bodyBytes", bodyBytesArray)
@@ -278,8 +278,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                         ctx.vm.newError({
                           name: "TypeError",
                           message: "Body has already been consumed",
-                        }),
-                      ),
+                        })
+                      )
                     )
                     return
                   }
@@ -292,7 +292,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                         : bodyBytes
 
                     const text = new TextDecoder().decode(
-                      new Uint8Array(cleanBytes),
+                      new Uint8Array(cleanBytes)
                     )
                     const parsed = JSON.parse(text)
                     const marshalledResult = marshalValue(parsed)
@@ -306,8 +306,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                             error instanceof Error
                               ? error.message
                               : "JSON parse failed",
-                        }),
-                      ),
+                        })
+                      )
                     )
                   }
                 })
@@ -326,8 +326,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                         ctx.vm.newError({
                           name: "TypeError",
                           message: "Body has already been consumed",
-                        }),
-                      ),
+                        })
+                      )
                     )
                     return
                   }
@@ -340,10 +340,10 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                         : bodyBytes
 
                     const text = new TextDecoder().decode(
-                      new Uint8Array(cleanBytes),
+                      new Uint8Array(cleanBytes)
                     )
                     const textHandle = ctx.scope.manage(
-                      ctx.vm.newString(String(text)),
+                      ctx.vm.newString(String(text))
                     )
                     resolve(textHandle)
                   } catch (error) {
@@ -355,8 +355,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                             error instanceof Error
                               ? error.message
                               : "Text decode failed",
-                        }),
-                      ),
+                        })
+                      )
                     )
                   }
                 })
@@ -378,8 +378,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                           ctx.vm.newError({
                             name: "TypeError",
                             message: "Body has already been consumed",
-                          }),
-                        ),
+                          })
+                        )
                       )
                       return
                     }
@@ -389,7 +389,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                         ctx.vm.setProp(
                           arr,
                           i,
-                          ctx.scope.manage(ctx.vm.newNumber(byte)),
+                          ctx.scope.manage(ctx.vm.newNumber(byte))
                         )
                       })
                       resolve(arr)
@@ -402,13 +402,13 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                               error instanceof Error
                                 ? error.message
                                 : "ArrayBuffer conversion failed",
-                          }),
-                        ),
+                          })
+                        )
                       )
                     }
                   })
                   return ctx.scope.manage(vmPromise).handle
-                },
+                }
               )
               ctx.vm.setProp(responseObj, "arrayBuffer", arrayBufferFn)
 
@@ -421,8 +421,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                         ctx.vm.newError({
                           name: "TypeError",
                           message: "Body has already been consumed",
-                        }),
-                      ),
+                        })
+                      )
                     )
                     return
                   }
@@ -431,21 +431,21 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                     ctx.vm.setProp(
                       blobObj,
                       "size",
-                      ctx.scope.manage(ctx.vm.newNumber(bodyBytes.length)),
+                      ctx.scope.manage(ctx.vm.newNumber(bodyBytes.length))
                     )
                     ctx.vm.setProp(
                       blobObj,
                       "type",
                       ctx.scope.manage(
-                        ctx.vm.newString("application/octet-stream"),
-                      ),
+                        ctx.vm.newString("application/octet-stream")
+                      )
                     )
                     const arr = ctx.scope.manage(ctx.vm.newArray())
                     bodyBytes.forEach((byte, i) => {
                       ctx.vm.setProp(
                         arr,
                         i,
-                        ctx.scope.manage(ctx.vm.newNumber(byte)),
+                        ctx.scope.manage(ctx.vm.newNumber(byte))
                       )
                     })
                     ctx.vm.setProp(blobObj, "bytes", arr)
@@ -459,8 +459,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                             error instanceof Error
                               ? error.message
                               : "Blob conversion failed",
-                        }),
-                      ),
+                        })
+                      )
                     )
                   }
                 })
@@ -480,14 +480,14 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                           ctx.vm.newError({
                             name: "TypeError",
                             message: "Body has already been consumed",
-                          }),
-                        ),
+                          })
+                        )
                       )
                       return
                     }
                     try {
                       const text = new TextDecoder().decode(
-                        new Uint8Array(bodyBytes),
+                        new Uint8Array(bodyBytes)
                       )
                       const formDataObj = ctx.scope.manage(ctx.vm.newObject())
                       const pairs = text.split("&")
@@ -499,7 +499,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                           ctx.vm.setProp(
                             formDataObj,
                             key,
-                            ctx.scope.manage(ctx.vm.newString(value || "")),
+                            ctx.scope.manage(ctx.vm.newString(value || ""))
                           )
                         }
                       }
@@ -513,13 +513,13 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                               error instanceof Error
                                 ? error.message
                                 : "FormData parsing failed",
-                          }),
-                        ),
+                          })
+                        )
                       )
                     }
                   })
                   return ctx.scope.manage(vmPromise).handle
-                },
+                }
               )
               ctx.vm.setProp(responseObj, "formData", formDataFn)
 
@@ -543,20 +543,20 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                     clonedResponseObj,
                     "status",
                     ctx.scope.manage(
-                      ctx.vm.newNumber(serializableResponse.status),
-                    ),
+                      ctx.vm.newNumber(serializableResponse.status)
+                    )
                   )
                   ctx.vm.setProp(
                     clonedResponseObj,
                     "statusText",
                     ctx.scope.manage(
-                      ctx.vm.newString(serializableResponse.statusText),
-                    ),
+                      ctx.vm.newString(serializableResponse.statusText)
+                    )
                   )
                   ctx.vm.setProp(
                     clonedResponseObj,
                     "ok",
-                    serializableResponse.ok ? ctx.vm.true : ctx.vm.false,
+                    serializableResponse.ok ? ctx.vm.true : ctx.vm.false
                   )
 
                   // Clone headers
@@ -565,7 +565,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                     ctx.vm.setProp(
                       clonedHeadersObj,
                       key,
-                      ctx.scope.manage(ctx.vm.newString(String(value))),
+                      ctx.scope.manage(ctx.vm.newString(String(value)))
                     )
                   }
 
@@ -581,17 +581,17 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                         ctx.vm.setProp(
                           entry,
                           0,
-                          ctx.scope.manage(ctx.vm.newString(key)),
+                          ctx.scope.manage(ctx.vm.newString(key))
                         )
                         ctx.vm.setProp(
                           entry,
                           1,
-                          ctx.scope.manage(ctx.vm.newString(String(value))),
+                          ctx.scope.manage(ctx.vm.newString(String(value)))
                         )
                         ctx.vm.setProp(entriesArray, index++, entry)
                       }
                       return entriesArray
-                    },
+                    }
                   )
                   ctx.vm.setProp(clonedHeadersObj, "entries", clonedEntriesFn)
 
@@ -605,7 +605,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                       return value
                         ? ctx.scope.manage(ctx.vm.newString(value))
                         : ctx.vm.null
-                    },
+                    }
                   )
                   ctx.vm.setProp(clonedHeadersObj, "get", clonedGetFn)
 
@@ -635,8 +635,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                               ctx.vm.newError({
                                 name: "TypeError",
                                 message: "Body has already been consumed",
-                              }),
-                            ),
+                              })
+                            )
                           )
                           return
                         }
@@ -648,7 +648,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                               : clonedBodyBytes
 
                           const text = new TextDecoder().decode(
-                            new Uint8Array(cleanBytes),
+                            new Uint8Array(cleanBytes)
                           )
                           const parsed = JSON.parse(text)
                           resolve(marshalValue(parsed))
@@ -661,13 +661,13 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                                   error instanceof Error
                                     ? error.message
                                     : "JSON parse failed",
-                              }),
-                            ),
+                              })
+                            )
                           )
                         }
                       })
                       return ctx.scope.manage(vmPromise).handle
-                    },
+                    }
                   )
                   ctx.vm.setProp(clonedResponseObj, "json", clonedJsonFn)
 
@@ -682,8 +682,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                               ctx.vm.newError({
                                 name: "TypeError",
                                 message: "Body has already been consumed",
-                              }),
-                            ),
+                              })
+                            )
                           )
                           return
                         }
@@ -695,10 +695,10 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                               : clonedBodyBytes
 
                           const text = new TextDecoder().decode(
-                            new Uint8Array(cleanBytes),
+                            new Uint8Array(cleanBytes)
                           )
                           resolve(
-                            ctx.scope.manage(ctx.vm.newString(String(text))),
+                            ctx.scope.manage(ctx.vm.newString(String(text)))
                           )
                         } catch (error) {
                           reject(
@@ -709,13 +709,13 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                                   error instanceof Error
                                     ? error.message
                                     : "Text decode failed",
-                              }),
-                            ),
+                              })
+                            )
                           )
                         }
                       })
                       return ctx.scope.manage(vmPromise).handle
-                    },
+                    }
                   )
                   ctx.vm.setProp(clonedResponseObj, "text", clonedTextFn)
 
@@ -730,8 +730,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                               ctx.vm.newError({
                                 name: "TypeError",
                                 message: "Body has already been consumed",
-                              }),
-                            ),
+                              })
+                            )
                           )
                           return
                         }
@@ -741,7 +741,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                             ctx.vm.setProp(
                               arr,
                               i,
-                              ctx.scope.manage(ctx.vm.newNumber(byte)),
+                              ctx.scope.manage(ctx.vm.newNumber(byte))
                             )
                           })
                           resolve(arr)
@@ -754,18 +754,18 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                                   error instanceof Error
                                     ? error.message
                                     : "ArrayBuffer conversion failed",
-                              }),
-                            ),
+                              })
+                            )
                           )
                         }
                       })
                       return ctx.scope.manage(vmPromise).handle
-                    },
+                    }
                   )
                   ctx.vm.setProp(
                     clonedResponseObj,
                     "arrayBuffer",
-                    clonedArrayBufferFn,
+                    clonedArrayBufferFn
                   )
 
                   const clonedBlobFn = defineSandboxFunctionRaw(
@@ -779,8 +779,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                               ctx.vm.newError({
                                 name: "TypeError",
                                 message: "Body has already been consumed",
-                              }),
-                            ),
+                              })
+                            )
                           )
                           return
                         }
@@ -790,22 +790,22 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                             blobObj,
                             "size",
                             ctx.scope.manage(
-                              ctx.vm.newNumber(clonedBodyBytes.length),
-                            ),
+                              ctx.vm.newNumber(clonedBodyBytes.length)
+                            )
                           )
                           ctx.vm.setProp(
                             blobObj,
                             "type",
                             ctx.scope.manage(
-                              ctx.vm.newString("application/octet-stream"),
-                            ),
+                              ctx.vm.newString("application/octet-stream")
+                            )
                           )
                           const arr = ctx.scope.manage(ctx.vm.newArray())
                           clonedBodyBytes.forEach((byte, i) => {
                             ctx.vm.setProp(
                               arr,
                               i,
-                              ctx.scope.manage(ctx.vm.newNumber(byte)),
+                              ctx.scope.manage(ctx.vm.newNumber(byte))
                             )
                           })
                           ctx.vm.setProp(blobObj, "bytes", arr)
@@ -819,13 +819,13 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                                   error instanceof Error
                                     ? error.message
                                     : "Blob conversion failed",
-                              }),
-                            ),
+                              })
+                            )
                           )
                         }
                       })
                       return ctx.scope.manage(vmPromise).handle
-                    },
+                    }
                   )
                   ctx.vm.setProp(clonedResponseObj, "blob", clonedBlobFn)
 
@@ -840,8 +840,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                               ctx.vm.newError({
                                 name: "TypeError",
                                 message: "Body has already been consumed",
-                              }),
-                            ),
+                              })
+                            )
                           )
                           return
                         }
@@ -853,10 +853,10 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                               : clonedBodyBytes
 
                           const text = new TextDecoder().decode(
-                            new Uint8Array(cleanBytes),
+                            new Uint8Array(cleanBytes)
                           )
                           const formDataObj = ctx.scope.manage(
-                            ctx.vm.newObject(),
+                            ctx.vm.newObject()
                           )
                           const pairs = text.split("&")
                           for (const pair of pairs) {
@@ -867,7 +867,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                               ctx.vm.setProp(
                                 formDataObj,
                                 key,
-                                ctx.scope.manage(ctx.vm.newString(value || "")),
+                                ctx.scope.manage(ctx.vm.newString(value || ""))
                               )
                             }
                           }
@@ -881,29 +881,29 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                                   error instanceof Error
                                     ? error.message
                                     : "FormData parsing failed",
-                              }),
-                            ),
+                              })
+                            )
                           )
                         }
                       })
                       return ctx.scope.manage(vmPromise).handle
-                    },
+                    }
                   )
                   ctx.vm.setProp(
                     clonedResponseObj,
                     "formData",
-                    clonedFormDataFn,
+                    clonedFormDataFn
                   )
 
                   // Add clone() method to cloned response (recursively)
                   ctx.vm.setProp(
                     clonedResponseObj,
                     "clone",
-                    cloneFetchResponseFn,
+                    cloneFetchResponseFn
                   )
 
                   return clonedResponseObj
-                },
+                }
               )
               ctx.vm.setProp(responseObj, "clone", cloneFetchResponseFn)
 
@@ -916,11 +916,11 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                     name: "FetchError",
                     message:
                       error instanceof Error ? error.message : "Fetch failed",
-                  }),
-                ),
+                  })
+                )
               )
             })
-        }),
+        })
       )
 
       return promiseHandle.handle
@@ -951,7 +951,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
             const value = String(ctx.vm.dump(appendArgs[1]))
             nativeHeaders.append(name, value)
             return ctx.vm.undefined
-          },
+          }
         )
         ctx.vm.setProp(headersInstance, "append", appendFn)
 
@@ -963,7 +963,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
             const name = String(ctx.vm.dump(deleteArgs[0]))
             nativeHeaders.delete(name)
             return ctx.vm.undefined
-          },
+          }
         )
         ctx.vm.setProp(headersInstance, "delete", deleteFn)
 
@@ -1005,11 +1005,11 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                 ctx.vm.undefined,
                 ctx.scope.manage(ctx.vm.newString(value)),
                 ctx.scope.manage(ctx.vm.newString(key)),
-                headersInstance,
+                headersInstance
               )
             })
             return ctx.vm.undefined
-          },
+          }
         )
         ctx.vm.setProp(headersInstance, "forEach", forEachFn)
 
@@ -1037,7 +1037,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
             ctx.vm.setProp(
               keysArray,
               index++,
-              ctx.scope.manage(ctx.vm.newString(key)),
+              ctx.scope.manage(ctx.vm.newString(key))
             )
           }
           return keysArray
@@ -1053,7 +1053,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
             ctx.vm.setProp(
               valuesArray,
               index++,
-              ctx.scope.manage(ctx.vm.newString(value)),
+              ctx.scope.manage(ctx.vm.newString(value))
             )
           }
           return valuesArray
@@ -1074,14 +1074,14 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         ctx.vm.setProp(headersInstance, "toObject", toObjectFn)
 
         return headersInstance
-      },
+      }
     )
 
     // Set the helper on global scope (keep it, don't remove)
     ctx.vm.setProp(
       ctx.vm.global,
       "__createHeadersInstance",
-      createHeadersInstance,
+      createHeadersInstance
     )
 
     // Define the Headers constructor as actual JavaScript in the sandbox
@@ -1098,7 +1098,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     if (headersCtorResult.error) {
       console.error(
         "[CUSTOM-FETCH] Failed to define Headers constructor:",
-        ctx.vm.dump(headersCtorResult.error),
+        ctx.vm.dump(headersCtorResult.error)
       )
       headersCtorResult.error.dispose()
     } else {
@@ -1115,7 +1115,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       // Create native Request instance
       const nativeRequest = new globalThis.Request(
         input as RequestInfo,
-        init as RequestInit,
+        init as RequestInit
       )
 
       const requestInstance = ctx.scope.manage(ctx.vm.newObject())
@@ -1132,14 +1132,14 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       ctx.vm.setProp(
         requestInstance,
         "url",
-        ctx.scope.manage(ctx.vm.newString(url)),
+        ctx.scope.manage(ctx.vm.newString(url))
       )
 
       // method property
       ctx.vm.setProp(
         requestInstance,
         "method",
-        ctx.scope.manage(ctx.vm.newString(nativeRequest.method)),
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.method))
       )
 
       // headers property - create simple object (Headers class can be used separately if needed)
@@ -1149,7 +1149,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         ctx.vm.setProp(
           headersObj,
           key,
-          ctx.scope.manage(ctx.vm.newString(value)),
+          ctx.scope.manage(ctx.vm.newString(value))
         )
       }
       ctx.vm.setProp(requestInstance, "headers", headersObj)
@@ -1164,42 +1164,42 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
       ctx.vm.setProp(
         requestInstance,
         "mode",
-        ctx.scope.manage(ctx.vm.newString(nativeRequest.mode)),
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.mode))
       )
 
       // credentials property
       ctx.vm.setProp(
         requestInstance,
         "credentials",
-        ctx.scope.manage(ctx.vm.newString(nativeRequest.credentials)),
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.credentials))
       )
 
       // cache property
       ctx.vm.setProp(
         requestInstance,
         "cache",
-        ctx.scope.manage(ctx.vm.newString(nativeRequest.cache)),
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.cache))
       )
 
       // redirect property
       ctx.vm.setProp(
         requestInstance,
         "redirect",
-        ctx.scope.manage(ctx.vm.newString(nativeRequest.redirect)),
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.redirect))
       )
 
       // referrer property
       ctx.vm.setProp(
         requestInstance,
         "referrer",
-        ctx.scope.manage(ctx.vm.newString(nativeRequest.referrer)),
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.referrer))
       )
 
       // integrity property
       ctx.vm.setProp(
         requestInstance,
         "integrity",
-        ctx.scope.manage(ctx.vm.newString(nativeRequest.integrity)),
+        ctx.scope.manage(ctx.vm.newString(nativeRequest.integrity))
       )
 
       // clone() method - delegates to native Request
@@ -1211,44 +1211,44 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         ctx.vm.setProp(
           clonedRequest,
           "url",
-          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.url)),
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.url))
         )
         ctx.vm.setProp(
           clonedRequest,
           "method",
-          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.method)),
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.method))
         )
         ctx.vm.setProp(clonedRequest, "body", ctx.vm.null)
         ctx.vm.setProp(clonedRequest, "bodyUsed", ctx.vm.false)
         ctx.vm.setProp(
           clonedRequest,
           "mode",
-          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.mode)),
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.mode))
         )
         ctx.vm.setProp(
           clonedRequest,
           "credentials",
-          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.credentials)),
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.credentials))
         )
         ctx.vm.setProp(
           clonedRequest,
           "cache",
-          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.cache)),
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.cache))
         )
         ctx.vm.setProp(
           clonedRequest,
           "redirect",
-          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.redirect)),
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.redirect))
         )
         ctx.vm.setProp(
           clonedRequest,
           "referrer",
-          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.referrer)),
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.referrer))
         )
         ctx.vm.setProp(
           clonedRequest,
           "integrity",
-          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.integrity)),
+          ctx.scope.manage(ctx.vm.newString(clonedNativeRequest.integrity))
         )
 
         return clonedRequest
@@ -1271,7 +1271,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     if (requestCtorResult.error) {
       console.error(
         "[CUSTOM-FETCH] Failed to define Request constructor:",
-        ctx.vm.dump(requestCtorResult.error),
+        ctx.vm.dump(requestCtorResult.error)
       )
       requestCtorResult.error.dispose()
     } else {
@@ -1295,14 +1295,14 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         ctx.vm.setProp(
           responseInstance,
           "status",
-          ctx.scope.manage(ctx.vm.newNumber(status)),
+          ctx.scope.manage(ctx.vm.newNumber(status))
         )
 
         // Set statusText property
         ctx.vm.setProp(
           responseInstance,
           "statusText",
-          ctx.scope.manage(ctx.vm.newString(init.statusText || "")),
+          ctx.scope.manage(ctx.vm.newString(init.statusText || ""))
         )
 
         // Set ok property (true for 200-299 status codes)
@@ -1319,7 +1319,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
             ctx.vm.setProp(
               responseHeadersObj,
               key.toLowerCase(),
-              ctx.scope.manage(ctx.vm.newString(String(value))),
+              ctx.scope.manage(ctx.vm.newString(String(value)))
             )
           }
         }
@@ -1330,21 +1330,21 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         ctx.vm.setProp(
           responseInstance,
           "type",
-          ctx.scope.manage(ctx.vm.newString(init.type || "default")),
+          ctx.scope.manage(ctx.vm.newString(init.type || "default"))
         )
 
         // Set url property
         ctx.vm.setProp(
           responseInstance,
           "url",
-          ctx.scope.manage(ctx.vm.newString(init.url || "")),
+          ctx.scope.manage(ctx.vm.newString(init.url || ""))
         )
 
         // Set redirected property
         ctx.vm.setProp(
           responseInstance,
           "redirected",
-          init.redirected ? ctx.vm.true : ctx.vm.false,
+          init.redirected ? ctx.vm.true : ctx.vm.false
         )
 
         // Store body internally
@@ -1384,8 +1384,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                   ctx.vm.newError({
                     name: "TypeError",
                     message: "Body has already been consumed",
-                  }),
-                ),
+                  })
+                )
               )
               return
             }
@@ -1402,8 +1402,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                       error instanceof Error
                         ? error.message
                         : "JSON parse failed",
-                  }),
-                ),
+                  })
+                )
               )
             }
           })
@@ -1420,8 +1420,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                   ctx.vm.newError({
                     name: "TypeError",
                     message: "Body has already been consumed",
-                  }),
-                ),
+                  })
+                )
               )
               return
             }
@@ -1437,8 +1437,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                       error instanceof Error
                         ? error.message
                         : "Text decode failed",
-                  }),
-                ),
+                  })
+                )
               )
             }
           })
@@ -1458,8 +1458,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                     ctx.vm.newError({
                       name: "TypeError",
                       message: "Body has already been consumed",
-                    }),
-                  ),
+                    })
+                  )
                 )
                 return
               }
@@ -1470,7 +1470,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                   ctx.vm.setProp(
                     arr,
                     i,
-                    ctx.scope.manage(ctx.vm.newNumber(byte)),
+                    ctx.scope.manage(ctx.vm.newNumber(byte))
                   )
                 })
                 resolve(arr)
@@ -1483,13 +1483,13 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                         error instanceof Error
                           ? error.message
                           : "ArrayBuffer conversion failed",
-                    }),
-                  ),
+                    })
+                  )
                 )
               }
             })
             return ctx.scope.manage(vmPromise).handle
-          },
+          }
         )
         ctx.vm.setProp(responseInstance, "arrayBuffer", arrayBufferFn)
 
@@ -1502,8 +1502,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                   ctx.vm.newError({
                     name: "TypeError",
                     message: "Body has already been consumed",
-                  }),
-                ),
+                  })
+                )
               )
               return
             }
@@ -1513,12 +1513,12 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
               ctx.vm.setProp(
                 blobObj,
                 "size",
-                ctx.scope.manage(ctx.vm.newNumber(bodyBytes.length)),
+                ctx.scope.manage(ctx.vm.newNumber(bodyBytes.length))
               )
               ctx.vm.setProp(
                 blobObj,
                 "type",
-                ctx.scope.manage(ctx.vm.newString("application/octet-stream")),
+                ctx.scope.manage(ctx.vm.newString("application/octet-stream"))
               )
               // Store bytes as array
               const arr = ctx.scope.manage(ctx.vm.newArray())
@@ -1536,8 +1536,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                       error instanceof Error
                         ? error.message
                         : "Blob conversion failed",
-                  }),
-                ),
+                  })
+                )
               )
             }
           })
@@ -1554,8 +1554,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                   ctx.vm.newError({
                     name: "TypeError",
                     message: "Body has already been consumed",
-                  }),
-                ),
+                  })
+                )
               )
               return
             }
@@ -1572,7 +1572,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                   ctx.vm.setProp(
                     formDataObj,
                     key,
-                    ctx.scope.manage(ctx.vm.newString(value || "")),
+                    ctx.scope.manage(ctx.vm.newString(value || ""))
                   )
                 }
               }
@@ -1587,8 +1587,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                       error instanceof Error
                         ? error.message
                         : "FormData parsing failed",
-                  }),
-                ),
+                  })
+                )
               )
             }
           })
@@ -1614,12 +1614,12 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
           ctx.vm.setProp(
             clonedResponse,
             "status",
-            ctx.scope.manage(ctx.vm.newNumber(status)),
+            ctx.scope.manage(ctx.vm.newNumber(status))
           )
           ctx.vm.setProp(
             clonedResponse,
             "statusText",
-            ctx.scope.manage(ctx.vm.newString(init.statusText || "")),
+            ctx.scope.manage(ctx.vm.newString(init.statusText || ""))
           )
           ctx.vm.setProp(clonedResponse, "ok", ok ? ctx.vm.true : ctx.vm.false)
 
@@ -1630,7 +1630,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
               ctx.vm.setProp(
                 clonedResponseHeadersObj,
                 key.toLowerCase(),
-                ctx.scope.manage(ctx.vm.newString(String(value))),
+                ctx.scope.manage(ctx.vm.newString(String(value)))
               )
             }
           }
@@ -1640,17 +1640,17 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
           ctx.vm.setProp(
             clonedResponse,
             "type",
-            ctx.scope.manage(ctx.vm.newString(init.type || "default")),
+            ctx.scope.manage(ctx.vm.newString(init.type || "default"))
           )
           ctx.vm.setProp(
             clonedResponse,
             "url",
-            ctx.scope.manage(ctx.vm.newString(init.url || "")),
+            ctx.scope.manage(ctx.vm.newString(init.url || ""))
           )
           ctx.vm.setProp(
             clonedResponse,
             "redirected",
-            init.redirected ? ctx.vm.true : ctx.vm.false,
+            init.redirected ? ctx.vm.true : ctx.vm.false
           )
 
           // Clone body bytes array and consumption state
@@ -1677,14 +1677,14 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                     ctx.vm.newError({
                       name: "TypeError",
                       message: "Body has already been consumed",
-                    }),
-                  ),
+                    })
+                  )
                 )
                 return
               }
               try {
                 const text = new TextDecoder().decode(
-                  new Uint8Array(clonedBodyBytes),
+                  new Uint8Array(clonedBodyBytes)
                 )
                 const parsed = JSON.parse(text)
                 resolve(marshalValue(parsed))
@@ -1697,8 +1697,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                         error instanceof Error
                           ? error.message
                           : "JSON parse failed",
-                    }),
-                  ),
+                    })
+                  )
                 )
               }
             })
@@ -1714,14 +1714,14 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                     ctx.vm.newError({
                       name: "TypeError",
                       message: "Body has already been consumed",
-                    }),
-                  ),
+                    })
+                  )
                 )
                 return
               }
               try {
                 const text = new TextDecoder().decode(
-                  new Uint8Array(clonedBodyBytes),
+                  new Uint8Array(clonedBodyBytes)
                 )
                 resolve(ctx.scope.manage(ctx.vm.newString(text)))
               } catch (error) {
@@ -1733,8 +1733,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                         error instanceof Error
                           ? error.message
                           : "Text decode failed",
-                    }),
-                  ),
+                    })
+                  )
                 )
               }
             })
@@ -1753,8 +1753,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                       ctx.vm.newError({
                         name: "TypeError",
                         message: "Body has already been consumed",
-                      }),
-                    ),
+                      })
+                    )
                   )
                   return
                 }
@@ -1764,7 +1764,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                     ctx.vm.setProp(
                       arr,
                       i,
-                      ctx.scope.manage(ctx.vm.newNumber(byte)),
+                      ctx.scope.manage(ctx.vm.newNumber(byte))
                     )
                   })
                   resolve(arr)
@@ -1777,13 +1777,13 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                           error instanceof Error
                             ? error.message
                             : "ArrayBuffer conversion failed",
-                      }),
-                    ),
+                      })
+                    )
                   )
                 }
               })
               return ctx.scope.manage(vmPromise).handle
-            },
+            }
           )
           ctx.vm.setProp(clonedResponse, "arrayBuffer", clonedArrayBufferFn)
 
@@ -1795,8 +1795,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                     ctx.vm.newError({
                       name: "TypeError",
                       message: "Body has already been consumed",
-                    }),
-                  ),
+                    })
+                  )
                 )
                 return
               }
@@ -1805,21 +1805,19 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                 ctx.vm.setProp(
                   blobObj,
                   "size",
-                  ctx.scope.manage(ctx.vm.newNumber(clonedBodyBytes.length)),
+                  ctx.scope.manage(ctx.vm.newNumber(clonedBodyBytes.length))
                 )
                 ctx.vm.setProp(
                   blobObj,
                   "type",
-                  ctx.scope.manage(
-                    ctx.vm.newString("application/octet-stream"),
-                  ),
+                  ctx.scope.manage(ctx.vm.newString("application/octet-stream"))
                 )
                 const arr = ctx.scope.manage(ctx.vm.newArray())
                 clonedBodyBytes.forEach((byte, i) => {
                   ctx.vm.setProp(
                     arr,
                     i,
-                    ctx.scope.manage(ctx.vm.newNumber(byte)),
+                    ctx.scope.manage(ctx.vm.newNumber(byte))
                   )
                 })
                 ctx.vm.setProp(blobObj, "bytes", arr)
@@ -1833,8 +1831,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                         error instanceof Error
                           ? error.message
                           : "Blob conversion failed",
-                    }),
-                  ),
+                    })
+                  )
                 )
               }
             })
@@ -1853,14 +1851,14 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                       ctx.vm.newError({
                         name: "TypeError",
                         message: "Body has already been consumed",
-                      }),
-                    ),
+                      })
+                    )
                   )
                   return
                 }
                 try {
                   const text = new TextDecoder().decode(
-                    new Uint8Array(clonedBodyBytes),
+                    new Uint8Array(clonedBodyBytes)
                   )
                   const formDataObj = ctx.scope.manage(ctx.vm.newObject())
                   const pairs = text.split("&")
@@ -1870,7 +1868,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                       ctx.vm.setProp(
                         formDataObj,
                         key,
-                        ctx.scope.manage(ctx.vm.newString(value || "")),
+                        ctx.scope.manage(ctx.vm.newString(value || ""))
                       )
                     }
                   }
@@ -1884,13 +1882,13 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
                           error instanceof Error
                             ? error.message
                             : "FormData parsing failed",
-                      }),
-                    ),
+                      })
+                    )
                   )
                 }
               })
               return ctx.scope.manage(vmPromise).handle
-            },
+            }
           )
           ctx.vm.setProp(clonedResponse, "formData", clonedFormDataFn)
 
@@ -1903,7 +1901,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         ctx.vm.setProp(responseInstance, "clone", cloneFn)
 
         return responseInstance
-      },
+      }
     )
 
     // Set helper on global and define Response constructor in sandbox
@@ -1919,7 +1917,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     if (responseCtorResult.error) {
       console.error(
         "[CUSTOM-FETCH] Failed to define Response constructor:",
-        ctx.vm.dump(responseCtorResult.error),
+        ctx.vm.dump(responseCtorResult.error)
       )
       responseCtorResult.error.dispose()
     } else {
@@ -1957,7 +1955,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
               abortListeners.push({ handle: dupedHandle, disposed: false })
             }
             return ctx.vm.undefined
-          },
+          }
         )
         ctx.vm.setProp(signalInstance, "addEventListener", addEventListenerFn)
 
@@ -1975,12 +1973,12 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
             if (!listenerInfo.disposed) {
               const result = ctx.vm.callFunction(
                 listenerInfo.handle,
-                ctx.vm.undefined,
+                ctx.vm.undefined
               )
               if (result.error) {
                 console.error(
                   "[ABORT] Listener error:",
-                  ctx.vm.dump(result.error),
+                  ctx.vm.dump(result.error)
                 )
                 result.error.dispose()
               } else {
@@ -1997,14 +1995,14 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         ctx.vm.setProp(controllerInstance, "abort", abortFn)
 
         return controllerInstance
-      },
+      }
     )
 
     // Set helper on global and define AbortController constructor in sandbox
     ctx.vm.setProp(
       ctx.vm.global,
       "__createAbortControllerInstance",
-      AbortControllerClass,
+      AbortControllerClass
     )
     const abortCtorResult = ctx.vm.evalCode(`
       (function() {
@@ -2017,7 +2015,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     if (abortCtorResult.error) {
       console.error(
         "[CUSTOM-FETCH] Failed to define AbortController constructor:",
-        ctx.vm.dump(abortCtorResult.error),
+        ctx.vm.dump(abortCtorResult.error)
       )
       abortCtorResult.error.dispose()
     } else {

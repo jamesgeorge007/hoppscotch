@@ -27,8 +27,8 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -91,8 +91,8 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -141,8 +141,8 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -184,8 +184,8 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -227,8 +227,8 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -273,8 +273,8 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -319,8 +319,8 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -363,8 +363,8 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -375,7 +375,7 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
               {
                 status: "fail",
                 message: expect.stringContaining(
-                  "Required property 'age' is missing",
+                  "Required property 'age' is missing"
                 ),
               },
             ],
@@ -407,8 +407,8 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -419,7 +419,7 @@ describe("`pm.response.to.have.jsonSchema` - JSON Schema Validation", () => {
               {
                 status: "fail",
                 message: expect.stringContaining(
-                  "Expected type number, got string",
+                  "Expected type number, got string"
                 ),
               },
             ],
@@ -447,8 +447,8 @@ describe("`pm.response.to.have.charset` - Charset Assertions", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -459,7 +459,7 @@ describe("`pm.response.to.have.charset` - Charset Assertions", () => {
               {
                 status: "pass",
                 message: expect.stringContaining(
-                  "Expected 'utf-8' to equal 'utf-8'",
+                  "Expected 'utf-8' to equal 'utf-8'"
                 ),
               },
             ],
@@ -487,8 +487,8 @@ describe("`pm.response.to.have.charset` - Charset Assertions", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -499,7 +499,7 @@ describe("`pm.response.to.have.charset` - Charset Assertions", () => {
               {
                 status: "pass",
                 message: expect.stringContaining(
-                  "Expected 'iso-8859-1' to equal 'iso-8859-1'",
+                  "Expected 'iso-8859-1' to equal 'iso-8859-1'"
                 ),
               },
             ],
@@ -527,8 +527,8 @@ describe("`pm.response.to.have.charset` - Charset Assertions", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -539,7 +539,7 @@ describe("`pm.response.to.have.charset` - Charset Assertions", () => {
               {
                 status: "pass",
                 message: expect.stringContaining(
-                  "Expected 'utf-8' to equal 'utf-8'",
+                  "Expected 'utf-8' to equal 'utf-8'"
                 ),
               },
             ],
@@ -565,8 +565,8 @@ describe("`pm.response.to.have.charset` - Charset Assertions", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -577,7 +577,7 @@ describe("`pm.response.to.have.charset` - Charset Assertions", () => {
               {
                 status: "fail",
                 message: expect.stringContaining(
-                  "Expected 'utf-8' to equal 'iso-8859-1'",
+                  "Expected 'utf-8' to equal 'iso-8859-1'"
                 ),
               },
             ],
@@ -605,8 +605,8 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -617,7 +617,7 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
               {
                 status: "pass",
                 message: expect.stringContaining(
-                  "Expected 'John' to deep equal 'John'",
+                  "Expected 'John' to deep equal 'John'"
                 ),
               },
             ],
@@ -650,8 +650,8 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -662,7 +662,7 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
               {
                 status: "pass",
                 message: expect.stringContaining(
-                  "Expected 'John Doe' to deep equal 'John Doe'",
+                  "Expected 'John Doe' to deep equal 'John Doe'"
                 ),
               },
             ],
@@ -694,8 +694,8 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -728,8 +728,8 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -762,8 +762,8 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -798,8 +798,8 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -810,7 +810,7 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
               {
                 status: "fail",
                 message: expect.stringContaining(
-                  "Property 'nonexistent' not found",
+                  "Property 'nonexistent' not found"
                 ),
               },
             ],
@@ -836,8 +836,8 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -872,8 +872,8 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
           })
         `,
         { global: [], selected: [] },
-        response,
-      )(),
+        response
+      )()
     ).resolves.toEqualRight([
       expect.objectContaining({
         descriptor: "root",
@@ -884,7 +884,7 @@ describe("`pm.response.to.have.jsonPath` - JSONPath Queries", () => {
               {
                 status: "fail",
                 message: expect.stringContaining(
-                  "Expected 'John' to deep equal 'Jane'",
+                  "Expected 'John' to deep equal 'Jane'"
                 ),
               },
             ],
