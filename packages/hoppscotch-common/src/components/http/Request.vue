@@ -354,9 +354,9 @@ const newSendRequest = async () => {
     req: tab.value.document.request,
   }
 
-  // Clear test results to prevent showing stale data during async operations
-  // The Test Results tab will remain hidden until new results are available
-  tab.value.document.testResults = null
+  // DON'T clear test results here - keep old results visible during loading
+  // The TestResult component will check loading state to prevent showing stale data
+  // testResults will be updated when new results arrive
 
   // Also set loading ref for internal state
   loading.value = true
@@ -391,31 +391,9 @@ const newSendRequest = async () => {
         }
       },
       () => {
-        // Stream completed - ensure testResults is set to clear loading state
-        // This handles network_fail, interceptor_error, and other error responses
-        // that don't trigger the success/fail path where testResults would be set
-        if (loading.value && tab.value.document.testResults === null) {
-          // Set empty test results to signal completion and clear loading state
-          tab.value.document.testResults = {
-            description: "",
-            expectResults: [],
-            tests: [],
-            envDiff: {
-              global: {
-                additions: [],
-                deletions: [],
-                updations: [],
-              },
-              selected: {
-                additions: [],
-                deletions: [],
-                updations: [],
-              },
-            },
-            scriptError: false,
-            consoleEntries: [],
-          }
-        }
+        // Stream completed successfully
+        // Loading state will be cleared by the watcher when testResults updates
+        // No need to set empty testResults here - tests will set it if they run
       },
       () => {
         // TODO: Change this any to a proper type
@@ -432,28 +410,9 @@ const newSendRequest = async () => {
           }
           updateRESTResponse(errorResponse)
         }
-        // Ensure testResults is set on error completion
-        if (loading.value && tab.value.document.testResults === null) {
-          tab.value.document.testResults = {
-            description: "",
-            expectResults: [],
-            tests: [],
-            envDiff: {
-              global: {
-                additions: [],
-                deletions: [],
-                updations: [],
-              },
-              selected: {
-                additions: [],
-                deletions: [],
-                updations: [],
-              },
-            },
-            scriptError: false,
-            consoleEntries: [],
-          }
-        }
+        // Clear loading state on error
+        // Don't set empty testResults - keep previous results or let it stay undefined
+        loading.value = false
       }
     )
   } else {

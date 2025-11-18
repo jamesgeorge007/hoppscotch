@@ -183,7 +183,7 @@
       :text="t('helpers.post_request_script_fail')"
     />
     <HoppSmartPlaceholder
-      v-else
+      v-else-if="showEmptyMessage && !isLoading"
       :src="`/images/states/${colorMode.value}/validation.svg`"
       :alt="`${t('empty.tests')}`"
       :heading="t('empty.tests')"
@@ -248,9 +248,11 @@ const props = withDefaults(
   defineProps<{
     modelValue: HoppTestResult | null | undefined
     showEmptyMessage?: boolean
+    isLoading?: boolean
   }>(),
   {
     showEmptyMessage: true,
+    isLoading: false,
   }
 )
 
