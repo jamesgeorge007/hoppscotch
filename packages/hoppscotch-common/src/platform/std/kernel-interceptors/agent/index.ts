@@ -162,11 +162,6 @@ export class AgentKernelInterceptorService
         reqID
       )
 
-      console.log(
-        "[agent-interceptor] Auth key present:",
-        !!this.store.authKey.value
-      )
-
       const response = await axios.post(
         "http://localhost:9119/execute",
         encryptedReq,

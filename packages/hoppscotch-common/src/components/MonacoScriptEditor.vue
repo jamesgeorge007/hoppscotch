@@ -77,6 +77,8 @@ const ensureCompilerOptions = (() => {
       moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
       module: monaco.languages.typescript.ModuleKind.ESNext,
       noEmit: true,
+      // Target set to ES2022 to support modern JavaScript features used in scripts
+      // (e.g., top-level await, class fields, improved error handling)
       target: monaco.languages.typescript.ScriptTarget.ES2022,
       allowNonTsExtensions: true,
     })
