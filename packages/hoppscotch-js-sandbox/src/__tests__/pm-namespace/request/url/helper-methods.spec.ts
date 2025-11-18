@@ -439,9 +439,7 @@ describe("pm.request.url.update()", () => {
     })
 
     expect(result._tag).toBe("Left")
-    if (result._tag === "Left") {
-      expect(result.left).toContain("URL update requires")
-    }
+    expect(result.left).toContain("URL update requires")
   })
 })
 

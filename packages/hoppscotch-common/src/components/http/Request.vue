@@ -391,8 +391,7 @@ const newSendRequest = async () => {
         }
       },
       () => {
-        // Don't clear loading here - wait for testResults to be set
-        // loading.value = false
+        // Loading state is intentionally not cleared here - it will be cleared when testResults are set
       },
       () => {
         // TODO: Change this any to a proper type
@@ -409,8 +408,7 @@ const newSendRequest = async () => {
           }
           updateRESTResponse(errorResponse)
         }
-        // Don't clear loading here - wait for testResults to be set
-        // loading.value = false
+        // Loading state is intentionally not cleared here - it will be cleared when testResults are set
       }
     )
   } else {
