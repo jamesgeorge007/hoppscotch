@@ -266,7 +266,10 @@ export class ExtensionKernelInterceptorService
                 for (let i = 0; i < binaryString.length; i++) {
                   bytes[i] = binaryString.charCodeAt(i)
                 }
-                // Pass the Uint8Array directly, not .buffer, to avoid offset issues
+                // Pass the Uint8Array directly, not .buffer, to avoid offset issues.
+                // Explanation: If you use bytes.buffer, you may include unused portions of the ArrayBuffer,
+                // because Uint8Array can be a view with a non-zero offset or a length less than the buffer size.
+                // Passing the Uint8Array directly ensures only the intended bytes are included in the Blob.
                 requestData = new Blob([bytes])
               } catch (e) {
                 console.error("Error converting binary data:", e)

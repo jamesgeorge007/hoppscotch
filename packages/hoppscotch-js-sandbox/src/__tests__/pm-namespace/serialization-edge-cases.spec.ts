@@ -953,6 +953,9 @@ describe("Serialization Edge Cases - Assertion Chaining", () => {
         `)()
       ).resolves.toEqualLeft(
         // QuickJS returns a GC error instead of "Maximum call stack size exceeded"
+        // The exact QuickJS error message may vary between versions and environments
+        // (e.g., "internal error: out of memory in GC"), so we only check for the
+        // generic prefix to avoid brittle tests
         expect.stringContaining("Script execution failed:")
       )
     })

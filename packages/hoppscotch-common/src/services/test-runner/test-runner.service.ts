@@ -293,6 +293,8 @@ export class TestRunnerService extends Service {
 
       // Force Vue to flush DOM updates before starting async work.
       // This ensures components consuming the isLoading state (such as those rendering the Send/Cancel button) update immediately.
+      // Performance impact: nextTick adds minimal latency (~1-2ms) but is necessary to prevent UI flicker
+      // and ensure loading indicators appear before potentially long-running network requests.
       await nextTick()
 
       // Capture the initial environment state for a test run so that it remains consistent and unchanged when current environment changes

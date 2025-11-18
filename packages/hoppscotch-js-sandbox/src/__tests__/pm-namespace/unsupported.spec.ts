@@ -171,13 +171,10 @@ describe("pm namespace - unsupported features", () => {
         selected: [],
       })()
 
-      // Check that we got a Left (error) result
-      expect(result._tag).toBe("Left")
-
       // Check that the error message contains the expected error text
-      // We use .toContain() because QuickJS may append GC disposal errors
-      expect(result.left).toContain(
-        `Script execution failed: Error: ${errorMessage}`
+      // We use toEqualLeft with stringContaining because QuickJS may append GC disposal errors
+      expect(result).toEqualLeft(
+        expect.stringContaining(`Script execution failed: Error: ${errorMessage}`)
       )
     }
   )
