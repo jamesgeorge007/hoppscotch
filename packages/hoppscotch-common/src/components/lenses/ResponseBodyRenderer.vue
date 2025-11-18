@@ -36,8 +36,8 @@
       :indicator="showIndicator"
       class="flex flex-1 flex-col"
     >
-      <HttpTestResult 
-        v-model="doc.testResults" 
+      <HttpTestResult
+        v-model="doc.testResults"
         :is-loading="doc.response?.type === 'loading'"
       />
     </HoppSmartTab>

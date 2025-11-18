@@ -303,54 +303,7 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
       const { error: junitError } = await runCLI(junitArgs);
       expect(junitError).toBeNull();
 
-      let junitXml = fs.readFileSync(junitPath, "utf-8");
-
-      // Normalize dynamic values for stable snapshot comparison
-      junitXml = junitXml
-        .replace(/time="[^"]*"/g, 'time="NORMALIZED"')
-        .replace(/timestamp="[^"]*"/g, 'timestamp="NORMALIZED"')
-        // Normalize test execution timestamps that might vary
-        .replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g, "TIMESTAMP")
-        // Normalize any duration values in milliseconds
-        .replace(/\d+ms/g, "NORMALIZEDms")
-        // Normalize any numeric IDs that might be generated
-        .replace(/id="[^"]*"/g, 'id="NORMALIZED"')
-        // Normalize response time values in test assertion messages
-        .replace(
-          /Expected '\d+' to be type 'number'/g,
-          "Expected 'NORMALIZED' to be type 'number'"
-        )
-        // Normalize trace IDs in response bodies (traceparent, x-nf-trace-span-id, x-nf-request-id)
-        .replace(
-          /traceparent\\&quot;:\\&quot;[^\\]+\\&quot;/g,
-          "traceparent\\&quot;:\\&quot;NORMALIZED\\&quot;"
-        )
-        .replace(
-          /x-nf-trace-span-id\\&quot;:\\&quot;[^\\]+\\&quot;/g,
-          "x-nf-trace-span-id\\&quot;:\\&quot;NORMALIZED\\&quot;"
-        )
-        .replace(
-          /x-nf-request-id\\&quot;:\\&quot;[^\\]+\\&quot;/g,
-          "x-nf-request-id\\&quot;:\\&quot;NORMALIZED\\&quot;"
-        )
-        .replace(
-          /x-nf-request-start\\&quot;:\\&quot;[^\\]+\\&quot;/g,
-          "x-nf-request-start\\&quot;:\\&quot;NORMALIZED\\&quot;"
-        )
-        // Normalize IP addresses that may vary
-        .replace(
-          /x-forwarded-for\\&quot;:\\&quot;[^\\]+\\&quot;/g,
-          "x-forwarded-for\\&quot;:\\&quot;NORMALIZED\\&quot;"
-        )
-        .replace(
-          /x-nf-client-connection-ip\\&quot;:\\&quot;[^\\]+\\&quot;/g,
-          "x-nf-client-connection-ip\\&quot;:\\&quot;NORMALIZED\\&quot;"
-        )
-        // Normalize geo location data that may vary
-        .replace(
-          /x-nf-geo\\&quot;:\\&quot;[^\\]+\\&quot;/g,
-          "x-nf-geo\\&quot;:\\&quot;NORMALIZED\\&quot;"
-        );
+      const junitXml = fs.readFileSync(junitPath, "utf-8");
 
       // Validate critical structural invariants using regex parsing
       // CRITICAL: Validate no testcases have "root" as name (would indicate assertions at root level)
@@ -373,9 +326,74 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
         expect(name).not.toBe("root");
       }
 
-      // Snapshot test with normalized values
-      // This will catch any future regression where assertions leak to root level
-      expect(junitXml).toMatchSnapshot();
+      // Validate presence of key test groups instead of snapshot comparison
+      // This is more reliable for CI as network responses can vary
+
+      // 1. Correct number of test suites
+      const testsuitePattern = /<testsuite /g;
+      const testsuiteCount = (junitXml.match(testsuitePattern) || []).length;
+      expect(testsuiteCount).toBeGreaterThan(60); // Should have 67+ test suites with comprehensive additions
+
+      // 2. Async pattern tests executed (from newly added requests)
+      expect(junitXml).toContain('name="Pre-request top-level await works');
+      expect(junitXml).toContain('name="Pre-request .then() chain works');
+      expect(junitXml).toContain('name="Test script top-level await works');
+      expect(junitXml).toContain('name="Await inside test callback works');
+      expect(junitXml).toContain('name=".then() inside test callback works');
+      expect(junitXml).toContain('name="Promise.all in test callback works');
+      expect(junitXml).toContain('name="Sequential requests work');
+      expect(junitXml).toContain('name="Parallel requests work');
+      expect(junitXml).toContain('name="Auth workflow works');
+      expect(junitXml).toContain('name="Complex workflow in test works');
+      expect(junitXml).toContain('name="Error handling works');
+      expect(junitXml).toContain('name="Large JSON payload works');
+
+      // 3. Query parameter and URL construction tests
+      expect(junitXml).toContain('name="Query parameters work');
+      expect(junitXml).toContain('name="URL object works');
+      expect(junitXml).toContain('name="Dynamic URL construction works');
+
+      // 4. POST body variation tests
+      expect(junitXml).toContain('name="POST JSON body works');
+      expect(junitXml).toContain('name="POST URL-encoded body works');
+      expect(junitXml).toContain('name="Binary POST works');
+
+      // 5. HTTP method tests
+      expect(junitXml).toContain('name="PUT method works');
+      expect(junitXml).toContain('name="PATCH method works');
+      expect(junitXml).toContain('name="DELETE method works');
+
+      // 6. Response parsing tests
+      expect(junitXml).toContain('name="Response headers accessible');
+      expect(junitXml).toContain('name="response.text() works');
+      expect(junitXml).toContain('name="Async response parsing in test works');
+
+      // 7. Chai and BDD assertions
+      expect(junitXml).toContain('name="Chai equality');
+      expect(junitXml).toContain('name="pm.expect');
+      expect(junitXml).toContain('name="hopp.expect');
+
+      // 8. hopp.fetch() and pm.sendRequest() tests
+      expect(junitXml).toContain(
+        'name="hopp.fetch() should make successful GET request'
+      );
+      expect(junitXml).toContain(
+        'name="pm.sendRequest() should work with string URL'
+      );
+      expect(junitXml).toContain(
+        'name="hopp.fetch() should handle binary responses'
+      );
+
+      // 9. No failures (collection should pass)
+      expect(junitXml).toMatch(/failures="0"/);
+      expect(junitXml).toMatch(/<testsuites tests="\d+" failures="0"/);
+
+      // 10. Validate test count is reasonable (comprehensive collection)
+      const testsMatch = junitXml.match(/<testsuites tests="(\d+)"/);
+      if (testsMatch) {
+        const testCount = parseInt(testsMatch[1], 10);
+        expect(testCount).toBeGreaterThan(800); // Should have 850+ tests with all comprehensive async additions
+      }
 
       // Clean up
       fs.unlinkSync(junitPath);

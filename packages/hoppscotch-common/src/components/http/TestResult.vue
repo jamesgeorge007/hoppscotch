@@ -140,6 +140,12 @@
             :test-results="testResults"
           />
           <div
+            v-else-if="!testResults.scriptError"
+            class="px-4 py-2 text-secondaryLight"
+          >
+            {{ t("test.running") }}
+          </div>
+          <div
             v-for="(result, index) in testResults.expectResults"
             :key="`result-${index}`"
             class="flex items-center px-4 py-2"

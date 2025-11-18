@@ -346,18 +346,18 @@ export const processRequest =
           .filter((result) => result.status === "error")
           .map((result) => result.message)
       );
-      
+
       // If there are test script errors, add them to report.errors
       if (testScriptErrors.length > 0) {
         const errorMessages = testScriptErrors.join("; ");
-        
+
         report.errors.push(
           error({
             code: "TEST_SCRIPT_ERROR",
             data: errorMessages,
           })
         );
-        
+
         report.result = false;
       }
 

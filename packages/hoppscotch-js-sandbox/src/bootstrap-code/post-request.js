@@ -15,7 +15,7 @@
     globalThis.__createChaiProxy = function (
       expectVal,
       inputs,
-      modifiers = " to"
+      modifiers = " to",
     ) {
       const proxy = {}
 
@@ -66,7 +66,7 @@
           modifiers,
           "equal",
           isSameReference,
-          typeInfo
+          typeInfo,
         )
         return withModifiers(modifiers)
       }
@@ -87,7 +87,7 @@
           expected,
           modifiers,
           "equals",
-          isSameReference
+          isSameReference,
         )
         return withModifiers(modifiers)
       }
@@ -141,7 +141,7 @@
           expected,
           modifiers,
           valueMetadata,
-          expectedMetadata
+          expectedMetadata,
         )
         return withModifiers(modifiers)
       }
@@ -232,7 +232,7 @@
           modifiers,
           objectType,
           displayValue,
-          actualInstanceCheck // Pass the pre-checked result!
+          actualInstanceCheck, // Pass the pre-checked result!
         )
         return withModifiers(modifiers)
       }
@@ -284,7 +284,7 @@
           modifiers,
           objectType,
           displayValue,
-          actualInstanceCheck // Pass the pre-checked result!
+          actualInstanceCheck, // Pass the pre-checked result!
         )
       }
       anMethod.instanceof = instanceOfMethod
@@ -349,7 +349,7 @@
                 inputs.chaiIncludeDeepOrderedMembers(
                   expectVal,
                   members,
-                  orderedModifiers
+                  orderedModifiers,
                 )
                 return withModifiers(orderedModifiers)
               }
@@ -427,7 +427,7 @@
               modifiers,
               "lengthOf",
               actualSize,
-              typeName
+              typeName,
             )
             return withModifiers(modifiers + ` lengthOf ${length}`)
           }
@@ -534,13 +534,13 @@
               modifiers,
               "length",
               actualSize,
-              typeName
+              typeName,
             )
             // Return proxy wrapping the LENGTH VALUE for chaining (.which, .that, etc.)
             return globalThis.__createChaiProxy(
               actualLength,
               inputs,
-              modifiers + ` length ${length}`
+              modifiers + ` length ${length}`,
             )
           }
 
@@ -627,7 +627,7 @@
             { size: actualSize }, // Wrap size in object
             prop,
             val,
-            modifiers
+            modifiers,
           )
           // For chaining, return proxy wrapping the size value
           return globalThis.__createChaiProxy(actualSize, inputs, modifiers)
@@ -708,7 +708,7 @@
           descriptor,
           modifiers,
           hasDescriptor,
-          matchesExpected
+          matchesExpected,
         )
 
         // Return a proxy that can chain with .that to access the descriptor
@@ -782,7 +782,7 @@
           expected,
           delta,
           modifiers,
-          "approximately"
+          "approximately",
         )
         return withModifiers(modifiers)
       }
@@ -813,7 +813,7 @@
           pattern,
           modifiers,
           regexSource,
-          regexFlags
+          regexFlags,
         )
       }
       proxy.matches = (pattern) => {
@@ -828,7 +828,7 @@
           pattern,
           modifiers,
           regexSource,
-          regexFlags
+          regexFlags,
         )
       }
       proxy.string = (substring) =>
@@ -899,7 +899,7 @@
           regexSource,
           regexFlags,
           isRegexMatcher,
-          modifiers
+          modifiers,
         )
       }
       proxy.throws = (errorLike, errMsgMatcher) => {
@@ -956,7 +956,7 @@
           regexSource,
           regexFlags,
           isRegexMatcher,
-          modifiers
+          modifiers,
         )
       }
       proxy.Throw = (errorLike, errMsgMatcher) => {
@@ -1013,7 +1013,7 @@
           regexSource,
           regexFlags,
           isRegexMatcher,
-          modifiers
+          modifiers,
         )
       }
 
@@ -1072,7 +1072,7 @@
           expectVal,
           satisfyResult,
           matcherString,
-          modifiers
+          modifiers,
         )
       }
       proxy.satisfies = (matcher) => {
@@ -1092,7 +1092,7 @@
           expectVal,
           satisfyResult,
           matcherString,
-          modifiers
+          modifiers,
         )
       }
 
@@ -1148,7 +1148,7 @@
               modifiers,
               changed,
               delta,
-              expectedDelta
+              expectedDelta,
             )
           },
         }
@@ -1205,7 +1205,7 @@
               modifiers,
               increased,
               delta,
-              expectedDelta
+              expectedDelta,
             )
           },
         }
@@ -1262,7 +1262,7 @@
               modifiers,
               decreased,
               delta,
-              expectedDelta
+              expectedDelta,
             )
           },
         }
@@ -1274,7 +1274,7 @@
         if (typeof inputs.chaiInstanceOf !== "function") {
           throw new Error(
             "inputs.chaiInstanceOf is not a function: " +
-              typeof inputs.chaiInstanceOf
+              typeof inputs.chaiInstanceOf,
           )
         }
 
@@ -1318,7 +1318,7 @@
           modifiers,
           objectType,
           displayValue,
-          actualInstanceCheck // Pass the pre-checked result!
+          actualInstanceCheck, // Pass the pre-checked result!
         )
       }
       proxy.instanceOf = function (constructor) {
@@ -1361,7 +1361,7 @@
           modifiers,
           objectType,
           displayValue,
-          actualInstanceCheck // Pass the pre-checked result!
+          actualInstanceCheck, // Pass the pre-checked result!
         )
       }
 
@@ -1516,7 +1516,7 @@
             try {
               actualDescriptor = Object.getOwnPropertyDescriptor(
                 expectVal,
-                prop
+                prop,
               )
               hasDescriptor = actualDescriptor !== undefined
 
@@ -1541,7 +1541,7 @@
               descriptor,
               modifiers + " have",
               hasDescriptor,
-              matchesExpected
+              matchesExpected,
             )
 
             // Return a proxy that can chain with .that to access the descriptor
@@ -1556,7 +1556,7 @@
                 return globalThis.__createChaiProxy(
                   actualDescriptor,
                   inputs,
-                  " to"
+                  " to",
                 )
               },
             })
@@ -1630,14 +1630,14 @@
               if (expectVal !== null && typeof expectVal === "object") {
                 isOwnProperty = Object.prototype.hasOwnProperty.call(
                   expectVal,
-                  prop
+                  prop,
                 )
               }
               inputs.chaiOwnProperty(
                 expectVal,
                 prop,
                 newModifiers,
-                isOwnProperty
+                isOwnProperty,
               )
             }
           }
@@ -1799,7 +1799,7 @@
         // expectVal should be a string (typically Content-Type header)
         if (typeof expectVal !== "string") {
           throw new Error(
-            "charset() expects a string value (typically Content-Type header)"
+            "charset() expects a string value (typically Content-Type header)",
           )
         }
 
@@ -1808,7 +1808,7 @@
 
         if (!lowerActual.includes(lowerExpected)) {
           throw new Error(
-            `Expected charset "${expectedCharset}" not found in "${expectVal}"`
+            `Expected charset "${expectedCharset}" not found in "${expectVal}"`,
           )
         }
         return withModifiers(modifiers)
@@ -1822,7 +1822,7 @@
 
         if (!expectVal || typeof expectVal !== "object" || !expectVal.cookies) {
           throw new Error(
-            "cookie() assertion requires a response object with cookies"
+            "cookie() assertion requires a response object with cookies",
           )
         }
 
@@ -1835,7 +1835,7 @@
           const actualValue = expectVal.cookies.get(cookieName)
           if (actualValue !== cookieValue) {
             throw new Error(
-              `Cookie "${cookieName}" has value "${actualValue}", expected "${cookieValue}"`
+              `Cookie "${cookieName}" has value "${actualValue}", expected "${cookieValue}"`,
             )
           }
         }
@@ -1911,7 +1911,7 @@
     }
 
     throw new Error(
-      "Unsupported input type for hopp.response.asJSON(). Expected string or object."
+      "Unsupported input type for hopp.response.asJSON(). Expected string or object.",
     )
   }
 
@@ -2025,7 +2025,7 @@
       try {
         const bytes = toBytes(body)
         const contentTypeHeader = headers.find(
-          (h) => h.key.toLowerCase() === "content-type"
+          (h) => h.key.toLowerCase() === "content-type",
         )
         const mimeType = contentTypeHeader
           ? contentTypeHeader.value.split(";")[0].trim()
@@ -2096,7 +2096,7 @@
         // Match pattern: callbackName({...})
         const regex = new RegExp(
           `^\\s*${callbackName}\\s*\\((.*)\\)\\s*;?\\s*$`,
-          "s"
+          "s",
         )
         const match = text.match(regex)
 
@@ -2168,32 +2168,30 @@
       const _chainBeforeTest = globalThis.__testExecutionChain
 
       // Add testFn execution to the chain to ensure correct context
-      const testPromise = globalThis.__testExecutionChain.then(
-        async () => {
-          inputs.setCurrentTest(descriptor)
-          try {
-            const testResult = testFn()
-            // If test returns a promise, await it
-            if (testResult && typeof testResult.then === "function") {
-              await testResult
-            }
-          } catch (error) {
-            // Record uncaught errors in test functions (e.g., ReferenceError, TypeError)
-            // This ensures errors like accessing undefined variables are captured
-            const errorMessage =
-              error && typeof error === "object" && "message" in error
-                ? `${error.name || "Error"}: ${error.message}`
-                : String(error)
-            inputs.pushExpectResult("error", errorMessage)
-          } finally {
-            inputs.clearCurrentTest()
+      const testPromise = globalThis.__testExecutionChain.then(async () => {
+        inputs.setCurrentTest(descriptor)
+        try {
+          const testResult = testFn()
+          // If test returns a promise, await it
+          if (testResult && typeof testResult.then === "function") {
+            await testResult
           }
+        } catch (error) {
+          // Record uncaught errors in test functions (e.g., ReferenceError, TypeError)
+          // This ensures errors like accessing undefined variables are captured
+          const errorMessage =
+            error && typeof error === "object" && "message" in error
+              ? `${error.name || "Error"}: ${error.message}`
+              : String(error)
+          inputs.pushExpectResult("error", errorMessage)
+        } finally {
+          inputs.clearCurrentTest()
         }
-      )
-      
+      })
+
       // Update the chain
       globalThis.__testExecutionChain = testPromise
-      
+
       // Notify runner about the test promise so it can be awaited
       if (inputs.onTestPromise) {
         inputs.onTestPromise(testPromise)
@@ -2419,7 +2417,7 @@
             throw new Error(errorMessage)
           }
         },
-      }
+      },
     ),
     test: (descriptor, testFn) => {
       // Register test immediately in definition order
@@ -2429,32 +2427,30 @@
       const _chainBeforeTest = globalThis.__testExecutionChain
 
       // Add testFn execution to the chain to ensure correct context
-      const testPromise = globalThis.__testExecutionChain.then(
-        async () => {
-          inputs.setCurrentTest(descriptor)
-          try {
-            const testResult = testFn()
-            // If test returns a promise, await it
-            if (testResult && typeof testResult.then === "function") {
-              await testResult
-            }
-          } catch (error) {
-            // Record uncaught errors in test functions (e.g., ReferenceError, TypeError)
-            // This ensures errors like accessing undefined variables are captured
-            const errorMessage =
-              error && typeof error === "object" && "message" in error
-                ? `${error.name || "Error"}: ${error.message}`
-                : String(error)
-            inputs.pushExpectResult("error", errorMessage)
-          } finally {
-            inputs.clearCurrentTest()
+      const testPromise = globalThis.__testExecutionChain.then(async () => {
+        inputs.setCurrentTest(descriptor)
+        try {
+          const testResult = testFn()
+          // If test returns a promise, await it
+          if (testResult && typeof testResult.then === "function") {
+            await testResult
           }
+        } catch (error) {
+          // Record uncaught errors in test functions (e.g., ReferenceError, TypeError)
+          // This ensures errors like accessing undefined variables are captured
+          const errorMessage =
+            error && typeof error === "object" && "message" in error
+              ? `${error.name || "Error"}: ${error.message}`
+              : String(error)
+          inputs.pushExpectResult("error", errorMessage)
+        } finally {
+          inputs.clearCurrentTest()
         }
-      )
-      
+      })
+
       // Update the chain
       globalThis.__testExecutionChain = testPromise
-      
+
       // Notify runner about the test promise so it can be awaited
       if (inputs.onTestPromise) {
         inputs.onTestPromise(testPromise)
@@ -2511,7 +2507,7 @@
         return pmGetWithTracking(
           globalThis.hopp.env.active.getRaw,
           globalThis.__pmEnvKeys,
-          key
+          key,
         )
       },
       set: (key, value) => {
@@ -2591,7 +2587,7 @@
         return pmGetWithTracking(
           globalThis.hopp.env.global.getRaw,
           globalThis.__pmGlobalKeys,
-          key
+          key,
         )
       },
       set: (key, value) => {
@@ -2773,7 +2769,7 @@
                   parsed.port || (parsed.protocol === "https:" ? "443" : "80"),
                 path: parsed.pathname.split("/").filter(Boolean),
                 queryParams: Array.from(parsed.searchParams.entries()).map(
-                  ([key, value]) => ({ key, value })
+                  ([key, value]) => ({ key, value }),
                 ),
               }
             } catch {
@@ -2822,7 +2818,7 @@
                 parsed.queryParams
                   .map(
                     (p) =>
-                      `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`
+                      `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`,
                   )
                   .join("&")
               : ""
@@ -2835,7 +2831,7 @@
           return params
             .map(
               (p) =>
-                `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`
+                `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`,
             )
             .join("&")
         }
@@ -2989,14 +2985,14 @@
           get: (name) => {
             const headers = globalThis.hopp.request.headers
             const header = headers.find(
-              (h) => h.key.toLowerCase() === name.toLowerCase()
+              (h) => h.key.toLowerCase() === name.toLowerCase(),
             )
             return header ? header.value : null
           },
           has: (name) => {
             const headers = globalThis.hopp.request.headers
             return headers.some(
-              (h) => h.key.toLowerCase() === name.toLowerCase()
+              (h) => h.key.toLowerCase() === name.toLowerCase(),
             )
           },
           all: () => {
@@ -3046,7 +3042,7 @@
             if (typeof rule === "string") {
               return (
                 headers.find(
-                  (h) => h.key.toLowerCase() === rule.toLowerCase()
+                  (h) => h.key.toLowerCase() === rule.toLowerCase(),
                 ) || null
               )
             }
@@ -3058,13 +3054,13 @@
             if (typeof item === "string") {
               // Find by key (case-insensitive)
               return headers.findIndex(
-                (h) => h.key.toLowerCase() === item.toLowerCase()
+                (h) => h.key.toLowerCase() === item.toLowerCase(),
               )
             }
             if (item && typeof item === "object" && item.key) {
               // Find by object with key (case-insensitive)
               return headers.findIndex(
-                (h) => h.key.toLowerCase() === item.key.toLowerCase()
+                (h) => h.key.toLowerCase() === item.key.toLowerCase(),
               )
             }
             return -1
@@ -3242,7 +3238,7 @@
                     // QuickJS represents Uint8Array as object with numeric keys
                     // Count numeric keys to get byte length
                     const len = Object.keys(encoded).filter(
-                      (k) => !isNaN(k)
+                      (k) => !isNaN(k),
                     ).length
                     if (len > 0) {
                       return len
@@ -3283,7 +3279,7 @@
         get: (name) => {
           const headers = globalThis.hopp.response.headers
           const header = headers.find(
-            (h) => h.key.toLowerCase() === name.toLowerCase()
+            (h) => h.key.toLowerCase() === name.toLowerCase(),
           )
           // NOTE: Postman returns undefined for non-existent headers, not null
           return header ? header.value : undefined
@@ -3305,7 +3301,7 @@
           // Parse cookies from Set-Cookie headers
           const headers = globalThis.hopp.response.headers
           const setCookieHeaders = headers.filter(
-            (h) => h.key.toLowerCase() === "set-cookie"
+            (h) => h.key.toLowerCase() === "set-cookie",
           )
 
           for (const header of setCookieHeaders) {
@@ -3326,7 +3322,7 @@
         has: (name) => {
           const headers = globalThis.hopp.response.headers
           const setCookieHeaders = headers.filter(
-            (h) => h.key.toLowerCase() === "set-cookie"
+            (h) => h.key.toLowerCase() === "set-cookie",
           )
 
           for (const header of setCookieHeaders) {
@@ -3340,7 +3336,7 @@
         toObject: () => {
           const headers = globalThis.hopp.response.headers
           const setCookieHeaders = headers.filter(
-            (h) => h.key.toLowerCase() === "set-cookie"
+            (h) => h.key.toLowerCase() === "set-cookie",
           )
 
           const cookies = {}
@@ -3365,7 +3361,7 @@
           header: (headerName, headerValue) => {
             const headers = globalThis.hopp.response.headers
             const header = headers.find(
-              (h) => h.key.toLowerCase() === headerName.toLowerCase()
+              (h) => h.key.toLowerCase() === headerName.toLowerCase(),
             )
             if (headerValue !== undefined) {
               globalThis.hopp
@@ -3419,7 +3415,7 @@
             // Validate schema
             if (!inputs.validateJsonSchema) {
               throw new Error(
-                "JSON schema validation is not available in this environment. To use this feature, please enable the experimental scripting sandbox or upgrade to a supported version of Hoppscotch that includes JSON schema validation support."
+                "JSON schema validation is not available in this environment. To use this feature, please enable the experimental scripting sandbox or upgrade to a supported version of Hoppscotch that includes JSON schema validation support.",
               )
             }
             const validation = inputs.validateJsonSchema(jsonData, schema)
@@ -3436,7 +3432,7 @@
           charset: (expectedCharset) => {
             const headers = globalThis.hopp.response.headers
             const contentType = headers.find(
-              (h) => h.key.toLowerCase() === "content-type"
+              (h) => h.key.toLowerCase() === "content-type",
             )
             const contentTypeValue = contentType ? contentType.value : ""
             const charsetMatch = contentTypeValue.match(/charset=([^;]+)/)
@@ -3450,7 +3446,7 @@
           cookie: (cookieName, cookieValue) => {
             const headers = globalThis.hopp.response.headers
             const setCookieHeaders = headers.filter(
-              (h) => h.key.toLowerCase() === "set-cookie"
+              (h) => h.key.toLowerCase() === "set-cookie",
             )
 
             let found = false
@@ -3597,7 +3593,7 @@
           json: () => {
             const headers = globalThis.hopp.response.headers
             const contentType = headers.find(
-              (h) => h.key.toLowerCase() === "content-type"
+              (h) => h.key.toLowerCase() === "content-type",
             )
             globalThis.hopp
               .expect(contentType ? contentType.value : "")
@@ -3606,7 +3602,7 @@
           html: () => {
             const headers = globalThis.hopp.response.headers
             const contentType = headers.find(
-              (h) => h.key.toLowerCase() === "content-type"
+              (h) => h.key.toLowerCase() === "content-type",
             )
             globalThis.hopp
               .expect(contentType ? contentType.value : "")
@@ -3615,17 +3611,17 @@
           xml: () => {
             const headers = globalThis.hopp.response.headers
             const contentType = headers.find(
-              (h) => h.key.toLowerCase() === "content-type"
+              (h) => h.key.toLowerCase() === "content-type",
             )
             const ct = contentType ? contentType.value : ""
             globalThis.hopp.expect(
-              ct.includes("application/xml") || ct.includes("text/xml")
+              ct.includes("application/xml") || ct.includes("text/xml"),
             ).to.be.true
           },
           text: () => {
             const headers = globalThis.hopp.response.headers
             const contentType = headers.find(
-              (h) => h.key.toLowerCase() === "content-type"
+              (h) => h.key.toLowerCase() === "content-type",
             )
             globalThis.hopp
               .expect(contentType ? contentType.value : "")
@@ -3638,12 +3634,12 @@
     cookies: {
       get: (_name) => {
         throw new Error(
-          "pm.cookies.get() needs domain information - use hopp.cookies instead"
+          "pm.cookies.get() needs domain information - use hopp.cookies instead",
         )
       },
       set: (_name, _value, _options) => {
         throw new Error(
-          "pm.cookies.set() needs domain information - use hopp.cookies instead"
+          "pm.cookies.set() needs domain information - use hopp.cookies instead",
         )
       },
       jar: () => {
@@ -3669,12 +3665,12 @@
       // Unsupported Collection Runner features
       get iteration() {
         throw new Error(
-          "pm.info.iteration is not supported in Hoppscotch (Collection Runner feature)"
+          "pm.info.iteration is not supported in Hoppscotch (Collection Runner feature)",
         )
       },
       get iterationCount() {
         throw new Error(
-          "pm.info.iterationCount is not supported in Hoppscotch (Collection Runner feature)"
+          "pm.info.iterationCount is not supported in Hoppscotch (Collection Runner feature)",
         )
       },
     },
@@ -3684,7 +3680,7 @@
       // Check if fetch is available
       if (typeof globalThis.hopp?.fetch === "undefined") {
         const error = new Error(
-          "pm.sendRequest() requires the fetch API to be available in the scripting environment (usually provided by enabling the scripting sandbox)."
+          "pm.sendRequest() requires the fetch API to be available in the scripting environment (usually provided by enabling the scripting sandbox).",
         )
         callback(error, null)
         return
@@ -3706,7 +3702,7 @@
           if (Array.isArray(urlOrRequest.header)) {
             // Array format: [{ key: 'Content-Type', value: 'application/json' }]
             headers = Object.fromEntries(
-              urlOrRequest.header.map((h) => [h.key, h.value])
+              urlOrRequest.header.map((h) => [h.key, h.value]),
             )
           } else if (typeof urlOrRequest.header === "object") {
             // Plain object format: { 'Content-Type': 'application/json' }
@@ -3786,7 +3782,7 @@
           const statusCode = response.status
           const statusMessage = response.statusText
           const headerEntries = Array.from(response.headers.entries()).map(
-            ([k, v]) => ({ key: k, value: v })
+            ([k, v]) => ({ key: k, value: v }),
           )
 
           // Get body text
@@ -3847,7 +3843,7 @@
                 }
               }
             })
-          }
+          },
         )
       }
     },
@@ -3856,17 +3852,17 @@
     vault: {
       get: () => {
         throw new Error(
-          "pm.vault.get() is not supported in Hoppscotch (Postman Vault feature)"
+          "pm.vault.get() is not supported in Hoppscotch (Postman Vault feature)",
         )
       },
       set: () => {
         throw new Error(
-          "pm.vault.set() is not supported in Hoppscotch (Postman Vault feature)"
+          "pm.vault.set() is not supported in Hoppscotch (Postman Vault feature)",
         )
       },
       unset: () => {
         throw new Error(
-          "pm.vault.unset() is not supported in Hoppscotch (Postman Vault feature)"
+          "pm.vault.unset() is not supported in Hoppscotch (Postman Vault feature)",
         )
       },
     },
@@ -3875,12 +3871,12 @@
     visualizer: {
       set: () => {
         throw new Error(
-          "pm.visualizer.set() is not supported in Hoppscotch (Postman Visualizer feature)"
+          "pm.visualizer.set() is not supported in Hoppscotch (Postman Visualizer feature)",
         )
       },
       clear: () => {
         throw new Error(
-          "pm.visualizer.clear() is not supported in Hoppscotch (Postman Visualizer feature)"
+          "pm.visualizer.clear() is not supported in Hoppscotch (Postman Visualizer feature)",
         )
       },
     },
@@ -3889,32 +3885,32 @@
     iterationData: {
       get: () => {
         throw new Error(
-          "pm.iterationData.get() is not supported in Hoppscotch (Collection Runner feature)"
+          "pm.iterationData.get() is not supported in Hoppscotch (Collection Runner feature)",
         )
       },
       set: () => {
         throw new Error(
-          "pm.iterationData.set() is not supported in Hoppscotch (Collection Runner feature)"
+          "pm.iterationData.set() is not supported in Hoppscotch (Collection Runner feature)",
         )
       },
       unset: () => {
         throw new Error(
-          "pm.iterationData.unset() is not supported in Hoppscotch (Collection Runner feature)"
+          "pm.iterationData.unset() is not supported in Hoppscotch (Collection Runner feature)",
         )
       },
       has: () => {
         throw new Error(
-          "pm.iterationData.has() is not supported in Hoppscotch (Collection Runner feature)"
+          "pm.iterationData.has() is not supported in Hoppscotch (Collection Runner feature)",
         )
       },
       toObject: () => {
         throw new Error(
-          "pm.iterationData.toObject() is not supported in Hoppscotch (Collection Runner feature)"
+          "pm.iterationData.toObject() is not supported in Hoppscotch (Collection Runner feature)",
         )
       },
       toJSON: () => {
         throw new Error(
-          "pm.iterationData.toJSON() is not supported in Hoppscotch (Collection Runner feature)"
+          "pm.iterationData.toJSON() is not supported in Hoppscotch (Collection Runner feature)",
         )
       },
     },
@@ -3923,37 +3919,37 @@
     collectionVariables: {
       get: () => {
         throw new Error(
-          "pm.collectionVariables.get() is not supported in Hoppscotch (use environment or request variables instead)"
+          "pm.collectionVariables.get() is not supported in Hoppscotch (use environment or request variables instead)",
         )
       },
       set: () => {
         throw new Error(
-          "pm.collectionVariables.set() is not supported in Hoppscotch (use environment or request variables instead)"
+          "pm.collectionVariables.set() is not supported in Hoppscotch (use environment or request variables instead)",
         )
       },
       unset: () => {
         throw new Error(
-          "pm.collectionVariables.unset() is not supported in Hoppscotch (use environment or request variables instead)"
+          "pm.collectionVariables.unset() is not supported in Hoppscotch (use environment or request variables instead)",
         )
       },
       has: () => {
         throw new Error(
-          "pm.collectionVariables.has() is not supported in Hoppscotch (use environment or request variables instead)"
+          "pm.collectionVariables.has() is not supported in Hoppscotch (use environment or request variables instead)",
         )
       },
       clear: () => {
         throw new Error(
-          "pm.collectionVariables.clear() is not supported in Hoppscotch (use environment or request variables instead)"
+          "pm.collectionVariables.clear() is not supported in Hoppscotch (use environment or request variables instead)",
         )
       },
       toObject: () => {
         throw new Error(
-          "pm.collectionVariables.toObject() is not supported in Hoppscotch (use environment or request variables instead)"
+          "pm.collectionVariables.toObject() is not supported in Hoppscotch (use environment or request variables instead)",
         )
       },
       replaceIn: () => {
         throw new Error(
-          "pm.collectionVariables.replaceIn() is not supported in Hoppscotch (use environment or request variables instead)"
+          "pm.collectionVariables.replaceIn() is not supported in Hoppscotch (use environment or request variables instead)",
         )
       },
     },
@@ -3972,17 +3968,17 @@
       })(),
       setNextRequest: () => {
         throw new Error(
-          "pm.execution.setNextRequest() is not supported in Hoppscotch (Collection Runner feature)"
+          "pm.execution.setNextRequest() is not supported in Hoppscotch (Collection Runner feature)",
         )
       },
       skipRequest: () => {
         throw new Error(
-          "pm.execution.skipRequest() is not supported in Hoppscotch (Collection Runner feature)"
+          "pm.execution.skipRequest() is not supported in Hoppscotch (Collection Runner feature)",
         )
       },
       runRequest: () => {
         throw new Error(
-          "pm.execution.runRequest() is not supported in Hoppscotch (Collection Runner feature)"
+          "pm.execution.runRequest() is not supported in Hoppscotch (Collection Runner feature)",
         )
       },
     },
@@ -3990,7 +3986,7 @@
     // Package imports (unsupported)
     require: (packageName) => {
       throw new Error(
-        `pm.require('${packageName}') is not supported in Hoppscotch (Package Library feature)`
+        `pm.require('${packageName}') is not supported in Hoppscotch (Package Library feature)`,
       )
     },
   }
