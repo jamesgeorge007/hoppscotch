@@ -273,10 +273,7 @@ describe("pm.request.headers.insert()", () => {
       }
     )
 
-    expect(result._tag).toBe("Left")
-    if (result._tag === "Left") {
-      expect(result.left).toContain("Header must have a 'key' property")
-    }
+    expect(result).toEqualLeft(expect.stringContaining("Header must have a 'key' property"))
   })
 })
 
@@ -353,10 +350,7 @@ describe("pm.request.headers.append()", () => {
       }
     )
 
-    expect(result._tag).toBe("Left")
-    if (result._tag === "Left") {
-      expect(result.left).toContain("Header must have a 'key' property")
-    }
+    expect(result).toEqualLeft(expect.stringContaining("Header must have a 'key' property"))
   })
 })
 
@@ -480,9 +474,6 @@ describe("pm.request.headers.assimilate()", () => {
       }
     )
 
-    expect(result._tag).toBe("Left")
-    if (result._tag === "Left") {
-      expect(result.left).toContain("Source must be an array or object")
-    }
+    expect(result).toEqualLeft(expect.stringContaining("Source must be an array or object"))
   })
 })

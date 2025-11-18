@@ -5,11 +5,26 @@ import {
 import type { HoppFetchHook } from "~/types"
 
 /**
- * Extended Response type with _bodyBytes property
+ * Extended Response type with internal properties for serialization
+ * These properties are added by HoppFetchHook implementations
  */
 type SerializableResponse = Response & {
+  /**
+   * Raw body bytes for efficient transfer across VM boundary
+   */
   _bodyBytes: number[]
+  /**
+   * Plain object containing header key-value pairs (no methods)
+   * Used for efficient iteration in the VM without native Headers methods
+   */
+  _headersData?: Record<string, string>
 }
+
+/**
+ * Type for async script execution hooks
+ * Although typed as (() => void) in faraday-cage, the runtime supports async functions
+ */
+type AsyncScriptExecutionHook = () => Promise<void>
 
 /**
  * Interface for configuring the custom fetch module
@@ -41,8 +56,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
     ctx.keepAlivePromises.push(keepAlivePromise)
 
     // Register async hook to wait for all fetch operations
-    // NOTE: Type says (() => void) but faraday-cage's own fetch module uses async functions
-    ctx.afterScriptExecutionHooks.push((async () => {
+    // NOTE: faraday-cage's afterScriptExecutionHooks types are (() => void) but runtime supports async
+    const asyncHook: AsyncScriptExecutionHook = async () => {
       // Poll until all operations are complete with grace period
       let emptyRounds = 0
       const maxEmptyRounds = 5
@@ -59,7 +74,8 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         }
       }
       resolveKeepAlive?.()
-    }) as any) // Cast needed because types say (() => void) but runtime supports async
+    }
+    ctx.afterScriptExecutionHooks.push(asyncHook as () => void)
 
     // Track async operations
     const trackAsyncOperation = <T>(promise: Promise<T>): Promise<T> => {
@@ -179,11 +195,9 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
               // Create headers object with Headers-like interface
               const headersObj = ctx.scope.manage(ctx.vm.newObject())
               // Use _headersData which contains only header key-value pairs (no methods)
-              const headersMap =
-                ((serializableResponse as any)._headersData as Record<
-                  string,
-                  string
-                >) || {}
+              // This is populated by HoppFetchHook implementations (hopp-fetch.ts)
+              const headersMap: Record<string, string> =
+                serializableResponse._headersData || {}
 
               // Set individual header properties
               for (const [key, value] of Object.entries(headersMap)) {

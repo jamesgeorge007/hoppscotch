@@ -438,8 +438,7 @@ describe("pm.request.url.update()", () => {
       experimentalScriptingSandbox: true,
     })
 
-    expect(result._tag).toBe("Left")
-    expect(result.left).toContain("URL update requires")
+    expect(result).toEqualLeft(expect.stringContaining("URL update requires"))
   })
 })
 
@@ -515,10 +514,7 @@ describe("pm.request.url.addQueryParams()", () => {
       }
     )
 
-    expect(result._tag).toBe("Left")
-    if (result._tag === "Left") {
-      expect(result.left).toContain("requires an array")
-    }
+    expect(result).toEqualLeft(expect.stringContaining("requires an array"))
   })
 })
 
