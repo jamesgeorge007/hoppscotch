@@ -17,7 +17,7 @@ export const runPostRequestScriptWithFaradayCage = (
   envs: TestResult["envs"],
   request: HoppRESTRequest,
   response: TestResponse,
-  hoppFetchHook?: HoppFetchHook
+  hoppFetchHook?: HoppFetchHook,
 ): TE.TaskEither<string, TestResult> => {
   return pipe(
     TE.tryCatch(
@@ -57,7 +57,7 @@ export const runPostRequestScriptWithFaradayCage = (
                   testPromises.push(promise)
                 },
               },
-              captureHook
+              captureHook,
             ),
           ])
 
@@ -117,7 +117,7 @@ export const runPostRequestScriptWithFaradayCage = (
         }
 
         return `Script execution failed: ${String(error)}`
-      }
-    )
+      },
+    ),
   )
 }

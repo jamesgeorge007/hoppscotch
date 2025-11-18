@@ -339,6 +339,28 @@ export const processRequest =
       const { envs, testsReport, duration } = testRunnerRes.right;
       const _hasFailedTestCases = hasFailedTestCases(testsReport);
 
+      // Check if any tests have uncaught errors (e.g., ReferenceError, TypeError)
+      // These are recorded with status "error" in expectResults
+      const testScriptErrors = testsReport.flatMap((testReport) =>
+        testReport.expectResults
+          .filter((result) => result.status === "error")
+          .map((result) => result.message)
+      );
+      
+      // If there are test script errors, add them to report.errors
+      if (testScriptErrors.length > 0) {
+        const errorMessages = testScriptErrors.join("; ");
+        
+        report.errors.push(
+          error({
+            code: "TEST_SCRIPT_ERROR",
+            data: errorMessages,
+          })
+        );
+        
+        report.result = false;
+      }
+
       // Updating report with current tests, result and duration.
       report.tests = testsReport;
       report.result = report.result && _hasFailedTestCases;

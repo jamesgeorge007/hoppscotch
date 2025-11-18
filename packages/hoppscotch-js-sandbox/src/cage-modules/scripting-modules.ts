@@ -295,6 +295,18 @@ function createScriptingInputsObj(
           }
         }
       ),
+      // Allow bootstrap code to notify when test promises are created
+      onTestPromise: postConfig.onTestPromise
+        ? defineSandboxFn(
+            ctx,
+            "onTestPromise",
+            function onTestPromise(promise: unknown) {
+              if (postConfig.onTestPromise) {
+                postConfig.onTestPromise(promise as Promise<void>)
+              }
+            }
+          )
+        : undefined,
       getResponse: defineSandboxFn(ctx, "getResponse", function getResponse() {
         return postConfig.response
       }),

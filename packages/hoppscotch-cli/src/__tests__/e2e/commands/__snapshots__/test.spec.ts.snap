@@ -4611,8 +4611,10 @@ exports[`hopp test [options] <file_path_or_id> > Test \`hopp test <file_path_or_
 
 exports[`hopp test [options] <file_path_or_id> > Test\`hopp test <file_path_or_id> --env <file_path_or_id> --reporter-junit [path] > Generates a JUnit report at the default path 1`] = `
 "<?xml version="1.0" encoding="UTF-8"?>
-<testsuites tests="76" failures="2" errors="66" time="time">
+<testsuites tests="77" failures="2" errors="67" time="time">
   <testsuite name="test-junit-report-export/assertions/error" time="time" timestamp="timestamp" tests="22" failures="0" errors="22">
+    <system-err><![CDATA[
+      TEST_SCRIPT_ERROR - Expected 200-level status but could not parse value 'foo'; Expected 200-level status but could not parse value 'foo'; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Argument for toHaveLength should be a number; Argument for toHaveLength should be a number; Expected toInclude to be called for an array or string; Expected toInclude to be called for an array or string; Argument for toInclude should not be null; Argument for toInclude should not be undefined]]></system-err>
     <testcase name="\`toBeLevelxxx()\` error scenarios - Expected 200-level status but could not parse value 'foo'" classname="test-junit-report-export/assertions/error">
       <error message="Expected 200-level status but could not parse value 'foo'"/>
     </testcase>
@@ -4700,7 +4702,8 @@ exports[`hopp test [options] <file_path_or_id> > Test\`hopp test <file_path_or_i
   </testsuite>
   <testsuite name="test-junit-report-export/request-level-errors/invalid-url" time="time" timestamp="timestamp" tests="22" failures="0" errors="22">
     <system-err><![CDATA[
-      REQUEST_ERROR - TypeError: Invalid URL]]></system-err>
+      REQUEST_ERROR - TypeError: Invalid URL
+      TEST_SCRIPT_ERROR - Expected 200-level status but could not parse value 'foo'; Expected 200-level status but could not parse value 'foo'; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Argument for toHaveLength should be a number; Argument for toHaveLength should be a number; Expected toInclude to be called for an array or string; Expected toInclude to be called for an array or string; Argument for toInclude should not be null; Argument for toInclude should not be undefined]]></system-err>
     <testcase name="\`toBeLevelxxx()\` error scenarios - Expected 200-level status but could not parse value 'foo'" classname="test-junit-report-export/request-level-errors/invalid-url">
       <error message="Expected 200-level status but could not parse value 'foo'"/>
     </testcase>
@@ -4768,15 +4771,20 @@ exports[`hopp test [options] <file_path_or_id> > Test\`hopp test <file_path_or_i
       <error message="Argument for toInclude should not be undefined"/>
     </testcase>
   </testsuite>
-  <testsuite name="test-junit-report-export/request-level-errors/test-script-reference-error" time="time" timestamp="timestamp" tests="0" failures="0" errors="0">
+  <testsuite name="test-junit-report-export/request-level-errors/test-script-reference-error" time="time" timestamp="timestamp" tests="1" failures="0" errors="1">
     <system-err><![CDATA[
-      REQUEST_ERROR - TypeError: Invalid URL]]></system-err>
+      REQUEST_ERROR - TypeError: Invalid URL
+      TEST_SCRIPT_ERROR - ReferenceError: 'status' is not defined]]></system-err>
+    <testcase name="Reference error - ReferenceError: 'status' is not defined" classname="test-junit-report-export/request-level-errors/test-script-reference-error">
+      <error message="ReferenceError: 'status' is not defined"/>
+    </testcase>
   </testsuite>
   <testsuite name="test-junit-report-export/request-level-errors/non-existent-env-var" time="time" timestamp="timestamp" tests="22" failures="0" errors="22">
     <system-err><![CDATA[
       PARSING_ERROR - {
   "key": "<<key>>"
-} (ENV_EXPAND_LOOP)]]></system-err>
+} (ENV_EXPAND_LOOP)
+      TEST_SCRIPT_ERROR - Expected 200-level status but could not parse value 'foo'; Expected 200-level status but could not parse value 'foo'; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Argument for toHaveLength should be a number; Argument for toHaveLength should be a number; Expected toInclude to be called for an array or string; Expected toInclude to be called for an array or string; Argument for toInclude should not be null; Argument for toInclude should not be undefined]]></system-err>
     <testcase name="\`toBeLevelxxx()\` error scenarios - Expected 200-level status but could not parse value 'foo'" classname="test-junit-report-export/request-level-errors/non-existent-env-var">
       <error message="Expected 200-level status but could not parse value 'foo'"/>
     </testcase>
@@ -4849,8 +4857,10 @@ exports[`hopp test [options] <file_path_or_id> > Test\`hopp test <file_path_or_i
 
 exports[`hopp test [options] <file_path_or_id> > Test\`hopp test <file_path_or_id> --env <file_path_or_id> --reporter-junit [path] > Generates a JUnit report at the specified path 1`] = `
 "<?xml version="1.0" encoding="UTF-8"?>
-<testsuites tests="76" failures="2" errors="66" time="time">
+<testsuites tests="77" failures="2" errors="67" time="time">
   <testsuite name="test-junit-report-export/assertions/error" time="time" timestamp="timestamp" tests="22" failures="0" errors="22">
+    <system-err><![CDATA[
+      TEST_SCRIPT_ERROR - Expected 200-level status but could not parse value 'foo'; Expected 200-level status but could not parse value 'foo'; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Argument for toHaveLength should be a number; Argument for toHaveLength should be a number; Expected toInclude to be called for an array or string; Expected toInclude to be called for an array or string; Argument for toInclude should not be null; Argument for toInclude should not be undefined]]></system-err>
     <testcase name="\`toBeLevelxxx()\` error scenarios - Expected 200-level status but could not parse value 'foo'" classname="test-junit-report-export/assertions/error">
       <error message="Expected 200-level status but could not parse value 'foo'"/>
     </testcase>
@@ -4938,7 +4948,8 @@ exports[`hopp test [options] <file_path_or_id> > Test\`hopp test <file_path_or_i
   </testsuite>
   <testsuite name="test-junit-report-export/request-level-errors/invalid-url" time="time" timestamp="timestamp" tests="22" failures="0" errors="22">
     <system-err><![CDATA[
-      REQUEST_ERROR - TypeError: Invalid URL]]></system-err>
+      REQUEST_ERROR - TypeError: Invalid URL
+      TEST_SCRIPT_ERROR - Expected 200-level status but could not parse value 'foo'; Expected 200-level status but could not parse value 'foo'; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Argument for toHaveLength should be a number; Argument for toHaveLength should be a number; Expected toInclude to be called for an array or string; Expected toInclude to be called for an array or string; Argument for toInclude should not be null; Argument for toInclude should not be undefined]]></system-err>
     <testcase name="\`toBeLevelxxx()\` error scenarios - Expected 200-level status but could not parse value 'foo'" classname="test-junit-report-export/request-level-errors/invalid-url">
       <error message="Expected 200-level status but could not parse value 'foo'"/>
     </testcase>
@@ -5006,15 +5017,20 @@ exports[`hopp test [options] <file_path_or_id> > Test\`hopp test <file_path_or_i
       <error message="Argument for toInclude should not be undefined"/>
     </testcase>
   </testsuite>
-  <testsuite name="test-junit-report-export/request-level-errors/test-script-reference-error" time="time" timestamp="timestamp" tests="0" failures="0" errors="0">
+  <testsuite name="test-junit-report-export/request-level-errors/test-script-reference-error" time="time" timestamp="timestamp" tests="1" failures="0" errors="1">
     <system-err><![CDATA[
-      REQUEST_ERROR - TypeError: Invalid URL]]></system-err>
+      REQUEST_ERROR - TypeError: Invalid URL
+      TEST_SCRIPT_ERROR - ReferenceError: 'status' is not defined]]></system-err>
+    <testcase name="Reference error - ReferenceError: 'status' is not defined" classname="test-junit-report-export/request-level-errors/test-script-reference-error">
+      <error message="ReferenceError: 'status' is not defined"/>
+    </testcase>
   </testsuite>
   <testsuite name="test-junit-report-export/request-level-errors/non-existent-env-var" time="time" timestamp="timestamp" tests="22" failures="0" errors="22">
     <system-err><![CDATA[
       PARSING_ERROR - {
   "key": "<<key>>"
-} (ENV_EXPAND_LOOP)]]></system-err>
+} (ENV_EXPAND_LOOP)
+      TEST_SCRIPT_ERROR - Expected 200-level status but could not parse value 'foo'; Expected 200-level status but could not parse value 'foo'; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Argument for toBeType should be "string", "boolean", "number", "object", "undefined", "bigint", "symbol" or "function"; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Expected toHaveLength to be called for an array or string; Argument for toHaveLength should be a number; Argument for toHaveLength should be a number; Expected toInclude to be called for an array or string; Expected toInclude to be called for an array or string; Argument for toInclude should not be null; Argument for toInclude should not be undefined]]></system-err>
     <testcase name="\`toBeLevelxxx()\` error scenarios - Expected 200-level status but could not parse value 'foo'" classname="test-junit-report-export/request-level-errors/non-existent-env-var">
       <error message="Expected 200-level status but could not parse value 'foo'"/>
     </testcase>

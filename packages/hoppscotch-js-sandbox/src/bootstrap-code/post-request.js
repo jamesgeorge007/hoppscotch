@@ -2168,7 +2168,7 @@
       const _chainBeforeTest = globalThis.__testExecutionChain
 
       // Add testFn execution to the chain to ensure correct context
-      globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
+      const testPromise = globalThis.__testExecutionChain.then(
         async () => {
           inputs.setCurrentTest(descriptor)
           try {
@@ -2177,11 +2177,27 @@
             if (testResult && typeof testResult.then === "function") {
               await testResult
             }
+          } catch (error) {
+            // Record uncaught errors in test functions (e.g., ReferenceError, TypeError)
+            // This ensures errors like accessing undefined variables are captured
+            const errorMessage =
+              error && typeof error === "object" && "message" in error
+                ? `${error.name || "Error"}: ${error.message}`
+                : String(error)
+            inputs.pushExpectResult("error", errorMessage)
           } finally {
             inputs.clearCurrentTest()
           }
         }
       )
+      
+      // Update the chain
+      globalThis.__testExecutionChain = testPromise
+      
+      // Notify runner about the test promise so it can be awaited
+      if (inputs.onTestPromise) {
+        inputs.onTestPromise(testPromise)
+      }
     },
     response: pwResponse,
   }
@@ -2413,7 +2429,7 @@
       const _chainBeforeTest = globalThis.__testExecutionChain
 
       // Add testFn execution to the chain to ensure correct context
-      globalThis.__testExecutionChain = globalThis.__testExecutionChain.then(
+      const testPromise = globalThis.__testExecutionChain.then(
         async () => {
           inputs.setCurrentTest(descriptor)
           try {
@@ -2422,11 +2438,27 @@
             if (testResult && typeof testResult.then === "function") {
               await testResult
             }
+          } catch (error) {
+            // Record uncaught errors in test functions (e.g., ReferenceError, TypeError)
+            // This ensures errors like accessing undefined variables are captured
+            const errorMessage =
+              error && typeof error === "object" && "message" in error
+                ? `${error.name || "Error"}: ${error.message}`
+                : String(error)
+            inputs.pushExpectResult("error", errorMessage)
           } finally {
             inputs.clearCurrentTest()
           }
         }
       )
+      
+      // Update the chain
+      globalThis.__testExecutionChain = testPromise
+      
+      // Notify runner about the test promise so it can be awaited
+      if (inputs.onTestPromise) {
+        inputs.onTestPromise(testPromise)
+      }
     },
     response: hoppResponse,
   }
