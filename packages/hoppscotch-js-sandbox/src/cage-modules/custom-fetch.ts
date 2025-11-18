@@ -5,6 +5,16 @@ import {
 import type { HoppFetchHook } from "~/types"
 
 /**
+ * Type augmentation for Headers to include iterator methods
+ * These methods exist in modern Headers implementations but may not be in all type definitions
+ */
+interface HeadersWithIterators extends Headers {
+  entries(): IterableIterator<[string, string]>
+  keys(): IterableIterator<string>
+  values(): IterableIterator<string>
+}
+
+/**
  * Extended Response type with internal properties for serialization
  * These properties are added by HoppFetchHook implementations
  */
@@ -1017,8 +1027,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         const entriesFn = defineSandboxFunctionRaw(ctx, "entries", () => {
           const entriesArray = ctx.scope.manage(ctx.vm.newArray())
           let index = 0
-          // @ts-expect-error - Headers.entries() exists but TS lib may not include it
-          for (const [key, value] of nativeHeaders.entries()) {
+          for (const [key, value] of (nativeHeaders as HeadersWithIterators).entries()) {
             const entry = ctx.scope.manage(ctx.vm.newArray())
             ctx.vm.setProp(entry, 0, ctx.scope.manage(ctx.vm.newString(key)))
             ctx.vm.setProp(entry, 1, ctx.scope.manage(ctx.vm.newString(value)))
@@ -1032,8 +1041,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         const keysFn = defineSandboxFunctionRaw(ctx, "keys", () => {
           const keysArray = ctx.scope.manage(ctx.vm.newArray())
           let index = 0
-          // @ts-expect-error - Headers.keys() exists but TS lib may not include it
-          for (const key of nativeHeaders.keys()) {
+          for (const key of (nativeHeaders as HeadersWithIterators).keys()) {
             ctx.vm.setProp(
               keysArray,
               index++,
@@ -1048,8 +1056,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         const valuesFn = defineSandboxFunctionRaw(ctx, "values", () => {
           const valuesArray = ctx.scope.manage(ctx.vm.newArray())
           let index = 0
-          // @ts-expect-error - Headers.values() exists but TS lib may not include it
-          for (const value of nativeHeaders.values()) {
+          for (const value of (nativeHeaders as HeadersWithIterators).values()) {
             ctx.vm.setProp(
               valuesArray,
               index++,
@@ -1065,8 +1072,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
         const toObjectFn = defineSandboxFunctionRaw(ctx, "toObject", () => {
           const obj = ctx.scope.manage(ctx.vm.newObject())
-          // @ts-expect-error - Headers.entries() exists
-          for (const [key, value] of nativeHeaders.entries()) {
+          for (const [key, value] of (nativeHeaders as HeadersWithIterators).entries()) {
             ctx.vm.setProp(obj, key, ctx.scope.manage(ctx.vm.newString(value)))
           }
           return obj
@@ -1144,8 +1150,7 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
       // headers property - create simple object (Headers class can be used separately if needed)
       const headersObj = ctx.scope.manage(ctx.vm.newObject())
-      // @ts-expect-error - Headers.entries() exists
-      for (const [key, value] of nativeRequest.headers.entries()) {
+      for (const [key, value] of (nativeRequest.headers as HeadersWithIterators).entries()) {
         ctx.vm.setProp(
           headersObj,
           key,

@@ -81,6 +81,8 @@ const ensureCompilerOptions = (() => {
       // (e.g., top-level await, class fields, improved error handling)
       target: monaco.languages.typescript.ScriptTarget.ES2022,
       allowNonTsExtensions: true,
+      // Enable top-level await support
+      lib: ["ES2022", "DOM"],
     })
 
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({

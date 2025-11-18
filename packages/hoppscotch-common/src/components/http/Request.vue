@@ -391,7 +391,31 @@ const newSendRequest = async () => {
         }
       },
       () => {
-        // Loading state is intentionally not cleared here - it will be cleared when testResults are set
+        // Stream completed - ensure testResults is set to clear loading state
+        // This handles network_fail, interceptor_error, and other error responses
+        // that don't trigger the success/fail path where testResults would be set
+        if (loading.value && tab.value.document.testResults === null) {
+          // Set empty test results to signal completion and clear loading state
+          tab.value.document.testResults = {
+            description: "",
+            expectResults: [],
+            tests: [],
+            envDiff: {
+              global: {
+                additions: [],
+                deletions: [],
+                updations: [],
+              },
+              selected: {
+                additions: [],
+                deletions: [],
+                updations: [],
+              },
+            },
+            scriptError: false,
+            consoleEntries: [],
+          }
+        }
       },
       () => {
         // TODO: Change this any to a proper type
@@ -408,7 +432,28 @@ const newSendRequest = async () => {
           }
           updateRESTResponse(errorResponse)
         }
-        // Loading state is intentionally not cleared here - it will be cleared when testResults are set
+        // Ensure testResults is set on error completion
+        if (loading.value && tab.value.document.testResults === null) {
+          tab.value.document.testResults = {
+            description: "",
+            expectResults: [],
+            tests: [],
+            envDiff: {
+              global: {
+                additions: [],
+                deletions: [],
+                updations: [],
+              },
+              selected: {
+                additions: [],
+                deletions: [],
+                updations: [],
+              },
+            },
+            scriptError: false,
+            consoleEntries: [],
+          }
+        }
       }
     )
   } else {
@@ -424,6 +469,26 @@ const newSendRequest = async () => {
       type: "script_fail",
       error,
     })
+    // Set testResults for script failures to ensure UI consistency
+    tab.value.document.testResults = {
+      description: "",
+      expectResults: [],
+      tests: [],
+      envDiff: {
+        global: {
+          additions: [],
+          deletions: [],
+          updations: [],
+        },
+        selected: {
+          additions: [],
+          deletions: [],
+          updations: [],
+        },
+      },
+      scriptError: true,
+      consoleEntries: [],
+    }
   }
 }
 

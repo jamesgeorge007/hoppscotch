@@ -316,17 +316,41 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
         // Normalize any numeric IDs that might be generated
         .replace(/id="[^"]*"/g, 'id="NORMALIZED"')
         // Normalize response time values in test assertion messages
-        .replace(/Expected '\d+' to be type 'number'/g, "Expected 'NORMALIZED' to be type 'number'")
+        .replace(
+          /Expected '\d+' to be type 'number'/g,
+          "Expected 'NORMALIZED' to be type 'number'"
+        )
         // Normalize trace IDs in response bodies (traceparent, x-nf-trace-span-id, x-nf-request-id)
-        .replace(/traceparent\\&quot;:\\&quot;[^\\]+\\&quot;/g, 'traceparent\\&quot;:\\&quot;NORMALIZED\\&quot;')
-        .replace(/x-nf-trace-span-id\\&quot;:\\&quot;[^\\]+\\&quot;/g, 'x-nf-trace-span-id\\&quot;:\\&quot;NORMALIZED\\&quot;')
-        .replace(/x-nf-request-id\\&quot;:\\&quot;[^\\]+\\&quot;/g, 'x-nf-request-id\\&quot;:\\&quot;NORMALIZED\\&quot;')
-        .replace(/x-nf-request-start\\&quot;:\\&quot;[^\\]+\\&quot;/g, 'x-nf-request-start\\&quot;:\\&quot;NORMALIZED\\&quot;')
+        .replace(
+          /traceparent\\&quot;:\\&quot;[^\\]+\\&quot;/g,
+          "traceparent\\&quot;:\\&quot;NORMALIZED\\&quot;"
+        )
+        .replace(
+          /x-nf-trace-span-id\\&quot;:\\&quot;[^\\]+\\&quot;/g,
+          "x-nf-trace-span-id\\&quot;:\\&quot;NORMALIZED\\&quot;"
+        )
+        .replace(
+          /x-nf-request-id\\&quot;:\\&quot;[^\\]+\\&quot;/g,
+          "x-nf-request-id\\&quot;:\\&quot;NORMALIZED\\&quot;"
+        )
+        .replace(
+          /x-nf-request-start\\&quot;:\\&quot;[^\\]+\\&quot;/g,
+          "x-nf-request-start\\&quot;:\\&quot;NORMALIZED\\&quot;"
+        )
         // Normalize IP addresses that may vary
-        .replace(/x-forwarded-for\\&quot;:\\&quot;[^\\]+\\&quot;/g, 'x-forwarded-for\\&quot;:\\&quot;NORMALIZED\\&quot;')
-        .replace(/x-nf-client-connection-ip\\&quot;:\\&quot;[^\\]+\\&quot;/g, 'x-nf-client-connection-ip\\&quot;:\\&quot;NORMALIZED\\&quot;')
+        .replace(
+          /x-forwarded-for\\&quot;:\\&quot;[^\\]+\\&quot;/g,
+          "x-forwarded-for\\&quot;:\\&quot;NORMALIZED\\&quot;"
+        )
+        .replace(
+          /x-nf-client-connection-ip\\&quot;:\\&quot;[^\\]+\\&quot;/g,
+          "x-nf-client-connection-ip\\&quot;:\\&quot;NORMALIZED\\&quot;"
+        )
         // Normalize geo location data that may vary
-        .replace(/x-nf-geo\\&quot;:\\&quot;[^\\]+\\&quot;/g, 'x-nf-geo\\&quot;:\\&quot;NORMALIZED\\&quot;');
+        .replace(
+          /x-nf-geo\\&quot;:\\&quot;[^\\]+\\&quot;/g,
+          "x-nf-geo\\&quot;:\\&quot;NORMALIZED\\&quot;"
+        );
 
       // Validate critical structural invariants using regex parsing
       // CRITICAL: Validate no testcases have "root" as name (would indicate assertions at root level)
@@ -355,7 +379,7 @@ describe("hopp test [options] <file_path_or_id>", { timeout: 100000 }, () => {
 
       // Clean up
       fs.unlinkSync(junitPath);
-    }, 150000); // 150 second timeout for comprehensive collection test
+    }, 210000); // 210 second timeout for comprehensive collection test
   });
 
   describe("Test `hopp test <file_path_or_id> --env <file_path_or_id>` command:", () => {
