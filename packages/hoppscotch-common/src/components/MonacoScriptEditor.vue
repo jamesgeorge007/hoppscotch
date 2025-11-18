@@ -81,13 +81,15 @@ const ensureCompilerOptions = (() => {
       // (e.g., top-level await, class fields, improved error handling)
       target: monaco.languages.typescript.ScriptTarget.ES2022,
       allowNonTsExtensions: true,
-      // Enable top-level await support
-      lib: ["ES2022", "DOM"],
+      // Enable top-level await support with proper lib configuration
+      lib: ["es2022", "es2022.promise", "dom"],
     })
 
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: false,
       noSyntaxValidation: false,
+      // Disable specific error codes that interfere with top-level await in module context
+      diagnosticCodesToIgnore: [1375, 1378], // Top-level await errors
     })
 
     // Disable Cmd/Ctrl+Enter key binding

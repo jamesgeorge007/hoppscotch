@@ -1027,7 +1027,9 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         const entriesFn = defineSandboxFunctionRaw(ctx, "entries", () => {
           const entriesArray = ctx.scope.manage(ctx.vm.newArray())
           let index = 0
-          for (const [key, value] of (nativeHeaders as HeadersWithIterators).entries()) {
+          for (const [key, value] of (
+            nativeHeaders as HeadersWithIterators
+          ).entries()) {
             const entry = ctx.scope.manage(ctx.vm.newArray())
             ctx.vm.setProp(entry, 0, ctx.scope.manage(ctx.vm.newString(key)))
             ctx.vm.setProp(entry, 1, ctx.scope.manage(ctx.vm.newString(value)))
@@ -1056,7 +1058,9 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
         const valuesFn = defineSandboxFunctionRaw(ctx, "values", () => {
           const valuesArray = ctx.scope.manage(ctx.vm.newArray())
           let index = 0
-          for (const value of (nativeHeaders as HeadersWithIterators).values()) {
+          for (const value of (
+            nativeHeaders as HeadersWithIterators
+          ).values()) {
             ctx.vm.setProp(
               valuesArray,
               index++,
@@ -1072,7 +1076,9 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
         const toObjectFn = defineSandboxFunctionRaw(ctx, "toObject", () => {
           const obj = ctx.scope.manage(ctx.vm.newObject())
-          for (const [key, value] of (nativeHeaders as HeadersWithIterators).entries()) {
+          for (const [key, value] of (
+            nativeHeaders as HeadersWithIterators
+          ).entries()) {
             ctx.vm.setProp(obj, key, ctx.scope.manage(ctx.vm.newString(value)))
           }
           return obj
@@ -1150,7 +1156,9 @@ export const customFetchModule = (config: CustomFetchModuleConfig = {}) =>
 
       // headers property - create simple object (Headers class can be used separately if needed)
       const headersObj = ctx.scope.manage(ctx.vm.newObject())
-      for (const [key, value] of (nativeRequest.headers as HeadersWithIterators).entries()) {
+      for (const [key, value] of (
+        nativeRequest.headers as HeadersWithIterators
+      ).entries()) {
         ctx.vm.setProp(
           headersObj,
           key,
