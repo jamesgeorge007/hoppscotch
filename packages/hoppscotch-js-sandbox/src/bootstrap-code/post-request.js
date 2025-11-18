@@ -3716,7 +3716,7 @@
       // Check if fetch is available
       if (typeof globalThis.hopp?.fetch === "undefined") {
         const error = new Error(
-          "pm.sendRequest() is not available in this scripting context. The fetch API has not been initialized (note: this is an experimental feature sandbox limitation).",
+          "pm.sendRequest() requires the fetch API to be available in the scripting environment (usually provided by enabling the scripting sandbox).",
         )
         callback(error, null)
         return
