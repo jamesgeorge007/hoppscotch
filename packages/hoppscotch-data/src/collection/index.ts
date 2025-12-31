@@ -11,9 +11,10 @@ import V8_VERSION from "./v/8"
 import V9_VERSION from "./v/9"
 import V10_VERSION from "./v/10"
 import V11_VERSION from "./v/11"
+import V12_VERSION from "./v/12"
 
 export { CollectionVariable } from "./v/10"
-export { HoppRequestWithProtocol } from "./v/11"
+export { HoppRequestWithProtocol } from "./v/12"
 
 import { z } from "zod"
 import { translateToNewRequest, HoppRESTRequest } from "../rest"
@@ -25,7 +26,7 @@ const versionedObject = z.object({
 })
 
 export const HoppCollection = createVersionedEntity({
-  latestVersion: 11,
+  latestVersion: 12,
   versionMap: {
     1: V1_VERSION,
     2: V2_VERSION,
@@ -38,6 +39,7 @@ export const HoppCollection = createVersionedEntity({
     9: V9_VERSION,
     10: V10_VERSION,
     11: V11_VERSION,
+    12: V12_VERSION,
   },
   getVersion(data) {
     const versionCheck = versionedObject.safeParse(data)
@@ -57,7 +59,7 @@ export type HoppCollectionVariable = InferredEntity<
   typeof HoppCollection
 >["variables"][number]
 
-export const CollectionSchemaVersion = 11
+export const CollectionSchemaVersion = 12
 
 /**
  * Generates a Collection object. This ignores the version number object
@@ -145,14 +147,18 @@ export function translateToNewGQLCollection(x: any): HoppCollection {
 /**
  * Type guard to check if a request is a REST request
  */
-export function isRESTRequest(req: any): req is { protocol: "rest"; request: HoppRESTRequest } {
+export function isRESTRequest(
+  req: any
+): req is { protocol: "rest"; request: HoppRESTRequest } {
   return req.protocol === "rest"
 }
 
 /**
  * Type guard to check if a request is a GraphQL request
  */
-export function isGQLRequest(req: any): req is { protocol: "graphql"; request: HoppGQLRequest } {
+export function isGQLRequest(
+  req: any
+): req is { protocol: "graphql"; request: HoppGQLRequest } {
   return req.protocol === "graphql"
 }
 
