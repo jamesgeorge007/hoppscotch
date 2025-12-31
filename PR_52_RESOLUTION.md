@@ -1,4 +1,5 @@
 # PR #52 Resolution Report
+
 ## feat: REST/GQL unified view
 
 **URL**: https://github.com/jamesgeorge007/hoppscotch-backup/pull/52  
@@ -12,23 +13,27 @@
 ## Issues Identified & Fixed
 
 ### 1. Runtime Error: require() Usage in ES Modules ⚠️ CRITICAL
+
 **Location**: [packages/hoppscotch-common/src/helpers/unified/document.ts](packages/hoppscotch-common/src/helpers/unified/document.ts)
 
 **Problem**:
+
 ```typescript
 // ❌ Line 88 - Dynamic require in ES module
 const { getDefaultRESTRequest } = require("../rest/default")
 
-// ❌ Line 106 - Dynamic require in ES module  
+// ❌ Line 106 - Dynamic require in ES module
 const { getDefaultGQLRequest } = require("@hoppscotch/data")
 ```
 
-**Root Cause**: 
+**Root Cause**:
+
 - Mixing CommonJS `require()` with ES6 modules
 - Vite bundler doesn't handle dynamic require at runtime
 - Functions called at module level (outside Vue components)
 
 **Solution Implemented**:
+
 ```typescript
 // ✅ Proper ES6 import at top level
 import {
@@ -40,6 +45,7 @@ import {
 ```
 
 **Verification**:
+
 - ✅ Both functions now properly imported from `@hoppscotch/data`
 - ✅ `getDefaultRESTRequest` verified in [hoppscotch-data/src/rest/index.ts#L245](packages/hoppscotch-data/src/rest/index.ts#L245)
 - ✅ `getDefaultGQLRequest` verified in [hoppscotch-data/src/graphql/index.ts#L74](packages/hoppscotch-data/src/graphql/index.ts#L74)
@@ -48,8 +54,10 @@ import {
 ### 2. Merge Conflicts Resolution
 
 #### 2a. Backend Helpers Conflict
+
 **File**: packages/hoppscotch-common/src/helpers/backend/helpers.ts  
 **Decision**: ✅ Kept HEAD (unified view implementation)
+
 ```typescript
 // ✅ Accepted: Proper request wrapping
 requests: coll.requests.map(wrapRESTRequest)
@@ -59,14 +67,18 @@ requests: coll.requests
 ```
 
 #### 2b. Import/Export OpenAPI
+
 **File**: packages/hoppscotch-common/src/helpers/import-export/import/openapi/index.ts  
 **Decision**: ✅ Merged both features
+
 - Kept: `requests: paths.map(wrapRESTRequest)` - unified typing
 - Added: `description: tagDescriptions[name] ?? null` - metadata preservation
 
 #### 2c. Page Index Component
+
 **File**: packages/hoppscotch-common/src/pages/index.vue  
 **Decision**: ✅ Updated to unified document structure
+
 ```typescript
 // ✅ Fixed duplicateTab() for unified documents
 const duplicateTab = (tabID: string) => {
@@ -74,12 +86,12 @@ const duplicateTab = (tabID: string) => {
   if (tab.value) {
     const newDocument = cloneDeep(tab.value.document)
     newDocument.isDirty = true
-    
+
     // Regenerate ref_id for requests to ensure uniqueness
     if (isRESTDocument(newDocument) && newDocument.request._ref_id) {
       newDocument.request._ref_id = generateUniqueRefId("req")
     }
-    
+
     const newTab = tabs.createNewTab(newDocument)
     tabs.setActiveTab(newTab.id)
   }
@@ -87,8 +99,10 @@ const duplicateTab = (tabID: string) => {
 ```
 
 #### 2d. Collection Schema v11
+
 **File**: packages/hoppscotch-data/src/collection/v/11.ts  
 **Decision**: ✅ Kept HEAD (protocol discrimination essential)
+
 - Includes explicit protocol field for requests
 - Provides migration from v10
 - Detects REST vs GraphQL based on structure
@@ -98,12 +112,14 @@ const duplicateTab = (tabID: string) => {
 ## Copilot Review Insights
 
 ### Key Comments Addressed:
+
 1. ✅ **Type Safety**: Protocol discrimination properly enforced
 2. ✅ **Request Handling**: Unified wrapping strategy consistent
 3. ✅ **Import Organization**: Moved from require() to ES6 imports
 4. ✅ **Component Migration**: Old REST-only patterns updated to unified
 
 ### Remaining Linting Issues:
+
 - ⚠️ localStorage usage in test files (acceptable for tests)
 - ⚠️ Vue component prop warnings (non-critical, pre-existing)
 
@@ -112,6 +128,7 @@ const duplicateTab = (tabID: string) => {
 ## Integration Summary
 
 ### Statistics
+
 ```
 Commits merged:       68 (from backup/next)
 Files changed:        600+
@@ -123,15 +140,16 @@ Strategy:             3-way merge (non-rebase)
 
 ### Why 3-Way Merge vs Rebase?
 
-| Aspect | Rebase | 3-Way Merge | ✅ Chosen |
-|--------|--------|-----------|----------|
-| History | Linear | Preserves branches | ✅ Merge |
-| Revert | Complex (multiple commits) | Single commit | ✅ Merge |
-| Debugging | Harder to trace | Clear integration point | ✅ Merge |
-| Collaboration | Can rewrite history | Safe history | ✅ Merge |
-| Cherry-picking | Easier | Need tree structure | Merge |
+| Aspect         | Rebase                     | 3-Way Merge             | ✅ Chosen |
+| -------------- | -------------------------- | ----------------------- | --------- |
+| History        | Linear                     | Preserves branches      | ✅ Merge  |
+| Revert         | Complex (multiple commits) | Single commit           | ✅ Merge  |
+| Debugging      | Harder to trace            | Clear integration point | ✅ Merge  |
+| Collaboration  | Can rewrite history        | Safe history            | ✅ Merge  |
+| Cherry-picking | Easier                     | Need tree structure     | Merge     |
 
 **Rationale**: This is a feature branch integrating upstream changes. A merge commit provides:
+
 - Clear integration point (commit aaaf517c4)
 - Easy revert if needed: `git revert -m 1 aaaf517c4`
 - Complete history preservation for audit trail
@@ -157,21 +175,25 @@ Strategy:             3-way merge (non-rebase)
 ## Next Steps
 
 1. **Run Tests**
+
    ```bash
    pnpm test
    ```
 
 2. **Type Check**
+
    ```bash
    pnpm -r do-typecheck
    ```
 
 3. **Lint** (with fixes)
+
    ```bash
    pnpm -r do-lint --fix
    ```
 
 4. **Manual Testing**
+
    - Test creating REST requests in unified view
    - Test creating GraphQL requests in unified view
    - Test duplicating both types of requests
@@ -187,6 +209,7 @@ Strategy:             3-way merge (non-rebase)
 ---
 
 ## Related Files Modified
+
 - ✅ [document.ts](packages/hoppscotch-common/src/helpers/unified/document.ts) - ES6 import conversion
 - ✅ [helpers.ts](packages/hoppscotch-common/src/helpers/backend/helpers.ts) - Request wrapping
 - ✅ [openapi/index.ts](packages/hoppscotch-common/src/helpers/import-export/import/openapi/index.ts) - OpenAPI import
