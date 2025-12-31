@@ -234,9 +234,8 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
 
       tab.document = newDoc
     } else if (targetProtocol === "graphql") {
-      const { createDefaultGQLDocument } = await import(
-        "~/helpers/unified/document"
-      )
+      const { createDefaultGQLDocument } =
+        await import("~/helpers/unified/document")
       const newDoc = createDefaultGQLDocument()
       newDoc.isDirty = true
 

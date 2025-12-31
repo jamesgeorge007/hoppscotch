@@ -29,6 +29,11 @@
             {{ request.name }}
           </span>
           <span
+            class="ml-2 inline-flex items-center rounded bg-purple-500 bg-opacity-15 px-2 py-1 text-xs font-semibold text-purple-600 flex-shrink-0"
+          >
+            GQL
+          </span>
+          <span
             v-if="isActive"
             v-tippy="{ theme: 'tooltip' }"
             class="relative mx-3 flex h-1.5 w-1.5 flex-shrink-0"

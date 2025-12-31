@@ -19,6 +19,7 @@
             :close-visibility="'hover'"
           >
             <template v-if="isRESTDocument(tab.document)" #tabhead>
+              <!-- REST TabHead -->
               <HttpTabHead
                 :tab="tab"
                 :is-removable="activeTabs.length > 1"
@@ -30,6 +31,7 @@
               />
             </template>
             <template v-else-if="isGQLDocument(tab.document)" #tabhead>
+              <!-- GraphQL TabHead -->
               <GraphqlTabHead
                 :tab="tab"
                 :is-removable="activeTabs.length > 1"
@@ -38,6 +40,12 @@
                 @close-other-tabs="closeOtherTabsAction(tab.id)"
                 @duplicate-tab="duplicateTab(tab.id)"
               />
+            </template>
+            <template v-else #tabhead>
+              <!-- Fallback: Unknown protocol -->
+              <div class="text-red-500">
+                Unknown Protocol: {{ tab.document.protocol }}
+              </div>
             </template>
             <template #suffix>
               <span
@@ -60,7 +68,12 @@
               :is="getRequestComponent(tab.document.protocol)"
               :model-value="tab"
               @update:model-value="onTabUpdate"
-              @switch-protocol="switchTabProtocol(tab.id, $event)"
+              @switch-protocol="
+                switchTabProtocol(
+                  tab.id,
+                  currentProtocol === 'rest' ? 'graphql' : 'rest'
+                )
+              "
             />
           </HoppSmartWindow>
           <template #actions>
@@ -139,6 +152,7 @@ import { translateExtURLParams } from "~/helpers/RESTExtURLParams"
 import { useRoute } from "vue-router"
 import { useI18n } from "@composables/i18n"
 import { getDefaultRESTRequest } from "~/helpers/rest/default"
+import { getDefaultGQLRequest } from "@hoppscotch/data"
 import { defineActionHandler, invokeAction } from "~/helpers/actions"
 import { platform } from "~/platform"
 import { useReadonlyStream } from "~/composables/stream"
@@ -222,7 +236,13 @@ const activeTabs = tabs.getActiveTabs()
 // Get current protocol from active tab
 const currentProtocol = computed(() => {
   const tab = tabs.currentActiveTab.value
-  return tab?.document.protocol ?? "rest"
+  const protocol = tab?.document.protocol ?? "rest"
+  console.log("currentProtocol computed:", {
+    tabID: tab?.id,
+    protocol,
+    hasProtocolField: "protocol" in (tab?.document || {}),
+  })
+  return protocol
 })
 
 // Get save mode based on current protocol
@@ -328,25 +348,52 @@ const duplicateTab = (tabID: string) => {
   }
 }
 
-const switchTabProtocol = (tabID: string, targetProtocol: "rest" | "graphql") => {
-  const tab = tabs.getTabRef(tabID)
-  if (!tab.value) return
+const switchTabProtocol = (
+  tabID: string,
+  targetProtocol: "rest" | "graphql"
+) => {
+  const tabRef = tabs.getTabRef(tabID)
+  const currentTab = tabRef.value
 
-  const currentDoc = tab.value.document
-  const newDocument = targetProtocol === "graphql" 
-    ? createDefaultGQLDocument()
-    : createDefaultRESTDocument()
+  if (!currentTab) return
 
-  // Preserve the request name if possible
+  const currentDoc = currentTab.document as any
+
+  let newDocument: any
+
+  if (targetProtocol === "graphql") {
+    // Create new GraphQL document
+    newDocument = {
+      protocol: "graphql" as const,
+      request: getDefaultGQLRequest(),
+      isDirty: currentDoc.isDirty || false,
+      response: null,
+      inheritedProperties: currentDoc.inheritedProperties,
+    }
+  } else {
+    // Create new REST document
+    newDocument = {
+      protocol: "rest" as const,
+      request: getDefaultRESTRequest(),
+      isDirty: currentDoc.isDirty || false,
+      response: null,
+      testResults: null,
+      optionTabPreference: "params" as const,
+      inheritedProperties: currentDoc.inheritedProperties,
+    }
+  }
+
+  // Preserve the request name
   if (currentDoc.request && currentDoc.request.name) {
     newDocument.request.name = currentDoc.request.name
   }
 
-  // Update the tab with the new document
-  tabs.updateTab({
-    ...tab.value,
+  // Use the setter to update the tab via the computed ref
+  // This ensures Vue reactivity is properly triggered
+  tabRef.value = {
+    ...currentTab,
     document: newDocument,
-  })
+  }
 }
 
 const onResolveConfirmCloseAllTabs = () => {

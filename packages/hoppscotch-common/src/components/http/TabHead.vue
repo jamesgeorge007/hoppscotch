@@ -1,21 +1,29 @@
 <template>
-  <div class="truncate">
+  <div class="truncate flex items-center justify-between w-full">
     <div
       v-tippy="{ theme: 'tooltip', delay: [500, 20] }"
       :title="tabState.name"
-      class="flex items-center truncate"
+      class="flex items-center truncate flex-1 gap-2"
       @dblclick="emit('open-rename-modal')"
       @contextmenu.prevent="options?.tippy?.show()"
       @click.middle="emit('close-tab')"
     >
       <span
-        class="text-tiny font-semibold mr-2 p-1 rounded-sm relative"
+        class="text-tiny font-semibold p-1 rounded-sm relative"
         :class="{
-          'border border-dashed border-primaryDark grayscale': isResponseExample,
+          'border border-dashed border-primaryDark grayscale':
+            isResponseExample,
         }"
         :style="{ color: getMethodLabelColorClassOf(tabState.method) }"
       >
         {{ tabState.method }}
+      </span>
+      <!-- Protocol Indicator Badge -->
+      <span
+        class="text-xs font-medium px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 flex-shrink-0"
+        title="REST Protocol"
+      >
+        REST
       </span>
       <tippy
         ref="options"
@@ -49,64 +57,64 @@
                 () => {
                   emit('open-rename-modal')
                   hide()
-              }
-            "
-          />
-          <HoppSmartItem
-            v-if="!isResponseExample"
-            ref="duplicateAction"
-            :icon="IconCopy"
-            :label="t('tab.duplicate')"
-            :shortcut="['D']"
-            @click="
-              () => {
-                emit('duplicate-tab')
-                hide()
-              }
-            "
-          />
-          <HoppSmartItem
-            v-if="!isResponseExample"
-            ref="shareRequestAction"
-            :icon="IconShare2"
-            :label="t('tab.share_tab_request')"
-            :shortcut="['S']"
-            @click="
-              () => {
-                emit('share-tab-request')
-                hide()
-              }
-            "
-          />
-          <HoppSmartItem
-            v-if="isRemovable"
-            ref="closeAction"
-            :icon="IconXCircle"
-            :label="t('tab.close')"
-            :shortcut="['W']"
-            @click="
-              () => {
-                emit('close-tab')
-                hide()
-              }
-            "
-          />
-          <HoppSmartItem
-            v-if="isRemovable"
-            ref="closeOthersAction"
-            :icon="IconXSquare"
-            :label="t('tab.close_others')"
-            :shortcut="['X']"
-            @click="
-              () => {
-                emit('close-other-tabs')
-                hide()
-              }
-            "
-          />
-        </div>
-      </template>
-    </tippy>
+                }
+              "
+            />
+            <HoppSmartItem
+              v-if="!isResponseExample"
+              ref="duplicateAction"
+              :icon="IconCopy"
+              :label="t('tab.duplicate')"
+              :shortcut="['D']"
+              @click="
+                () => {
+                  emit('duplicate-tab')
+                  hide()
+                }
+              "
+            />
+            <HoppSmartItem
+              v-if="!isResponseExample"
+              ref="shareRequestAction"
+              :icon="IconShare2"
+              :label="t('tab.share_tab_request')"
+              :shortcut="['S']"
+              @click="
+                () => {
+                  emit('share-tab-request')
+                  hide()
+                }
+              "
+            />
+            <HoppSmartItem
+              v-if="isRemovable"
+              ref="closeAction"
+              :icon="IconXCircle"
+              :label="t('tab.close')"
+              :shortcut="['W']"
+              @click="
+                () => {
+                  emit('close-tab')
+                  hide()
+                }
+              "
+            />
+            <HoppSmartItem
+              v-if="isRemovable"
+              ref="closeOthersAction"
+              :icon="IconXSquare"
+              :label="t('tab.close_others')"
+              :shortcut="['X']"
+              @click="
+                () => {
+                  emit('close-other-tabs')
+                  hide()
+                }
+              "
+            />
+          </div>
+        </template>
+      </tippy>
     </div>
   </div>
 </template>
@@ -126,18 +134,20 @@ import {
   HoppRequestDocument,
   HoppSavedExampleDocument,
 } from "~/helpers/rest/document"
-import { HoppUnifiedDocument, isRESTDocument } from "~/helpers/unified/document"
+import { HoppUnifiedDocument } from "~/helpers/unified/document"
 
 const t = useI18n()
 
 const props = defineProps<{
-  tab: HoppTab<HoppUnifiedDocument | HoppRequestDocument | HoppSavedExampleDocument>
+  tab: HoppTab<
+    HoppUnifiedDocument | HoppRequestDocument | HoppSavedExampleDocument
+  >
   isRemovable: boolean
 }>()
 
 const tabState = computed(() => {
   const doc = props.tab.document as any
-  
+
   // Handle unified documents with protocol field
   if ("protocol" in doc) {
     return {
@@ -146,7 +156,7 @@ const tabState = computed(() => {
       request: doc.request,
     }
   }
-  
+
   // Handle legacy documents with type field
   if (doc.type === "request") {
     return {

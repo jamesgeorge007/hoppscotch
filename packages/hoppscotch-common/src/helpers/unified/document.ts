@@ -5,12 +5,8 @@
  * It provides a unified interface while preserving protocol-specific features.
  */
 
-import {
-  HoppRESTRequest,
-  HoppGQLRequest,
-  getDefaultRESTRequest,
-  getDefaultGQLRequest,
-} from "@hoppscotch/data"
+import type { HoppRESTRequest, HoppGQLRequest } from "@hoppscotch/data"
+import { getDefaultRESTRequest, getDefaultGQLRequest } from "@hoppscotch/data"
 import { HoppRESTSaveContext } from "../rest/document"
 import { HoppGQLSaveContext } from "../graphql/document"
 import { HoppInheritedProperty } from "../types/HoppInheritedProperties"

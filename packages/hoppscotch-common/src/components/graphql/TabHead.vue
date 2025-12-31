@@ -1,13 +1,20 @@
 <template>
-  <div class="truncate">
+  <div class="truncate flex items-center justify-between w-full">
     <div
       v-tippy="{ theme: 'tooltip', delay: [500, 20] }"
       :title="tab.document.request.name"
-      class="flex items-center truncate"
+      class="flex items-center truncate flex-1 gap-2"
       @dblclick="emit('open-rename-modal')"
       @contextmenu.prevent="options?.tippy?.show()"
       @click.middle="emit('close-tab')"
     >
+      <!-- Protocol Indicator Badge -->
+      <span
+        class="text-xs font-medium px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 flex-shrink-0"
+        title="GraphQL Protocol"
+      >
+        GQL
+      </span>
       <tippy
         ref="options"
         trigger="manual"
@@ -49,39 +56,39 @@
               @click="
                 () => {
                   emit('duplicate-tab')
-                hide()
-              }
-            "
-          />
-          <HoppSmartItem
-            v-if="isRemovable"
-            ref="closeAction"
-            :icon="IconXCircle"
-            :label="t('tab.close')"
-            :shortcut="['W']"
-            @click="
-              () => {
-                emit('close-tab')
-                hide()
-              }
-            "
-          />
-          <HoppSmartItem
-            v-if="isRemovable"
-            ref="closeOthersAction"
-            :icon="IconXSquare"
-            :label="t('tab.close_others')"
-            :shortcut="['X']"
-            @click="
-              () => {
-                emit('close-other-tabs')
-                hide()
-              }
-            "
-          />
-        </div>
-      </template>
-    </tippy>
+                  hide()
+                }
+              "
+            />
+            <HoppSmartItem
+              v-if="isRemovable"
+              ref="closeAction"
+              :icon="IconXCircle"
+              :label="t('tab.close')"
+              :shortcut="['W']"
+              @click="
+                () => {
+                  emit('close-tab')
+                  hide()
+                }
+              "
+            />
+            <HoppSmartItem
+              v-if="isRemovable"
+              ref="closeOthersAction"
+              :icon="IconXSquare"
+              :label="t('tab.close_others')"
+              :shortcut="['X']"
+              @click="
+                () => {
+                  emit('close-other-tabs')
+                  hide()
+                }
+              "
+            />
+          </div>
+        </template>
+      </tippy>
     </div>
   </div>
 </template>
