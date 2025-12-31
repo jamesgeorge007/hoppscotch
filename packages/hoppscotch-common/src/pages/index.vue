@@ -132,7 +132,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed } from "vue"
+import { ref, onMounted, computed, defineAsyncComponent } from "vue"
 import { safelyExtractRESTRequest, generateUniqueRefId } from "@hoppscotch/data"
 import { translateExtURLParams } from "~/helpers/RESTExtURLParams"
 import { useRoute } from "vue-router"
