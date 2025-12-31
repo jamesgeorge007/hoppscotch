@@ -260,8 +260,8 @@ const getHoppResponses = (
 }
 
 type PMRequestAuthDef<
-  AuthType extends
-    RequestAuthDefinition["type"] = RequestAuthDefinition["type"],
+  AuthType extends RequestAuthDefinition["type"] =
+    RequestAuthDefinition["type"],
 > = AuthType extends RequestAuthDefinition["type"] & string
   ? // eslint-disable-next-line no-unused-vars
     { type: AuthType } & { [x in AuthType]: VariableDefinition[] }
@@ -301,7 +301,7 @@ const getHoppReqAuth = (
         getVariableValue(auth.apikey, "value") ?? ""
       ),
       addTo:
-        (getVariableValue(auth.apikey, "in") ?? "query") === "query"
+        getVariableValue(auth.apikey, "in") === "query"
           ? "QUERY_PARAMS"
           : "HEADERS",
     }
@@ -552,12 +552,43 @@ const getHoppScripts = (
   return { preRequestScript, testScript }
 }
 
+const getCollectionDescription = (
+  docField?: string | DescriptionDefinition
+): string | null => {
+  if (!docField) {
+    return null
+  }
+
+  if (typeof docField === "string") {
+    return docField
+  } else if (typeof docField === "object" && "content" in docField) {
+    return docField.content || null
+  }
+
+  return null
+}
+
+const getRequestDescription = (
+  docField?: string | DescriptionDefinition
+): string | null => {
+  if (!docField) {
+    return null
+  }
+
+  if (typeof docField === "string") {
+    return docField
+  } else if (typeof docField === "object" && "content" in docField) {
+    return docField.content || null
+  }
+
+  return null
+}
+
 const getHoppRequest = (
   item: Item,
   importScripts: boolean
 ): HoppRESTRequest => {
   const { preRequestScript, testScript } = getHoppScripts(item, importScripts)
-
   return makeRESTRequest({
     name: item.name,
     endpoint: getHoppReqURL(item.request.url),
@@ -573,6 +604,7 @@ const getHoppRequest = (
     responses: getHoppResponses(item.responses),
     preRequestScript,
     testScript,
+    description: getRequestDescription(item.request.description),
   })
 }
 
@@ -596,6 +628,7 @@ const getHoppFolder = (
     auth: getHoppReqAuth(ig.auth),
     headers: [],
     variables: getHoppCollVariables(ig),
+    description: getCollectionDescription(ig.description),
   })
 
 export const getHoppCollections = (

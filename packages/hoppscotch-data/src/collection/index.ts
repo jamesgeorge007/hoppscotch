@@ -87,6 +87,8 @@ export function translateToNewRESTCollection(x: any): HoppCollection {
   const headers = x.headers ?? []
   const variables = x.variables ?? []
 
+  const description = x.description ?? null
+
   const obj = makeCollection({
     name,
     folders,
@@ -94,10 +96,13 @@ export function translateToNewRESTCollection(x: any): HoppCollection {
     auth,
     headers,
     variables,
+    description,
   })
 
   if (x.id) obj.id = x.id
-  if (x._ref_id) obj._ref_id = x._ref_id
+  if (x._ref_id) {
+    obj._ref_id = x._ref_id
+  }
 
   return obj
 }
@@ -117,6 +122,8 @@ export function translateToNewGQLCollection(x: any): HoppCollection {
   const headers = x.headers ?? []
   const variables = x.variables ?? []
 
+  const description = x.description ?? null
+
   const obj = makeCollection({
     name,
     folders,
@@ -124,10 +131,13 @@ export function translateToNewGQLCollection(x: any): HoppCollection {
     auth,
     headers,
     variables,
+    description,
   })
 
   if (x.id) obj.id = x.id
-  if (x._ref_id) obj._ref_id = x._ref_id
+  if (x._ref_id) {
+    obj._ref_id = x._ref_id
+  }
 
   return obj
 }

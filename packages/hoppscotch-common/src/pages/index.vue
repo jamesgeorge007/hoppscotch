@@ -132,13 +132,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed, defineAsyncComponent } from "vue"
-import { safelyExtractRESTRequest } from "@hoppscotch/data"
+import { ref, onMounted, computed } from "vue"
+import { safelyExtractRESTRequest, generateUniqueRefId } from "@hoppscotch/data"
 import { translateExtURLParams } from "~/helpers/RESTExtURLParams"
 import { useRoute } from "vue-router"
 import { useI18n } from "@composables/i18n"
 import { getDefaultRESTRequest } from "~/helpers/rest/default"
-import { getDefaultGQLRequest } from "~/helpers/graphql/default"
 import { defineActionHandler, invokeAction } from "~/helpers/actions"
 import { platform } from "~/platform"
 import { useReadonlyStream } from "~/composables/stream"
@@ -147,6 +146,7 @@ import { InspectionService } from "~/services/inspection"
 import { RequestInspectorService } from "~/services/inspection/inspectors/request.inspector"
 import { EnvironmentInspectorService } from "~/services/inspection/inspectors/environment.inspector"
 import { ResponseInspectorService } from "~/services/inspection/inspectors/response.inspector"
+import { ScriptingInterceptorInspectorService } from "~/services/inspection/inspectors/scripting-interceptor.inspector"
 import { cloneDeep } from "lodash-es"
 import { UnifiedTabService } from "~/services/tab/unified"
 import { HoppTab } from "~/services/tab"
@@ -317,6 +317,10 @@ const duplicateTab = (tabID: string) => {
   if (tab.value) {
     const newDocument = cloneDeep(tab.value.document)
     newDocument.isDirty = true
+    // Regenerate ref_id for requests to ensure uniqueness
+    if (isRESTDocument(newDocument) && newDocument.request._ref_id) {
+      newDocument.request._ref_id = generateUniqueRefId("req")
+    }
 
     const newTab = tabs.createNewTab(newDocument)
     tabs.setActiveTab(newTab.id)
@@ -483,9 +487,18 @@ defineActionHandler("tab.reopen-closed", () => {
   tabs.reopenClosedTab()
 })
 
+defineActionHandler("tab.mru-switch", () => {
+  tabs.goToMRUTab()
+})
+
+defineActionHandler("tab.mru-switch-reverse", () => {
+  tabs.goToPreviousMRUTab()
+})
+
 useService(RequestInspectorService)
 useService(EnvironmentInspectorService)
 useService(ResponseInspectorService)
+useService(ScriptingInterceptorInspectorService)
 
 for (const inspectorDef of platform.additionalInspectors ?? []) {
   useService(inspectorDef.service)
