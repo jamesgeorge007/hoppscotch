@@ -146,7 +146,7 @@ export function exportedCollectionToHoppCollection(
     return {
       id: restCollection.id,
       _ref_id: data._ref_id ?? generateUniqueRefId("coll"),
-      v: 11,
+      v: 12,
       name: restCollection.name,
       folders: restCollection.folders.map((folder) =>
         exportedCollectionToHoppCollection(folder, collectionType)
@@ -218,7 +218,7 @@ export function exportedCollectionToHoppCollection(
     return {
       id: gqlCollection.id,
       _ref_id: data._ref_id ?? generateUniqueRefId("coll"),
-      v: 11,
+      v: 12,
       name: gqlCollection.name,
       folders: gqlCollection.folders.map((folder) =>
         exportedCollectionToHoppCollection(folder, collectionType)
@@ -406,7 +406,7 @@ function setupUserCollectionCreatedSubscription() {
                 name: res.right.userCollectionCreated.title,
                 folders: [],
                 requests: [],
-                v: 11,
+                v: 12,
                 _ref_id: data._ref_id,
                 auth: data.auth,
                 headers: addDescriptionField(data.headers),
@@ -417,7 +417,7 @@ function setupUserCollectionCreatedSubscription() {
                 name: res.right.userCollectionCreated.title,
                 folders: [],
                 requests: [],
-                v: 11,
+                v: 12,
                 _ref_id: data._ref_id,
                 auth: data.auth,
                 headers: addDescriptionField(data.headers),
@@ -649,7 +649,7 @@ function setupUserCollectionDuplicatedSubscription() {
         name,
         folders,
         requests,
-        v: 11,
+        v: 12,
         _ref_id,
         auth,
         headers: addDescriptionField(headers),
@@ -1144,7 +1144,7 @@ function transformDuplicatedCollections(
         folders,
         requests,
         _ref_id,
-        v: 11,
+        v: 12,
         auth,
         headers: addDescriptionField(headers),
         variables: variables ?? [],

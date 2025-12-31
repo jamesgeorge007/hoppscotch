@@ -130,7 +130,7 @@ function migrateCollectionToV11(collection: any): any {
 
     return {
       ...collection,
-      v: 11,
+      v: 12,
       requests: migratedRequests,
       folders: migratedFolders,
     }
