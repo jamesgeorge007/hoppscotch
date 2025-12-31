@@ -1,53 +1,54 @@
 <template>
-  <div
-    v-tippy="{ theme: 'tooltip', delay: [500, 20] }"
-    :title="tabState.name"
-    class="flex items-center truncate px-2"
-    @dblclick="emit('open-rename-modal')"
-    @contextmenu.prevent="options?.tippy?.show()"
-    @click.middle="emit('close-tab')"
-  >
-    <span
-      class="text-tiny font-semibold mr-2 p-1 rounded-sm relative"
-      :class="{
-        'border border-dashed border-primaryDark grayscale': isResponseExample,
-      }"
-      :style="{ color: getMethodLabelColorClassOf(tabState.method) }"
+  <div class="truncate">
+    <div
+      v-tippy="{ theme: 'tooltip', delay: [500, 20] }"
+      :title="tabState.name"
+      class="flex items-center truncate"
+      @dblclick="emit('open-rename-modal')"
+      @contextmenu.prevent="options?.tippy?.show()"
+      @click.middle="emit('close-tab')"
     >
-      {{ tabState.method }}
-    </span>
-    <tippy
-      ref="options"
-      trigger="manual"
-      interactive
-      theme="popover"
-      :on-shown="() => tippyActions!.focus()"
-    >
-      <span class="truncate">
-        {{ tabState.name }}
+      <span
+        class="text-tiny font-semibold mr-2 p-1 rounded-sm relative"
+        :class="{
+          'border border-dashed border-primaryDark grayscale': isResponseExample,
+        }"
+        :style="{ color: getMethodLabelColorClassOf(tabState.method) }"
+      >
+        {{ tabState.method }}
       </span>
-      <template #content="{ hide }">
-        <div
-          ref="tippyActions"
-          class="flex flex-col focus:outline-none"
-          tabindex="0"
-          @keyup.r="renameAction?.$el.click()"
-          @keyup.s="shareRequestAction?.$el.click()"
-          @keyup.d="duplicateAction?.$el.click()"
-          @keyup.w="closeAction?.$el.click()"
-          @keyup.x="closeOthersAction?.$el.click()"
-          @keyup.escape="hide()"
-        >
-          <HoppSmartItem
-            v-if="!isResponseExample"
-            ref="renameAction"
-            :icon="IconFileEdit"
-            :label="t('request.rename')"
-            :shortcut="['R']"
-            @click="
-              () => {
-                emit('open-rename-modal')
-                hide()
+      <tippy
+        ref="options"
+        trigger="manual"
+        interactive
+        theme="popover"
+        :on-shown="() => tippyActions!.focus()"
+      >
+        <span class="truncate">
+          {{ tabState.name }}
+        </span>
+        <template #content="{ hide }">
+          <div
+            ref="tippyActions"
+            class="flex flex-col focus:outline-none"
+            tabindex="0"
+            @keyup.r="renameAction?.$el.click()"
+            @keyup.s="shareRequestAction?.$el.click()"
+            @keyup.d="duplicateAction?.$el.click()"
+            @keyup.w="closeAction?.$el.click()"
+            @keyup.x="closeOthersAction?.$el.click()"
+            @keyup.escape="hide()"
+          >
+            <HoppSmartItem
+              v-if="!isResponseExample"
+              ref="renameAction"
+              :icon="IconFileEdit"
+              :label="t('request.rename')"
+              :shortcut="['R']"
+              @click="
+                () => {
+                  emit('open-rename-modal')
+                  hide()
               }
             "
           />
@@ -106,6 +107,7 @@
         </div>
       </template>
     </tippy>
+    </div>
   </div>
 </template>
 

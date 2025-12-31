@@ -1,53 +1,54 @@
 <template>
-  <div
-    v-tippy="{ theme: 'tooltip', delay: [500, 20] }"
-    :title="tab.document.request.name"
-    class="flex items-center truncate px-2"
-    @dblclick="emit('open-rename-modal')"
-    @contextmenu.prevent="options?.tippy?.show()"
-    @click.middle="emit('close-tab')"
-  >
-    <tippy
-      ref="options"
-      trigger="manual"
-      interactive
-      theme="popover"
-      :on-shown="() => tippyActions!.focus()"
+  <div class="truncate">
+    <div
+      v-tippy="{ theme: 'tooltip', delay: [500, 20] }"
+      :title="tab.document.request.name"
+      class="flex items-center truncate"
+      @dblclick="emit('open-rename-modal')"
+      @contextmenu.prevent="options?.tippy?.show()"
+      @click.middle="emit('close-tab')"
     >
-      <span class="truncate">
-        {{ tab.document.request.name }}
-      </span>
-      <template #content="{ hide }">
-        <div
-          ref="tippyActions"
-          class="flex flex-col focus:outline-none"
-          tabindex="0"
-          @keyup.r="renameAction?.$el.click()"
-          @keyup.d="duplicateAction?.$el.click()"
-          @keyup.w="closeAction?.$el.click()"
-          @keyup.x="closeOthersAction?.$el.click()"
-          @keyup.escape="hide()"
-        >
-          <HoppSmartItem
-            ref="renameAction"
-            :icon="IconFileEdit"
-            :label="t('request.rename')"
-            :shortcut="['R']"
-            @click="
-              () => {
-                emit('open-rename-modal')
-                hide()
-              }
-            "
-          />
-          <HoppSmartItem
-            ref="duplicateAction"
-            :icon="IconCopy"
-            :label="t('tab.duplicate')"
-            :shortcut="['D']"
-            @click="
-              () => {
-                emit('duplicate-tab')
+      <tippy
+        ref="options"
+        trigger="manual"
+        interactive
+        theme="popover"
+        :on-shown="() => tippyActions!.focus()"
+      >
+        <span class="truncate">
+          {{ tab.document.request.name }}
+        </span>
+        <template #content="{ hide }">
+          <div
+            ref="tippyActions"
+            class="flex flex-col focus:outline-none"
+            tabindex="0"
+            @keyup.r="renameAction?.$el.click()"
+            @keyup.d="duplicateAction?.$el.click()"
+            @keyup.w="closeAction?.$el.click()"
+            @keyup.x="closeOthersAction?.$el.click()"
+            @keyup.escape="hide()"
+          >
+            <HoppSmartItem
+              ref="renameAction"
+              :icon="IconFileEdit"
+              :label="t('request.rename')"
+              :shortcut="['R']"
+              @click="
+                () => {
+                  emit('open-rename-modal')
+                  hide()
+                }
+              "
+            />
+            <HoppSmartItem
+              ref="duplicateAction"
+              :icon="IconCopy"
+              :label="t('tab.duplicate')"
+              :shortcut="['D']"
+              @click="
+                () => {
+                  emit('duplicate-tab')
                 hide()
               }
             "
@@ -81,6 +82,7 @@
         </div>
       </template>
     </tippy>
+    </div>
   </div>
 </template>
 

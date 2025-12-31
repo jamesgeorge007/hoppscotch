@@ -60,6 +60,7 @@
               :is="getRequestComponent(tab.document.protocol)"
               :model-value="tab"
               @update:model-value="onTabUpdate"
+              @switch-protocol="switchTabProtocol(tab.id, $event)"
             />
           </HoppSmartWindow>
           <template #actions>
@@ -325,6 +326,27 @@ const duplicateTab = (tabID: string) => {
     const newTab = tabs.createNewTab(newDocument)
     tabs.setActiveTab(newTab.id)
   }
+}
+
+const switchTabProtocol = (tabID: string, targetProtocol: "rest" | "graphql") => {
+  const tab = tabs.getTabRef(tabID)
+  if (!tab.value) return
+
+  const currentDoc = tab.value.document
+  const newDocument = targetProtocol === "graphql" 
+    ? createDefaultGQLDocument()
+    : createDefaultRESTDocument()
+
+  // Preserve the request name if possible
+  if (currentDoc.request && currentDoc.request.name) {
+    newDocument.request.name = currentDoc.request.name
+  }
+
+  // Update the tab with the new document
+  tabs.updateTab({
+    ...tab.value,
+    document: newDocument,
+  })
 }
 
 const onResolveConfirmCloseAllTabs = () => {

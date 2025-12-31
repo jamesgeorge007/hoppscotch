@@ -1,37 +1,43 @@
 <template>
   <div class="flex flex-col h-full">
-    <!-- Protocol Switcher -->
-    <div class="flex items-center gap-2 px-4 py-2 border-b border-dividerLight bg-primary">
-      <span class="text-xs font-semibold text-secondaryLight">{{ t("label.protocol") }}:</span>
-      <div class="flex gap-1">
-        <button
-          class="px-3 py-1 text-xs font-medium rounded transition-colors bg-surface2 text-secondary hover:bg-surface1"
-          @click="switchProtocol('rest')"
-        >
-          REST
-        </button>
-        <button
-          class="px-3 py-1 text-xs font-medium rounded transition-colors"
-          :class="{
-            'bg-accent text-accentContrast': true,
-            'bg-surface2 text-secondary hover:bg-surface1': false,
-          }"
-          @click="switchProtocol('graphql')"
-        >
-          GraphQL
-        </button>
+    <!-- Loading state during protocol switch -->
+    <transition
+      enter-active-class="transition-opacity duration-200"
+      leave-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
+    >
+      <div v-if="isSwitching" class="absolute inset-0 z-20 flex items-center justify-center bg-primary/80 backdrop-blur-sm">
+        <div class="flex flex-col items-center gap-2">
+          <div class="animate-spin rounded-full h-8 w-8 border-2 border-accent border-t-transparent"></div>
+          <span class="text-xs text-secondary">{{ t("state.loading") }}</span>
+        </div>
       </div>
-    </div>
+    </transition>
 
     <AppPaneLayout layout-id="gql-primary">
       <template #primary>
-        <GraphqlRequestOptions
-          v-model="tab.document.request"
-          v-model:response="tab.document.response"
-          v-model:option-tab="tab.document.optionTabPreference"
-          v-model:inherited-properties="tab.document.inheritedProperties"
-          :tab-id="tab.id"
-        />
+        <div class="flex flex-col h-full">
+          <div class="flex items-center justify-end px-4 py-2 gap-2 border-b border-dividerLight">
+            <button
+              v-tippy="{ theme: 'tooltip' }"
+              title="Switch to REST"
+              class="p-1.5 rounded hover:bg-surface2 transition-colors text-secondary hover:text-secondaryLight"
+              @click="$emit('switch-protocol', 'rest')"
+            >
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 3h6m0 0v18m0-18L3 9m12 0l6 6M3 9v12h18V9"></path>
+              </svg>
+            </button>
+          </div>
+          <GraphqlRequestOptions
+            v-model="tab.document.request"
+            v-model:response="tab.document.response"
+            v-model:option-tab="tab.document.optionTabPreference"
+            v-model:inherited-properties="tab.document.inheritedProperties"
+            :tab-id="tab.id"
+          />
+        </div>
       </template>
       <template #secondary>
         <GraphqlResponse :response="tab.document.response" />
@@ -43,41 +49,25 @@
 <script setup lang="ts">
 import { useVModel } from "@vueuse/core"
 import { cloneDeep } from "lodash-es"
-import { watch } from "vue"
+import { watch, ref } from "vue"
 import { isEqualHoppGQLRequest } from "~/helpers/graphql"
 import { HoppGQLDocument } from "~/helpers/graphql/document"
 import { HoppTab } from "~/services/tab"
 import { useI18n } from "~/composables/i18n"
-import { createDefaultRESTDocument } from "~/helpers/unified/document"
-import { useService } from "dioc/vue"
-import { UnifiedTabService } from "~/services/tab/unified"
 
 // TODO: Move Response and Request execution code to over here
 
 const t = useI18n()
-const tabs = useService(UnifiedTabService)
 
 const props = defineProps<{ modelValue: HoppTab<HoppGQLDocument> }>()
 
 const emit = defineEmits<{
   (e: "update:modelValue", val: HoppTab<HoppGQLDocument>): void
+  (e: "switch-protocol", protocol: "rest"): void
 }>()
 
 const tab = useVModel(props, "modelValue", emit)
-
-// Protocol switcher
-const switchProtocol = (protocol: "rest" | "graphql") => {
-  if (protocol === "graphql") {
-    return // Already on GraphQL
-  }
-
-  // Switch to REST
-  const newTab = {
-    ...tab.value,
-    document: createDefaultRESTDocument(),
-  }
-  tabs.updateTab(newTab)
-}
+const isSwitching = ref(false)
 
 // TODO: Come up with a better dirty check
 let oldRequest = cloneDeep(tab.value.document.request)
