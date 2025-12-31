@@ -273,3 +273,41 @@ export const getTeamCollectionJSON = async (teamID: string) => {
   const hoppCollections = collections.map(teamCollectionJSONToHoppRESTColl)
   return E.right(JSON.stringify(hoppCollections, null, 2))
 }
+
+/**
+ * Fetches a single team collection and returns it as a JSON string
+ * @param teamID - ID of the team
+ * @param collectionID - ID of the collection
+ * @returns Either of the JSON string of the collection or the error
+ */
+export const getSingleTeamCollectionJSON = async (
+  teamID: string,
+  collectionID: string
+) => {
+  try {
+    const collectionTree = await getCompleteCollectionTree(collectionID)
+
+    if (E.isLeft(collectionTree)) {
+      return E.left(collectionTree.left.error.toString())
+    }
+
+    const collection = collectionTree.right
+    const hoppCollection = teamCollToHoppRESTColl({
+      name: collection.title || "Untitled",
+      folders: collection.children.map((child) =>
+        teamCollToHoppRESTColl({
+          name: child.title || "Untitled",
+          folders: [],
+          requests: [],
+          data: child.data || "{}",
+        })
+      ),
+      requests: collection.requests,
+      data: collection.data || "{}",
+    })
+
+    return E.right(JSON.stringify(hoppCollection, null, 2))
+  } catch (error) {
+    return E.left(error instanceof Error ? error.message : "Unknown error")
+  }
+}
