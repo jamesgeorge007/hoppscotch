@@ -94,11 +94,12 @@ import IconFileEdit from "~icons/lucide/file-edit"
 import IconCopy from "~icons/lucide/copy"
 import { HoppTab } from "~/services/tab"
 import { HoppGQLDocument } from "~/helpers/graphql/document"
+import { HoppUnifiedDocument } from "~/helpers/unified/document"
 
 const t = useI18n()
 
 defineProps<{
-  tab: HoppTab<HoppGQLDocument>
+  tab: HoppTab<HoppUnifiedDocument | HoppGQLDocument>
   isRemovable: boolean
 }>()
 

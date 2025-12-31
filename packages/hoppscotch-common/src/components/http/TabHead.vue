@@ -124,31 +124,45 @@ import {
   HoppRequestDocument,
   HoppSavedExampleDocument,
 } from "~/helpers/rest/document"
+import { HoppUnifiedDocument, isRESTDocument } from "~/helpers/unified/document"
 
 const t = useI18n()
 
 const props = defineProps<{
-  tab: HoppTab<HoppRequestDocument | HoppSavedExampleDocument>
+  tab: HoppTab<HoppUnifiedDocument | HoppRequestDocument | HoppSavedExampleDocument>
   isRemovable: boolean
 }>()
 
 const tabState = computed(() => {
-  if (props.tab.document.type === "request") {
+  const doc = props.tab.document as any
+  
+  // Handle unified documents with protocol field
+  if ("protocol" in doc) {
     return {
-      name: props.tab.document.request.name,
-      method: props.tab.document.request.method,
-      request: props.tab.document.request,
+      name: doc.request.name,
+      method: doc.request.method,
+      request: doc.request,
+    }
+  }
+  
+  // Handle legacy documents with type field
+  if (doc.type === "request") {
+    return {
+      name: doc.request.name,
+      method: doc.request.method,
+      request: doc.request,
     }
   }
   return {
-    name: props.tab.document.response.name,
-    method: props.tab.document.response.originalRequest.method,
-    request: props.tab.document.response.originalRequest,
+    name: doc.response.name,
+    method: doc.response.originalRequest.method,
+    request: doc.response.originalRequest,
   }
 })
 
 const isResponseExample = computed(() => {
-  return props.tab.document.type === "example-response"
+  const doc = props.tab.document as any
+  return "type" in doc && doc.type === "example-response"
 })
 
 const emit = defineEmits<{
