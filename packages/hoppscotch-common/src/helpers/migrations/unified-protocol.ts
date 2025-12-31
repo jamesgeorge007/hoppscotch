@@ -13,7 +13,11 @@
  * 6. Mark migration as complete
  */
 
-import { HoppCollection, wrapRESTRequest, wrapGQLRequest } from "@hoppscotch/data"
+import {
+  HoppCollection,
+  wrapRESTRequest,
+  wrapGQLRequest,
+} from "@hoppscotch/data"
 import { HoppRESTRequest } from "@hoppscotch/data"
 import { HoppGQLRequest } from "@hoppscotch/data"
 
@@ -84,7 +88,10 @@ function migrateCollectionToV11(collection: any): any {
     }
 
     // If automated migration fails, try manual migration
-    console.warn("[Migration] Auto-migration failed, attempting manual migration", result.error)
+    console.warn(
+      "[Migration] Auto-migration failed, attempting manual migration",
+      result.error
+    )
 
     // Manual migration: wrap requests with protocol discriminator
     const migratedRequests = (collection.requests || []).map((req: any) => {
@@ -105,16 +112,15 @@ function migrateCollectionToV11(collection: any): any {
           protocol: "rest",
           request: req,
         }
-      } else {
-        const gqlResult = HoppGQLRequest.safeParse(req)
-        if (gqlResult.type === "ok") {
-          return wrapGQLRequest(gqlResult.value)
-        }
-        // Fallback: wrap as-is
-        return {
-          protocol: "graphql",
-          request: req,
-        }
+      }
+      const gqlResult = HoppGQLRequest.safeParse(req)
+      if (gqlResult.type === "ok") {
+        return wrapGQLRequest(gqlResult.value)
+      }
+      // Fallback: wrap as-is
+      return {
+        protocol: "graphql",
+        request: req,
       }
     })
 
@@ -159,7 +165,10 @@ function loadCollectionsFromStorage(key: string): any[] {
       return parsed.collections
     }
 
-    console.warn(`[Migration] Unexpected storage format for key ${key}:`, parsed)
+    console.warn(
+      `[Migration] Unexpected storage format for key ${key}:`,
+      parsed
+    )
     return []
   } catch (error) {
     console.error(`[Migration] Failed to load collections from ${key}:`, error)
@@ -205,23 +214,24 @@ export function migrateToUnifiedProtocol(): MigrationResult {
       const collections = loadCollectionsFromStorage(key)
       if (collections.length > 0) {
         restCollections = collections
-        console.log(`[Migration] Loaded ${collections.length} REST collections from ${key}`)
+        console.log(
+          `[Migration] Loaded ${collections.length} REST collections from ${key}`
+        )
         break
       }
     }
 
     // Step 2: Load GraphQL collections from localStorage
-    const gqlStorageKeys = [
-      "graphqlCollections",
-      "collections/graphql",
-    ]
+    const gqlStorageKeys = ["graphqlCollections", "collections/graphql"]
 
     let gqlCollections: any[] = []
     for (const key of gqlStorageKeys) {
       const collections = loadCollectionsFromStorage(key)
       if (collections.length > 0) {
         gqlCollections = collections
-        console.log(`[Migration] Loaded ${collections.length} GraphQL collections from ${key}`)
+        console.log(
+          `[Migration] Loaded ${collections.length} GraphQL collections from ${key}`
+        )
         break
       }
     }
@@ -234,7 +244,9 @@ export function migrateToUnifiedProtocol(): MigrationResult {
       try {
         return migrateCollectionToV11(col)
       } catch (error) {
-        result.errors.push(`Failed to migrate REST collection "${col.name}": ${error}`)
+        result.errors.push(
+          `Failed to migrate REST collection "${col.name}": ${error}`
+        )
         return col
       }
     })
@@ -244,7 +256,9 @@ export function migrateToUnifiedProtocol(): MigrationResult {
       try {
         return migrateCollectionToV11(col)
       } catch (error) {
-        result.errors.push(`Failed to migrate GraphQL collection "${col.name}": ${error}`)
+        result.errors.push(
+          `Failed to migrate GraphQL collection "${col.name}": ${error}`
+        )
         return col
       }
     })
@@ -259,12 +273,17 @@ export function migrateToUnifiedProtocol(): MigrationResult {
 
     result.migratedCollections = allMigratedCollections.length
 
-    console.log(`[Migration] Successfully migrated ${result.migratedCollections} collections`)
+    console.log(
+      `[Migration] Successfully migrated ${result.migratedCollections} collections`
+    )
     console.log(`[Migration] - REST: ${result.restCollections}`)
     console.log(`[Migration] - GraphQL: ${result.gqlCollections}`)
 
     if (result.errors.length > 0) {
-      console.warn(`[Migration] Encountered ${result.errors.length} errors:`, result.errors)
+      console.warn(
+        `[Migration] Encountered ${result.errors.length} errors:`,
+        result.errors
+      )
     }
 
     // Step 6: Mark migration as complete
@@ -280,7 +299,10 @@ export function migrateToUnifiedProtocol(): MigrationResult {
 
     return result
   } catch (error) {
-    console.error("[Migration] Critical error during unified protocol migration:", error)
+    console.error(
+      "[Migration] Critical error during unified protocol migration:",
+      error
+    )
     result.errors.push(`Critical error: ${error}`)
     result.success = false
     return result

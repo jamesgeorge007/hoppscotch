@@ -32,7 +32,9 @@ type Requests = {
 
 export type CollectionNode = Collection | Folder | Requests
 
-export class TestRunnerCollectionsAdapter implements SmartTreeAdapter<CollectionNode> {
+export class TestRunnerCollectionsAdapter
+  implements SmartTreeAdapter<CollectionNode>
+{
   constructor(
     public data: Ref<HoppCollection[]>,
     private show: Ref<"all" | "passed" | "failed">

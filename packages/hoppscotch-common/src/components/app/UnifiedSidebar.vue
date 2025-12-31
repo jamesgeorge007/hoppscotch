@@ -201,7 +201,10 @@ const selectedNavigationTab = ref<NavigationTabs>("collections")
 watch(
   () => props.protocol,
   (newProtocol) => {
-    if (newProtocol === "graphql" && selectedNavigationTab.value === "codegen") {
+    if (
+      newProtocol === "graphql" &&
+      selectedNavigationTab.value === "codegen"
+    ) {
       selectedNavigationTab.value = "docs"
     } else if (
       newProtocol === "rest" &&

@@ -5,7 +5,11 @@
  * It supports detection from various import formats (Postman, OpenAPI, Hoppscotch, etc.)
  */
 
-import { wrapRESTRequest, wrapGQLRequest, HoppRequestWithProtocol } from "@hoppscotch/data"
+import {
+  wrapRESTRequest,
+  wrapGQLRequest,
+  HoppRequestWithProtocol,
+} from "@hoppscotch/data"
 import { translateToNewRequest } from "@hoppscotch/data"
 import { translateToGQLRequest } from "@hoppscotch/data"
 
@@ -60,7 +64,8 @@ export function detectRequestProtocol(request: any): "rest" | "graphql" {
 
     // Check URL for /graphql endpoint
     if (pmRequest.url) {
-      const url = typeof pmRequest.url === "string" ? pmRequest.url : pmRequest.url.raw
+      const url =
+        typeof pmRequest.url === "string" ? pmRequest.url : pmRequest.url.raw
       if (url && url.includes("/graphql")) {
         return "graphql"
       }
@@ -112,10 +117,9 @@ export function wrapRequestWithProtocol(request: any): HoppRequestWithProtocol {
   if (protocol === "rest") {
     const restRequest = translateToNewRequest(request)
     return wrapRESTRequest(restRequest)
-  } else {
-    const gqlRequest = translateToGQLRequest(request)
-    return wrapGQLRequest(gqlRequest)
   }
+  const gqlRequest = translateToGQLRequest(request)
+  return wrapGQLRequest(gqlRequest)
 }
 
 /**

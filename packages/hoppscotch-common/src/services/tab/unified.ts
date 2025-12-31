@@ -9,7 +9,12 @@ import { Container } from "dioc"
 import { computed } from "vue"
 import { TabService } from "./tab"
 import { PersistableTabState } from "."
-import { HoppUnifiedDocument, isRESTDocument, isGQLDocument, createDefaultRESTDocument } from "~/helpers/unified/document"
+import {
+  HoppUnifiedDocument,
+  isRESTDocument,
+  isGQLDocument,
+  createDefaultRESTDocument,
+} from "~/helpers/unified/document"
 import { getService } from "~/modules/dioc"
 import { PersistenceService, STORE_KEYS } from "../persistence"
 
@@ -75,7 +80,9 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
     }
 
     // Fallback: Try loading REST tabs and convert
-    const restState = await persistenceService.getNullable<any>(STORE_KEYS.REST_TABS)
+    const restState = await persistenceService.getNullable<any>(
+      STORE_KEYS.REST_TABS
+    )
 
     if (restState) {
       // Convert REST tabs to unified format
@@ -123,7 +130,7 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
           ctx.originLocation === "user-collection" &&
           ctx.folderPath === saveContext.folderPath &&
           ctx.requestIndex === saveContext.requestIndex &&
-            ctx.exampleID === saveContext.exampleID &&
+          ctx.exampleID === saveContext.exampleID &&
           ctx.requestRefID === saveContext.requestRefID
         ) {
           return this.getTabRef(tab.id)
@@ -221,19 +228,23 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
       // Try to preserve some fields
       if (isGQLDocument(tab.document)) {
         newDoc.request.name = tab.document.request.name || "Converted Request"
-        newDoc.request.endpoint = tab.document.request.url || "https://echo.hoppscotch.io"
+        newDoc.request.endpoint =
+          tab.document.request.url || "https://echo.hoppscotch.io"
       }
 
       tab.document = newDoc
     } else if (targetProtocol === "graphql") {
-      const { createDefaultGQLDocument } = await import("~/helpers/unified/document")
+      const { createDefaultGQLDocument } = await import(
+        "~/helpers/unified/document"
+      )
       const newDoc = createDefaultGQLDocument()
       newDoc.isDirty = true
 
       // Try to preserve some fields
       if (isRESTDocument(tab.document)) {
         newDoc.request.name = tab.document.request.name || "Converted Query"
-        newDoc.request.url = tab.document.request.endpoint || "https://echo.hoppscotch.io/graphql"
+        newDoc.request.url =
+          tab.document.request.endpoint || "https://echo.hoppscotch.io/graphql"
       }
 
       tab.document = newDoc

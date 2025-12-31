@@ -5,7 +5,12 @@
  * It provides a unified interface while preserving protocol-specific features.
  */
 
-import { HoppRESTRequest, HoppGQLRequest } from "@hoppscotch/data"
+import {
+  HoppRESTRequest,
+  HoppGQLRequest,
+  getDefaultRESTRequest,
+  getDefaultGQLRequest,
+} from "@hoppscotch/data"
 import { HoppRESTSaveContext } from "../rest/document"
 import { HoppGQLSaveContext } from "../graphql/document"
 import { HoppInheritedProperty } from "../types/HoppInheritedProperties"
@@ -85,8 +90,6 @@ export function isGQLDocument(
 export function createDefaultRESTDocument(
   request?: HoppRESTRequest
 ): HoppUnifiedDocument & HoppRESTDocumentProps {
-  const { getDefaultRESTRequest } = require("../rest/default")
-
   return {
     protocol: "rest",
     request: request ?? getDefaultRESTRequest(),
@@ -103,8 +106,6 @@ export function createDefaultRESTDocument(
 export function createDefaultGQLDocument(
   request?: HoppGQLRequest
 ): HoppUnifiedDocument & HoppGQLDocumentProps {
-  const { getDefaultGQLRequest } = require("@hoppscotch/data")
-
   return {
     protocol: "graphql",
     request: request ?? getDefaultGQLRequest(),

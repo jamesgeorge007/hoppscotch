@@ -18,11 +18,7 @@ import IconFolder from "~icons/lucide/folder"
 import IconImport from "~icons/lucide/folder-down"
 import RESTRequestSpotlightEntry from "~/components/app/spotlight/entry/RESTRequest.vue"
 import GQLRequestSpotlightEntry from "~/components/app/spotlight/entry/GQLRequest.vue"
-import {
-  HoppCollection,
-  isRESTRequest,
-  isGQLRequest,
-} from "@hoppscotch/data"
+import { HoppCollection, isRESTRequest, isGQLRequest } from "@hoppscotch/data"
 import { WorkspaceService } from "~/services/workspace.service"
 import { invokeAction } from "~/helpers/actions"
 import { RESTTabService } from "~/services/tab/rest"
@@ -327,8 +323,9 @@ export class CollectionsSpotlightSearcherService
       if (possibleTab) {
         this.restTab.setActiveTab(possibleTab.value.id)
       } else {
-        const reqWrapper = this.getRESTFolderFromFolderPath(folderPath.join("/"))
-          ?.requests[reqIndex]
+        const reqWrapper = this.getRESTFolderFromFolderPath(
+          folderPath.join("/")
+        )?.requests[reqIndex]
 
         if (!reqWrapper || !isRESTRequest(reqWrapper)) return
 

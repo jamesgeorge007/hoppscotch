@@ -69,7 +69,8 @@ export interface BaseDocumentationOptions {
 /**
  * Options for setting collection documentation
  */
-export interface SetCollectionDocumentationOptions extends BaseDocumentationOptions {
+export interface SetCollectionDocumentationOptions
+  extends BaseDocumentationOptions {
   /**
    * The path (for personal collections) or ID (for team collections) of the collection
    */
@@ -80,7 +81,8 @@ export interface SetCollectionDocumentationOptions extends BaseDocumentationOpti
 /**
  * Request documentation
  */
-export interface SetRequestDocumentationOptions extends BaseDocumentationOptions {
+export interface SetRequestDocumentationOptions
+  extends BaseDocumentationOptions {
   parentCollectionID: string
   folderPath: string
   requestID?: string // For team requests

@@ -162,7 +162,8 @@ export function addRequestToCollection(
   request: HoppRequestWithProtocol,
   protocol: "rest" | "graphql"
 ) {
-  const store = protocol === "rest" ? restCollectionStore : graphqlCollectionStore
+  const store =
+    protocol === "rest" ? restCollectionStore : graphqlCollectionStore
 
   // Get the target collection
   const pathParts = collectionPath.split("/").map((p) => parseInt(p))
@@ -237,7 +238,9 @@ export function findCollectionById(
  * Get collection statistics
  */
 export function getCollectionStats() {
-  const countRequests = (col: HoppCollection): { rest: number; graphql: number } => {
+  const countRequests = (
+    col: HoppCollection
+  ): { rest: number; graphql: number } => {
     let rest = 0
     let graphql = 0
 
@@ -268,7 +271,7 @@ export function getCollectionStats() {
 
   let totalREST = 0
   let totalGraphQL = 0
-  let totalCollections = allCollections.length
+  const totalCollections = allCollections.length
   let mixedCollections = 0
 
   for (const col of allCollections) {
@@ -293,7 +296,9 @@ export function getCollectionStats() {
 /**
  * Migration helper: Convert legacy collections to v11 format
  */
-export function migrateLegacyCollection(collection: HoppCollection): HoppCollection {
+export function migrateLegacyCollection(
+  collection: HoppCollection
+): HoppCollection {
   const migrateRequests = (requests: any[]): any[] => {
     return requests.map((req) => {
       // Skip if already in v11 format
