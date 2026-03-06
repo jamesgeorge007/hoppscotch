@@ -1015,9 +1015,34 @@ export class PersistenceService extends Service {
   }
 
   private async setupUnifiedTabsPersistence() {
-    // UnifiedTabService loads its own persisted state internally via loadPersistedState(),
-    // which tries UNIFIED_TABS first then falls back to REST_TABS for migration.
-    // We just need to watch and persist the unified state going forward.
+    // Try loading unified tabs; fall back to REST_TABS for migration
+    const unifiedLoadResult = await Store.get<any>(
+      STORE_NAMESPACE,
+      STORE_KEYS.UNIFIED_TABS
+    )
+
+    if (E.isRight(unifiedLoadResult) && unifiedLoadResult.right) {
+      this.unifiedTabService.loadTabsFromPersistedState(unifiedLoadResult.right)
+    } else {
+      // Migration path: load from REST_TABS and convert to unified format
+      const restLoadResult = await Store.get<any>(
+        STORE_NAMESPACE,
+        STORE_KEYS.REST_TABS
+      )
+      if (E.isRight(restLoadResult) && restLoadResult.right) {
+        const converted = {
+          lastActiveTabID: restLoadResult.right.lastActiveTabID,
+          orderedDocs: (restLoadResult.right.orderedDocs ?? []).map(
+            (item: any) => ({
+              tabID: item.tabID,
+              doc: { protocol: "rest", ...item.doc },
+            })
+          ),
+        }
+        this.unifiedTabService.loadTabsFromPersistedState(converted)
+      }
+    }
+
     watchDebounced(
       this.unifiedTabService.persistableTabState,
       async (newData) => {

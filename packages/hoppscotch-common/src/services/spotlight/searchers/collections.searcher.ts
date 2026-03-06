@@ -109,14 +109,13 @@ export class CollectionsSpotlightSearcherService
   }
 
   private getCurrentPageCategory() {
-    // TODO: Better logic for this ?
     try {
       const url = new URL(window.location.href)
 
-      if (url.pathname.startsWith("/graphql")) {
-        return "graphql"
-      } else if (url.pathname === "/") {
-        return "rest"
+      // The unified playground lives at "/", serving both REST and GQL.
+      // Legacy /graphql route is no longer used.
+      if (url.pathname === "/" || url.pathname.startsWith("/graphql")) {
+        return "unified"
       }
       return "other"
     } catch (_e) {
@@ -145,7 +144,7 @@ export class CollectionsSpotlightSearcherService
       },
     })
 
-    if (pageCategory === "rest" || pageCategory === "graphql") {
+    if (pageCategory === "unified") {
       minisearch.add({
         id: `create-collection`,
         name: this.t("collection.new"),
@@ -154,11 +153,8 @@ export class CollectionsSpotlightSearcherService
         id: "import-collection",
         name: this.t("collection.import"),
       })
-    }
-
-    if (pageCategory === "rest") {
+      // Unified page: index both REST and GQL collections
       this.loadRESTDocsIntoMinisearch(minisearch)
-    } else if (pageCategory === "graphql") {
       this.loadGQLDocsIntoMinisearch(minisearch)
     }
 
@@ -194,17 +190,14 @@ export class CollectionsSpotlightSearcherService
         const getResultText = (id: string): SpotlightResultTextType<any> => {
           if (id === "create-collection") return newCollectionText
           else if (id === "import-collection") return importCollectionText
+          const isRESTResult = id.startsWith("rest-")
           return {
             type: "custom",
             component: markRaw(
-              pageCategory === "rest"
-                ? RESTRequestSpotlightEntry
-                : GQLRequestSpotlightEntry
+              isRESTResult ? RESTRequestSpotlightEntry : GQLRequestSpotlightEntry
             ),
             componentProps: {
-              folderPath: id.split(
-                pageCategory === "rest" ? "rest-" : "gql-"
-              )[1],
+              folderPath: id.split(isRESTResult ? "rest-" : "gql-")[1],
             },
           }
         }

@@ -410,7 +410,7 @@ export const runGQLOperation = async (options: RunQueryOptions) => {
   )
 
   const gqlRequest: HoppGQLRequest = {
-    v: 10,
+    v: 9,
     name: options.name || "Untitled Request",
     url: finalUrl,
     headers: finalHoppHeaders,

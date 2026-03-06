@@ -201,9 +201,9 @@ describe("Unified Protocol Migration", () => {
       expect(result.gqlCollections).toBe(1)
       expect(result.migratedCollections).toBe(2)
 
-      // Check merged collections
+      // Check merged collections — migration writes to "collections/unified"
       const mergedCollections = JSON.parse(
-        localStorage.getItem("collections") || "[]"
+        localStorage.getItem("collections/unified") || "[]"
       )
       expect(mergedCollections).toHaveLength(2)
     })
