@@ -10,7 +10,6 @@ import {
   knownContentTypes,
   makeCollection,
   makeRESTRequest,
-  wrapRESTRequest,
 } from "@hoppscotch/data"
 
 import * as A from "fp-ts/Array"
@@ -242,8 +241,7 @@ const getHoppFolder = (
       getHoppFolder(f, resources)
     ),
     requests: getRequestsIn(folderRes, resources)
-      .map(getHoppRequest)
-      .map(wrapRESTRequest),
+      .map(getHoppRequest),
     auth: { authType: "inherit", authActive: true },
     headers: [],
     variables: getCollectionVariables(undefined, folderRes), // undefined is used to indicate no environment variables for v4 and below
@@ -282,8 +280,7 @@ const getParsedHoppFolder = (
       getParsedHoppFolder(f.name, f)
     ),
     requests: getRequests(collection.children ?? [])
-      .map(getParsedHoppRequest)
-      .map(wrapRESTRequest),
+      .map(getParsedHoppRequest),
     auth: { authType: "inherit", authActive: true },
     headers: [],
     variables: getCollectionVariables(collection.environment),
@@ -322,8 +319,7 @@ const getParsedHoppCollections = (docs: InsomniaDocV5[]): HoppCollection[] =>
           getParsedHoppFolder(f.name, f)
         ),
         requests: getRequests(doc.collection)
-          .map((x) => getParsedHoppRequest(x))
-          .map(wrapRESTRequest),
+          .map((x) => getParsedHoppRequest(x)),
         auth: { authType: "inherit", authActive: true },
         headers: [],
         variables: getCollectionVariables(doc.environments?.data),

@@ -18,6 +18,7 @@ import { StoreError } from "@hoppscotch/kernel"
 import { Store } from "~/kernel/store"
 import { GQLTabService } from "~/services/tab/graphql"
 import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
 import {
   SecretEnvironmentService,
   SecretVariable,
@@ -187,6 +188,7 @@ export class PersistenceService extends Service {
 
   private readonly restTabService = this.bind(RESTTabService)
   private readonly gqlTabService = this.bind(GQLTabService)
+  private readonly unifiedTabService = this.bind(UnifiedTabService)
   private readonly secretEnvironmentService = this.bind(
     SecretEnvironmentService
   )
@@ -1012,6 +1014,19 @@ export class PersistenceService extends Service {
     )
   }
 
+  private async setupUnifiedTabsPersistence() {
+    // UnifiedTabService loads its own persisted state internally via loadPersistedState(),
+    // which tries UNIFIED_TABS first then falls back to REST_TABS for migration.
+    // We just need to watch and persist the unified state going forward.
+    watchDebounced(
+      this.unifiedTabService.persistableTabState,
+      async (newData) => {
+        await Store.set(STORE_NAMESPACE, STORE_KEYS.UNIFIED_TABS, newData)
+      },
+      { debounce: 500, deep: true }
+    )
+  }
+
   public async setupFirst() {
     await this.init()
     await this.runMigrations()
@@ -1038,6 +1053,7 @@ export class PersistenceService extends Service {
       this.setupMQTTPersistence(),
       this.setupRESTTabsPersistence(),
       this.setupGQLTabsPersistence(),
+      this.setupUnifiedTabsPersistence(),
 
       this.setupSecretEnvironmentsPersistence(),
       this.setupCurrentEnvironmentValuePersistence(),

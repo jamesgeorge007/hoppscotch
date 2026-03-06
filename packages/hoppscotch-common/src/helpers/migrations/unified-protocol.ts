@@ -13,13 +13,7 @@
  * 6. Mark migration as complete
  */
 
-import {
-  HoppCollection,
-  wrapRESTRequest,
-  wrapGQLRequest,
-} from "@hoppscotch/data"
-import { HoppRESTRequest } from "@hoppscotch/data"
-import { HoppGQLRequest } from "@hoppscotch/data"
+import { HoppCollection } from "@hoppscotch/data"
 
 const MIGRATION_KEY = "unified_protocol_migrated"
 const MIGRATION_VERSION = "1"
@@ -76,64 +70,22 @@ export function detectRequestProtocol(req: any): "rest" | "graphql" {
 }
 
 /**
- * Migrate a single collection to v11 format with protocol discriminators
+ * Migrate a single collection to the latest v11 format
  */
 function migrateCollectionToV11(collection: any): any {
   try {
-    // Try parsing with HoppCollection which will auto-migrate
+    // HoppCollection.safeParse auto-migrates from any prior version to v11
     const result = HoppCollection.safeParse(collection)
 
     if (result.type === "ok") {
       return result.value
     }
 
-    // If automated migration fails, try manual migration
     console.warn(
-      "[Migration] Auto-migration failed, attempting manual migration",
+      "[Migration] Auto-migration failed, keeping collection as-is",
       result.error
     )
-
-    // Manual migration: wrap requests with protocol discriminator
-    const migratedRequests = (collection.requests || []).map((req: any) => {
-      // Skip if already has protocol field
-      if (req.protocol) {
-        return req
-      }
-
-      const protocol = detectRequestProtocol(req)
-
-      if (protocol === "rest") {
-        const restResult = HoppRESTRequest.safeParse(req)
-        if (restResult.type === "ok") {
-          return wrapRESTRequest(restResult.value)
-        }
-        // Fallback: wrap as-is
-        return {
-          protocol: "rest",
-          request: req,
-        }
-      }
-      const gqlResult = HoppGQLRequest.safeParse(req)
-      if (gqlResult.type === "ok") {
-        return wrapGQLRequest(gqlResult.value)
-      }
-      // Fallback: wrap as-is
-      return {
-        protocol: "graphql",
-        request: req,
-      }
-    })
-
-    const migratedFolders = (collection.folders || []).map((folder: any) =>
-      migrateCollectionToV11(folder)
-    )
-
-    return {
-      ...collection,
-      v: 12,
-      requests: migratedRequests,
-      folders: migratedFolders,
-    }
+    return collection
   } catch (error) {
     console.error("[Migration] Failed to migrate collection:", error)
     return collection

@@ -14,9 +14,7 @@ import {
   HoppRESTRequestResponses,
   makeHoppRESTResponseOriginalRequest,
   HoppCollectionVariable,
-  wrapRESTRequest,
 } from "@hoppscotch/data"
-import { migrateImportedCollection } from "./protocol-detector"
 import * as A from "fp-ts/Array"
 import { flow, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
@@ -622,8 +620,7 @@ const getHoppFolder = (
     requests: pipe(
       ig.items.all(),
       A.filter(isPMItem),
-      A.map((item) => getHoppRequest(item, importScripts)),
-      A.map(wrapRESTRequest)
+      A.map((item) => getHoppRequest(item, importScripts))
     ),
     auth: getHoppReqAuth(ig.auth),
     headers: [],
@@ -635,11 +632,7 @@ export const getHoppCollections = (
   collections: PMCollection[],
   importScripts: boolean
 ) => {
-  return collections.map((collection) => {
-    const hoppCollection = getHoppFolder(collection, importScripts)
-    // Apply protocol detection to ensure all requests have protocol field
-    return migrateImportedCollection(hoppCollection)
-  })
+  return collections.map((collection) => getHoppFolder(collection, importScripts))
 }
 
 export const hoppPostmanImporter = (

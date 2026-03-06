@@ -2,8 +2,6 @@ import {
   HoppCollection,
   HoppGQLRequest,
   HoppRESTRequest,
-  isRESTRequest,
-  isGQLRequest,
 } from "@hoppscotch/data"
 import { getAffectedIndexes } from "./affectedIndex"
 import { RESTTabService } from "~/services/tab/rest"
@@ -68,36 +66,12 @@ export function getRequestsByPath(
   let currentCollection = collections[pathArray[0]]
 
   if (pathArray.length === 1) {
-    // Unwrap requests from protocol wrappers
-    const unwrappedRequests = currentCollection.requests
-      .map((reqWrapper) => {
-        if (isRESTRequest(reqWrapper)) {
-          return reqWrapper.request as HoppRESTRequest
-        } else if (isGQLRequest(reqWrapper)) {
-          return reqWrapper.request as HoppGQLRequest
-        }
-        return null
-      })
-      .filter((req): req is HoppRESTRequest | HoppGQLRequest => req !== null)
-
-    return unwrappedRequests
+    return currentCollection.requests as (HoppRESTRequest | HoppGQLRequest)[]
   }
   for (let i = 1; i < pathArray.length; i++) {
     const folder = currentCollection.folders[pathArray[i]]
     if (folder) currentCollection = folder
   }
 
-  // Unwrap requests from protocol wrappers
-  const unwrappedRequests = currentCollection.requests
-    .map((reqWrapper) => {
-      if (isRESTRequest(reqWrapper)) {
-        return reqWrapper.request as HoppRESTRequest
-      } else if (isGQLRequest(reqWrapper)) {
-        return reqWrapper.request as HoppGQLRequest
-      }
-      return null
-    })
-    .filter((req): req is HoppRESTRequest | HoppGQLRequest => req !== null)
-
-  return unwrappedRequests
+  return currentCollection.requests as (HoppRESTRequest | HoppGQLRequest)[]
 }

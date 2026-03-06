@@ -11,14 +11,14 @@ import V8_VERSION from "./v/8"
 import V9_VERSION from "./v/9"
 import V10_VERSION from "./v/10"
 import V11_VERSION from "./v/11"
-import V12_VERSION from "./v/12"
 
 export { CollectionVariable } from "./v/10"
-export { HoppRequestWithProtocol } from "./v/12"
 
 import { z } from "zod"
-import { translateToNewRequest, HoppRESTRequest } from "../rest"
-import { translateToGQLRequest, HoppGQLRequest } from "../graphql"
+import { translateToNewRequest } from "../rest"
+import type { HoppRESTRequest } from "../rest"
+import { translateToGQLRequest } from "../graphql"
+import type { HoppGQLRequest } from "../graphql"
 import { generateUniqueRefId } from "../utils/collection"
 
 const versionedObject = z.object({
@@ -26,7 +26,7 @@ const versionedObject = z.object({
 })
 
 export const HoppCollection = createVersionedEntity({
-  latestVersion: 12,
+  latestVersion: 11,
   versionMap: {
     1: V1_VERSION,
     2: V2_VERSION,
@@ -39,7 +39,6 @@ export const HoppCollection = createVersionedEntity({
     9: V9_VERSION,
     10: V10_VERSION,
     11: V11_VERSION,
-    12: V12_VERSION,
   },
   getVersion(data) {
     const versionCheck = versionedObject.safeParse(data)
@@ -59,7 +58,7 @@ export type HoppCollectionVariable = InferredEntity<
   typeof HoppCollection
 >["variables"][number]
 
-export const CollectionSchemaVersion = 12
+export const CollectionSchemaVersion = 11
 
 /**
  * Generates a Collection object. This ignores the version number object
@@ -144,40 +143,34 @@ export function translateToNewGQLCollection(x: any): HoppCollection {
   return obj
 }
 
-/**
- * Type guard to check if a request is a REST request
- */
+// ---------------------------------------------------------------------------
+// Protocol-tagged request helpers (in-memory use only; not part of the schema)
+// ---------------------------------------------------------------------------
+
+export type HoppRequestWithProtocol =
+  | { protocol: "rest"; request: HoppRESTRequest }
+  | { protocol: "graphql"; request: HoppGQLRequest }
+
 export function isRESTRequest(
   req: any
 ): req is { protocol: "rest"; request: HoppRESTRequest } {
-  return req.protocol === "rest"
+  return req?.protocol === "rest"
 }
 
-/**
- * Type guard to check if a request is a GraphQL request
- */
 export function isGQLRequest(
   req: any
 ): req is { protocol: "graphql"; request: HoppGQLRequest } {
-  return req.protocol === "graphql"
+  return req?.protocol === "graphql"
 }
 
-/**
- * Helper to create a protocol-wrapped REST request
- */
-export function wrapRESTRequest(request: HoppRESTRequest) {
-  return {
-    protocol: "rest" as const,
-    request,
-  }
+export function wrapRESTRequest(
+  request: HoppRESTRequest
+): HoppRequestWithProtocol {
+  return { protocol: "rest", request }
 }
 
-/**
- * Helper to create a protocol-wrapped GraphQL request
- */
-export function wrapGQLRequest(request: HoppGQLRequest) {
-  return {
-    protocol: "graphql" as const,
-    request,
-  }
+export function wrapGQLRequest(
+  request: HoppGQLRequest
+): HoppRequestWithProtocol {
+  return { protocol: "graphql", request }
 }

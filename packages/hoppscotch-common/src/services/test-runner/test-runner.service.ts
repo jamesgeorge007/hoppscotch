@@ -3,8 +3,7 @@ import {
   HoppCollectionVariable,
   HoppRESTHeaders,
   HoppRESTRequest,
-  isRESTRequest,
-  wrapRESTRequest,
+  isHoppRESTRequest,
 } from "@hoppscotch/data"
 import { Service } from "dioc"
 import * as E from "fp-ts/Either"
@@ -167,11 +166,11 @@ export class TestRunnerService extends Service {
         const requestWrapper = collection.requests[i]
 
         // Skip non-REST requests in test runner (only REST is supported for now)
-        if (!isRESTRequest(requestWrapper)) {
+        if (!isHoppRESTRequest(requestWrapper)) {
           continue
         }
 
-        const request = requestWrapper.request as TestRunnerRequest
+        const request = requestWrapper as TestRunnerRequest
         const currentPath = [...parentPath, i]
 
         // Add request to the result collection before execution
@@ -254,9 +253,9 @@ export class TestRunnerService extends Service {
       current = current.folders[path[i]]
     }
 
-    // Add the request at the specified index (wrapped with protocol)
+    // Add the request at the specified index
     if (path.length > 0) {
-      current.requests[path[path.length - 1]] = wrapRESTRequest(request)
+      current.requests[path[path.length - 1]] = request
     }
   }
 
@@ -275,14 +274,12 @@ export class TestRunnerService extends Service {
     // Update the request at the specified index
     if (path.length > 0) {
       const index = path[path.length - 1]
-      const reqWrapper = current.requests[index]
-      // Unwrap, update, and re-wrap
-      if (isRESTRequest(reqWrapper)) {
-        const updatedReq = {
-          ...reqWrapper.request,
+      const req = current.requests[index]
+      if (isHoppRESTRequest(req)) {
+        current.requests[index] = {
+          ...req,
           ...updates,
         } as TestRunnerRequest
-        current.requests[index] = wrapRESTRequest(updatedReq)
       }
     }
   }

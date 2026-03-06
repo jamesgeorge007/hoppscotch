@@ -236,13 +236,7 @@ const activeTabs = tabs.getActiveTabs()
 // Get current protocol from active tab
 const currentProtocol = computed(() => {
   const tab = tabs.currentActiveTab.value
-  const protocol = tab?.document.protocol ?? "rest"
-  console.log("currentProtocol computed:", {
-    tabID: tab?.id,
-    protocol,
-    hasProtocolField: "protocol" in (tab?.document || {}),
-  })
-  return protocol
+  return tab?.document.protocol ?? "rest"
 })
 
 // Get save mode based on current protocol

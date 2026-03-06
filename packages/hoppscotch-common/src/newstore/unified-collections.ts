@@ -14,13 +14,10 @@
 
 import {
   HoppCollection,
-  HoppRESTRequest,
-  HoppGQLRequest,
   HoppRequestWithProtocol,
   isRESTRequest,
   isGQLRequest,
-  wrapRESTRequest,
-  wrapGQLRequest,
+  translateToNewRESTCollection,
 } from "@hoppscotch/data"
 import { computed, Ref } from "vue"
 import {
@@ -181,11 +178,11 @@ export function addRequestToCollection(
     return
   }
 
-  // Add request based on protocol
+  // Add request based on protocol (unwrap to store flat request)
   if (isRESTRequest(request)) {
-    target.requests.push(request as any)
+    target.requests.push(request.request)
   } else if (isGQLRequest(request)) {
-    target.requests.push(request as any)
+    target.requests.push(request.request)
   }
 
   // Trigger update
@@ -299,34 +296,8 @@ export function getCollectionStats() {
 export function migrateLegacyCollection(
   collection: HoppCollection
 ): HoppCollection {
-  const migrateRequests = (requests: any[]): any[] => {
-    return requests.map((req) => {
-      // Skip if already in v11 format
-      if (req.protocol && req.request) {
-        return req
-      }
-
-      // Detect protocol and wrap
-      if ("method" in req && "endpoint" in req) {
-        return wrapRESTRequest(req as HoppRESTRequest)
-      } else if ("query" in req) {
-        return wrapGQLRequest(req as HoppGQLRequest)
-      }
-
-      // Fallback
-      return req
-    })
-  }
-
-  const migrateFolder = (folder: HoppCollection): HoppCollection => {
-    return {
-      ...folder,
-      requests: migrateRequests(folder.requests),
-      folders: folder.folders.map(migrateFolder),
-    }
-  }
-
-  return migrateFolder(collection)
+  // Use translateToNewRESTCollection which handles version migration to v11
+  return translateToNewRESTCollection(collection)
 }
 
 /**

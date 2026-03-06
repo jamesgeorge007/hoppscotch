@@ -21,7 +21,6 @@ import {
   HoppRESTRequestResponses,
   HoppRESTResponseOriginalRequest,
   makeHoppRESTResponseOriginalRequest,
-  wrapRESTRequest,
 } from "@hoppscotch/data"
 import { pipe, flow } from "fp-ts/function"
 import * as A from "fp-ts/Array"
@@ -1157,14 +1156,14 @@ const convertOpenApiDocsToHopp = (
         makeCollection({
           name,
           description: tagDescriptions[name] ?? null,
-          requests: paths.map(wrapRESTRequest),
+          requests: paths,
           folders: [],
           auth: { authType: "inherit", authActive: true },
           headers: [],
           variables: [],
         })
       ),
-      requests: requestsWithoutTags.map(wrapRESTRequest),
+      requests: requestsWithoutTags,
       auth: { authType: "inherit", authActive: true },
       headers: [],
       variables: [],

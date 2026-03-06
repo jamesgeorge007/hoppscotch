@@ -8,7 +8,6 @@ import {
   HoppRESTRequest,
   getDefaultRESTRequest,
   makeCollection,
-  wrapRESTRequest,
   FormDataKeyValue,
 } from "@hoppscotch/data"
 import * as E from "fp-ts/Either"
@@ -34,13 +33,10 @@ export const harImporter = (
 
     const requests = harToHoppscotchRequestConverter(har)
 
-    // Wrap REST requests with protocol discriminator
-    const wrappedRequests = requests.map(wrapRESTRequest)
-
     const collection = makeCollection({
       name: "Imported from HAR",
       folders: [],
-      requests: wrappedRequests,
+      requests,
       auth: {
         authType: "none",
         authActive: true,

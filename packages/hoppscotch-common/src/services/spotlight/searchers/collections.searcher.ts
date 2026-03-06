@@ -18,7 +18,11 @@ import IconFolder from "~icons/lucide/folder"
 import IconImport from "~icons/lucide/folder-down"
 import RESTRequestSpotlightEntry from "~/components/app/spotlight/entry/RESTRequest.vue"
 import GQLRequestSpotlightEntry from "~/components/app/spotlight/entry/GQLRequest.vue"
-import { HoppCollection, isRESTRequest, isGQLRequest } from "@hoppscotch/data"
+import {
+  HoppCollection,
+  isHoppRESTRequest,
+  HoppGQLRequest,
+} from "@hoppscotch/data"
 import { WorkspaceService } from "~/services/workspace.service"
 import { invokeAction } from "~/helpers/actions"
 import { RESTTabService } from "~/services/tab/rest"
@@ -69,17 +73,10 @@ export class CollectionsSpotlightSearcherService
       )
 
       minisearch.addAll(
-        coll.requests.map((reqWrapper, reqIndex) => {
-          const name = isGQLRequest(reqWrapper)
-            ? reqWrapper.request.name
-            : isRESTRequest(reqWrapper)
-              ? reqWrapper.request.name
-              : "Unnamed"
-          return {
-            id: `gql-${index}/${reqIndex}`,
-            name,
-          }
-        })
+        coll.requests.map((req, reqIndex) => ({
+          id: `gql-${index}/${reqIndex}`,
+          name: (req as any).name ?? "Unnamed",
+        }))
       )
     }
   }
@@ -103,17 +100,10 @@ export class CollectionsSpotlightSearcherService
       )
 
       minisearch.addAll(
-        coll.requests.map((reqWrapper, reqIndex) => {
-          const name = isRESTRequest(reqWrapper)
-            ? reqWrapper.request.name
-            : isGQLRequest(reqWrapper)
-              ? reqWrapper.request.name
-              : "Unnamed"
-          return {
-            id: `rest-${index}/${reqIndex}`,
-            name,
-          }
-        })
+        coll.requests.map((req, reqIndex) => ({
+          id: `rest-${index}/${reqIndex}`,
+          name: (req as any).name ?? "Unnamed",
+        }))
       )
     }
   }
@@ -327,14 +317,12 @@ export class CollectionsSpotlightSearcherService
           folderPath.join("/")
         )?.requests[reqIndex]
 
-        if (!reqWrapper || !isRESTRequest(reqWrapper)) return
-
-        const req = reqWrapper.request
+        if (!reqWrapper || !isHoppRESTRequest(reqWrapper)) return
 
         this.restTab.createNewTab(
           {
             type: "request",
-            request: req,
+            request: reqWrapper,
             isDirty: false,
             saveContext: {
               originLocation: "user-collection",
@@ -356,9 +344,7 @@ export class CollectionsSpotlightSearcherService
       const reqWrapper = this.getGQLFolderFromFolderPath(folderPath.join("/"))
         ?.requests[reqIndex]
 
-      if (!reqWrapper || !isGQLRequest(reqWrapper)) return
-
-      const req = reqWrapper.request
+      if (!reqWrapper || isHoppRESTRequest(reqWrapper)) return
 
       this.gqlTab.createNewTab({
         saveContext: {
@@ -367,7 +353,7 @@ export class CollectionsSpotlightSearcherService
           requestIndex: reqIndex,
         },
         cursorPosition: 0,
-        request: req,
+        request: reqWrapper as HoppGQLRequest,
         isDirty: false,
         inheritedProperties: cascadeParentCollectionForProperties(
           folderPath.join("/"),
