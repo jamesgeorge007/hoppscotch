@@ -65,7 +65,7 @@ const getCollectionSchema = (jsonStr: string): string | null => {
   }
 }
 
-const replacePMVarTemplating = flow(
+export const replacePMVarTemplating = flow(
   S.replace(/{{\s*/g, "<<"),
   S.replace(/\s*}}/g, ">>")
 )

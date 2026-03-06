@@ -1,8 +1,17 @@
-import { Body, Controller, Get, HttpStatus, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { InfraConfigService } from './infra-config.service';
 import { RESTError } from 'src/types/RESTError';
 import { throwHTTPErr } from 'src/utils';
 import * as E from 'fp-ts/Either';
+import { ONBOARDING_CANNOT_BE_RERUN } from 'src/errors';
 import {
   GetOnboardingConfigResponse,
   GetOnboardingStatusResponse,
@@ -11,8 +20,10 @@ import {
 } from './dto/onboarding.dto';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
+import { ThrottlerBehindProxyGuard } from 'src/guards/throttler-behind-proxy.guard';
 
 @Controller({ path: 'onboarding', version: '1' })
+@UseGuards(ThrottlerBehindProxyGuard)
 export class OnboardingController {
   constructor(private infraConfigService: InfraConfigService) {}
 
@@ -50,6 +61,24 @@ export class OnboardingController {
     type: SaveOnboardingConfigResponse,
   })
   async updateOnboardingConfig(@Body() dto: SaveOnboardingConfigRequest) {
+    const onboardingStatus =
+      await this.infraConfigService.getOnboardingStatus();
+
+    if (E.isLeft(onboardingStatus))
+      throwHTTPErr(<RESTError>{
+        message: onboardingStatus.left,
+        statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+
+    if (
+      onboardingStatus.right.onboardingCompleted &&
+      !onboardingStatus.right.canReRunOnboarding
+    )
+      throwHTTPErr(<RESTError>{
+        message: ONBOARDING_CANNOT_BE_RERUN,
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+
     const updateConfigResult =
       await this.infraConfigService.updateOnboardingConfig(dto);
 

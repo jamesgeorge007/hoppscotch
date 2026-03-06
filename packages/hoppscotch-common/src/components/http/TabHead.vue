@@ -1,121 +1,111 @@
 <template>
-  <div class="truncate flex items-center justify-between w-full">
-    <div
-      v-tippy="{ theme: 'tooltip', delay: [500, 20] }"
-      :title="tabState.name"
-      class="flex items-center truncate flex-1 gap-2"
-      @dblclick="emit('open-rename-modal')"
-      @contextmenu.prevent="options?.tippy?.show()"
-      @click.middle="emit('close-tab')"
+  <div
+    v-tippy="{ theme: 'tooltip', delay: [500, 20], allowHTML: true }"
+    :title="tabTooltip"
+    class="flex items-center truncate px-2"
+    @dblclick="emit('open-rename-modal')"
+    @contextmenu.prevent="options?.tippy?.show()"
+    @click.middle="emit('close-tab')"
+  >
+    <span
+      class="text-tiny font-semibold mr-2 p-1 rounded-sm relative"
+      :class="{
+        'border border-dashed border-primaryDark grayscale': isResponseExample,
+      }"
+      :style="{ color: getMethodLabelColorClassOf(tabState.method) }"
     >
-      <span
-        class="text-tiny font-semibold p-1 rounded-sm relative"
-        :class="{
-          'border border-dashed border-primaryDark grayscale':
-            isResponseExample,
-        }"
-        :style="{ color: getMethodLabelColorClassOf(tabState.method) }"
-      >
-        {{ tabState.method }}
+      {{ tabState.method }}
+    </span>
+    <tippy
+      ref="options"
+      trigger="manual"
+      interactive
+      theme="popover"
+      :on-shown="() => tippyActions!.focus()"
+    >
+      <span class="truncate">
+        {{ tabState.name }}
       </span>
-      <!-- Protocol Indicator Badge -->
-      <span
-        class="text-xs font-medium px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 flex-shrink-0"
-        title="REST Protocol"
-      >
-        REST
-      </span>
-      <tippy
-        ref="options"
-        trigger="manual"
-        interactive
-        theme="popover"
-        :on-shown="() => tippyActions!.focus()"
-      >
-        <span class="truncate">
-          {{ tabState.name }}
-        </span>
-        <template #content="{ hide }">
-          <div
-            ref="tippyActions"
-            class="flex flex-col focus:outline-none"
-            tabindex="0"
-            @keyup.r="renameAction?.$el.click()"
-            @keyup.s="shareRequestAction?.$el.click()"
-            @keyup.d="duplicateAction?.$el.click()"
-            @keyup.w="closeAction?.$el.click()"
-            @keyup.x="closeOthersAction?.$el.click()"
-            @keyup.escape="hide()"
-          >
-            <HoppSmartItem
-              v-if="!isResponseExample"
-              ref="renameAction"
-              :icon="IconFileEdit"
-              :label="t('request.rename')"
-              :shortcut="['R']"
-              @click="
-                () => {
-                  emit('open-rename-modal')
-                  hide()
-                }
-              "
-            />
-            <HoppSmartItem
-              v-if="!isResponseExample"
-              ref="duplicateAction"
-              :icon="IconCopy"
-              :label="t('tab.duplicate')"
-              :shortcut="['D']"
-              @click="
-                () => {
-                  emit('duplicate-tab')
-                  hide()
-                }
-              "
-            />
-            <HoppSmartItem
-              v-if="!isResponseExample"
-              ref="shareRequestAction"
-              :icon="IconShare2"
-              :label="t('tab.share_tab_request')"
-              :shortcut="['S']"
-              @click="
-                () => {
-                  emit('share-tab-request')
-                  hide()
-                }
-              "
-            />
-            <HoppSmartItem
-              v-if="isRemovable"
-              ref="closeAction"
-              :icon="IconXCircle"
-              :label="t('tab.close')"
-              :shortcut="['W']"
-              @click="
-                () => {
-                  emit('close-tab')
-                  hide()
-                }
-              "
-            />
-            <HoppSmartItem
-              v-if="isRemovable"
-              ref="closeOthersAction"
-              :icon="IconXSquare"
-              :label="t('tab.close_others')"
-              :shortcut="['X']"
-              @click="
-                () => {
-                  emit('close-other-tabs')
-                  hide()
-                }
-              "
-            />
-          </div>
-        </template>
-      </tippy>
-    </div>
+      <template #content="{ hide }">
+        <div
+          ref="tippyActions"
+          class="flex flex-col focus:outline-none"
+          tabindex="0"
+          @keyup.r="renameAction?.$el.click()"
+          @keyup.s="shareRequestAction?.$el.click()"
+          @keyup.d="duplicateAction?.$el.click()"
+          @keyup.w="closeAction?.$el.click()"
+          @keyup.x="closeOthersAction?.$el.click()"
+          @keyup.escape="hide()"
+        >
+          <HoppSmartItem
+            v-if="!isResponseExample"
+            ref="renameAction"
+            :icon="IconFileEdit"
+            :label="t('request.rename')"
+            :shortcut="['R']"
+            @click="
+              () => {
+                emit('open-rename-modal')
+                hide()
+              }
+            "
+          />
+          <HoppSmartItem
+            v-if="!isResponseExample"
+            ref="duplicateAction"
+            :icon="IconCopy"
+            :label="t('tab.duplicate')"
+            :shortcut="['D']"
+            @click="
+              () => {
+                emit('duplicate-tab')
+                hide()
+              }
+            "
+          />
+          <HoppSmartItem
+            v-if="!isResponseExample"
+            ref="shareRequestAction"
+            :icon="IconShare2"
+            :label="t('tab.share_tab_request')"
+            :shortcut="['S']"
+            @click="
+              () => {
+                emit('share-tab-request')
+                hide()
+              }
+            "
+          />
+          <HoppSmartItem
+            v-if="isRemovable"
+            ref="closeAction"
+            :icon="IconXCircle"
+            :label="t('tab.close')"
+            :shortcut="['W']"
+            @click="
+              () => {
+                emit('close-tab')
+                hide()
+              }
+            "
+          />
+          <HoppSmartItem
+            v-if="isRemovable"
+            ref="closeOthersAction"
+            :icon="IconXSquare"
+            :label="t('tab.close_others')"
+            :shortcut="['X']"
+            @click="
+              () => {
+                emit('close-other-tabs')
+                hide()
+              }
+            "
+          />
+        </div>
+      </template>
+    </tippy>
   </div>
 </template>
 
@@ -135,6 +125,7 @@ import {
   HoppSavedExampleDocument,
 } from "~/helpers/rest/document"
 import { HoppUnifiedDocument } from "~/helpers/unified/document"
+import { restCollectionStore } from "~/newstore/collections"
 
 const t = useI18n()
 
@@ -148,33 +139,101 @@ const props = defineProps<{
 const tabState = computed(() => {
   const doc = props.tab.document as any
 
-  // Handle unified documents with protocol field
+  // Unified documents have a `protocol` discriminator
   if ("protocol" in doc) {
     return {
       name: doc.request.name,
-      method: doc.request.method,
+      method: doc.request.method ?? "",
       request: doc.request,
+      saveContext: doc.saveContext ?? null,
     }
   }
 
-  // Handle legacy documents with type field
+  // Legacy REST documents use `type`
   if (doc.type === "request") {
     return {
       name: doc.request.name,
       method: doc.request.method,
       request: doc.request,
+      saveContext: doc.saveContext ?? null,
     }
   }
+
   return {
     name: doc.response.name,
     method: doc.response.originalRequest.method,
     request: doc.response.originalRequest,
+    saveContext: null,
   }
 })
 
 const isResponseExample = computed(() => {
   const doc = props.tab.document as any
   return "type" in doc && doc.type === "example-response"
+})
+
+const requestPath = computed(() => {
+  const ctx = tabState.value.saveContext
+  if (!ctx) return null
+
+  if (
+    ctx.originLocation === "user-collection" &&
+    "folderPath" in ctx &&
+    ctx.folderPath
+  ) {
+    try {
+      const folderIndices = ctx.folderPath
+        .split("/")
+        .map((x: string) => parseInt(x))
+      const pathItems: string[] = []
+
+      let currentFolder =
+        restCollectionStore.value.state[folderIndices.shift()!]
+      if (currentFolder) {
+        pathItems.push(currentFolder.name)
+
+        while (folderIndices.length > 0) {
+          const folderIndex = folderIndices.shift()!
+          const folder = currentFolder.folders[folderIndex]
+          if (folder) {
+            pathItems.push(folder.name)
+            currentFolder = folder
+          }
+        }
+      }
+      return pathItems.join(" / ")
+    } catch (e) {
+      console.error(e)
+      return null
+    }
+  }
+  return null
+})
+
+const escapeHtml = (text: string) => {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+}
+
+const tabTooltip = computed(() => {
+  if (requestPath.value) {
+    const lines: string[] = [
+      escapeHtml(tabState.value.name),
+      escapeHtml(requestPath.value),
+    ]
+
+    const endpoint = tabState.value.request?.endpoint
+    if (endpoint) {
+      lines.push(escapeHtml(endpoint))
+    }
+
+    return `<div class="text-left font-normal">${lines.join("<br>")}</div>`
+  }
+  return escapeHtml(tabState.value.name)
 })
 
 const emit = defineEmits<{
