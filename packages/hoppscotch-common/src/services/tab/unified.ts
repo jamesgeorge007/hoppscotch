@@ -53,10 +53,13 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
           },
         }
       } else if (isGQLDocument(tab.document)) {
-        // GraphQL: Keep all state (responses are streamed events)
+        // GraphQL: Remove response to save space (matches GQLTabService behaviour)
         return {
           tabID: tab.id,
-          doc: tab.document,
+          doc: {
+            ...tab.document,
+            response: null,
+          },
         }
       }
 

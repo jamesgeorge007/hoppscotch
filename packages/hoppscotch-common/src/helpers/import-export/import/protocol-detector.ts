@@ -124,36 +124,6 @@ export function wrapRequestWithProtocol(request: any): HoppRequestWithProtocol {
 }
 
 /**
- * Migrates an imported collection to include protocol discriminators
- *
- * This recursively processes all requests and folders in a collection
- * and adds the `protocol` field to each request.
- */
-export function migrateImportedCollection(collection: any): any {
-  const migrateRequests = (requests: any[]): HoppRequestWithProtocol[] => {
-    return requests.map((req) => {
-      // If already wrapped with protocol, return as-is
-      if (req.protocol && req.request) {
-        return req
-      }
-
-      // Otherwise, detect and wrap
-      return wrapRequestWithProtocol(req)
-    })
-  }
-
-  const migrateFolder = (folder: any): any => {
-    return {
-      ...folder,
-      requests: migrateRequests(folder.requests || []),
-      folders: (folder.folders || []).map(migrateFolder),
-    }
-  }
-
-  return migrateFolder(collection)
-}
-
-/**
  * Unwraps a request object — handles both protocol-wrapped ({ protocol, request })
  * and flat request formats.
  */
