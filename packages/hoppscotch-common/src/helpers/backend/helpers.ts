@@ -286,12 +286,12 @@ export const getTeamCollectionJSON = async (teamID: string) => {
 
 /**
  * Fetches a single team collection and returns it as a JSON string
- * @param teamID - ID of the team
+ * @param _teamID - ID of the team (unused, kept for call-site compatibility)
  * @param collectionID - ID of the collection
  * @returns Either of the JSON string of the collection or the error
  */
 export const getSingleTeamCollectionJSON = async (
-  teamID: string,
+  _teamID: string,
   collectionID: string
 ) => {
   try {

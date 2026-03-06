@@ -11,7 +11,6 @@ import { useToast } from "~/composables/toast"
 import { useService } from "dioc/vue"
 import * as E from "fp-ts/Either"
 import { onMounted } from "vue"
-import { RESTTabService } from "~/services/tab/rest"
 
 import { useRouter } from "vue-router"
 
@@ -20,16 +19,15 @@ import {
   routeOAuthRedirect,
 } from "~/services/oauth/oauth.service"
 import { PersistenceService } from "~/services/persistence"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
 
 const t = useI18n()
 const router = useRouter()
 
 const toast = useToast()
 
-const gqlTabs = useService(GQLTabService)
+const tabs = useService(UnifiedTabService)
 const persistenceService = useService(PersistenceService)
-const restTabs = useService(RESTTabService)
 
 function translateOAuthRedirectError(error: string) {
   switch (error) {
@@ -113,27 +111,23 @@ onMounted(async () => {
     return
   }
 
-  const routeToRedirect = "/" // Unified page handles both REST and GraphQL
-  const tabService = source === "GraphQL" ? gqlTabs : restTabs
+  const activeTab = tabs.currentActiveTab.value
 
-  if (
-    tabService.currentActiveTab.value.document.request.auth.authType ===
-    "oauth-2"
-  ) {
-    tabService.currentActiveTab.value.document.request.auth.grantTypeInfo.token =
+  if (activeTab.document.request.auth.authType === "oauth-2") {
+    activeTab.document.request.auth.grantTypeInfo.token =
       tokenInfo.right.access_token
 
     if (
-      tabService.currentActiveTab.value.document.request.auth.grantTypeInfo
-        .grantType === "AUTHORIZATION_CODE"
+      activeTab.document.request.auth.grantTypeInfo.grantType ===
+      "AUTHORIZATION_CODE"
     ) {
-      tabService.currentActiveTab.value.document.request.auth.grantTypeInfo.refreshToken =
+      activeTab.document.request.auth.grantTypeInfo.refreshToken =
         tokenInfo.right.refresh_token
     }
 
     toast.success(t("authorization.oauth.token_fetched_successfully"))
   }
 
-  router.push(routeToRedirect)
+  router.push("/")
 })
 </script>

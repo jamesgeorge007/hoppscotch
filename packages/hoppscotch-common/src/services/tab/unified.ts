@@ -187,20 +187,15 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
   }
 
   /**
-   * Get tab by request reference ID (protocol-aware)
+   * Get tab by request reference ID.
+   * Only supports REST tabs — HoppGQLRequest v9 does not have _ref_id.
    */
-  public getTabRefWithRefId(protocol: "rest" | "graphql", refId: string) {
+  public getTabRefWithRefId(refId: string) {
     for (const tab of this.tabMap.values()) {
-      if (tab.document.protocol !== protocol) continue
+      if (!isRESTDocument(tab.document)) continue
 
-      if (protocol === "rest" && isRESTDocument(tab.document)) {
-        if (tab.document.request._ref_id === refId) {
-          return this.getTabRef(tab.id)
-        }
-      } else if (protocol === "graphql" && isGQLDocument(tab.document)) {
-        if (tab.document.request._ref_id === refId) {
-          return this.getTabRef(tab.id)
-        }
+      if (tab.document.request._ref_id === refId) {
+        return this.getTabRef(tab.id)
       }
     }
 

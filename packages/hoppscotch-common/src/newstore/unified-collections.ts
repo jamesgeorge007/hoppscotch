@@ -53,16 +53,12 @@ function detectCollectionProtocol(
 
   const checkRequests = (reqs: any[]) => {
     for (const req of reqs) {
-      if (req.protocol) {
-        if (req.protocol === "rest") hasREST = true
-        if (req.protocol === "graphql") hasGraphQL = true
-      } else {
-        // Legacy detection for non-v11 collections
-        if ("method" in req && "endpoint" in req) {
-          hasREST = true
-        } else if ("query" in req) {
-          hasGraphQL = true
-        }
+      // v11 collections store flat HoppRESTRequest | HoppGQLRequest objects
+      // (no `protocol` field). Detect by checking request-specific fields.
+      if ("method" in req && "endpoint" in req) {
+        hasREST = true
+      } else if ("query" in req) {
+        hasGraphQL = true
       }
 
       if (hasREST && hasGraphQL) return
@@ -243,14 +239,9 @@ export function getCollectionStats() {
     let graphql = 0
 
     for (const req of col.requests) {
-      if ((req as any).protocol) {
-        if ((req as any).protocol === "rest") rest++
-        if ((req as any).protocol === "graphql") graphql++
-      } else {
-        // Legacy detection
-        if ("method" in req) rest++
-        else if ("query" in req) graphql++
-      }
+      // v11 stores flat requests — detect by request-specific fields
+      if ("method" in req && "endpoint" in req) rest++
+      else if ("query" in req) graphql++
     }
 
     for (const folder of col.folders) {
