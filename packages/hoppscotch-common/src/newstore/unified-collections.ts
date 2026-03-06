@@ -19,6 +19,7 @@ import {
   isGQLRequest,
   translateToNewRESTCollection,
 } from "@hoppscotch/data"
+import { cloneDeep } from "lodash-es"
 import { computed, Ref } from "vue"
 import {
   restCollectionStore,
@@ -162,9 +163,9 @@ export function addRequestToCollection(
   const store =
     protocol === "rest" ? restCollectionStore : graphqlCollectionStore
 
-  // Get the target collection
+  // Clone state to avoid direct mutation of the reactive store
   const pathParts = collectionPath.split("/").map((p) => parseInt(p))
-  const collections = store.value.state
+  const collections = cloneDeep(store.value.state)
 
   // Navigate to folder
   let target: HoppCollection | null = collections[pathParts[0]]
@@ -178,14 +179,14 @@ export function addRequestToCollection(
     return
   }
 
-  // Add request based on protocol (unwrap to store flat request)
+  // Add request (unwrap protocol wrapper to store flat request)
   if (isRESTRequest(request)) {
     target.requests.push(request.request)
   } else if (isGQLRequest(request)) {
     target.requests.push(request.request)
   }
 
-  // Trigger update
+  // Dispatch the new state
   store.dispatch({
     dispatcher: "setCollections",
     payload: { entries: collections },

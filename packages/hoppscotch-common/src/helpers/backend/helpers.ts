@@ -168,7 +168,9 @@ const parseCollectionData = (
 const teamCollectionJSONToHoppRESTColl = (
   coll: TeamCollectionJSON
 ): HoppCollection => {
-  const { auth, headers, variables } = parseCollectionData(coll.data)
+  const { auth, headers, variables, description } = parseCollectionData(
+    coll.data
+  )
 
   return makeCollection({
     name: coll.name,
@@ -177,6 +179,7 @@ const teamCollectionJSONToHoppRESTColl = (
     auth,
     headers,
     variables,
+    description,
   })
 }
 

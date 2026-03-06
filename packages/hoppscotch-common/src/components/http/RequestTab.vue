@@ -42,18 +42,15 @@
 </template>
 
 <script setup lang="ts">
-import { watch, ref } from "vue"
+import { watch } from "vue"
 import { useVModel } from "@vueuse/core"
 import { cloneDeep } from "lodash-es"
 import { isEqualHoppRESTRequest } from "@hoppscotch/data"
 import { HoppTab } from "~/services/tab"
 import { HoppRequestDocument } from "~/helpers/rest/document"
 import { HoppUnifiedDocument } from "~/helpers/unified/document"
-import { useI18n } from "~/composables/i18n"
 
 // TODO: Move Response and Request execution code to over here
-
-const t = useI18n()
 
 const props = defineProps<{
   modelValue: HoppTab<HoppRequestDocument | HoppUnifiedDocument>

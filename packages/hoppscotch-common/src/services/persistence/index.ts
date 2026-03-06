@@ -1024,22 +1024,47 @@ export class PersistenceService extends Service {
     if (E.isRight(unifiedLoadResult) && unifiedLoadResult.right) {
       this.unifiedTabService.loadTabsFromPersistedState(unifiedLoadResult.right)
     } else {
-      // Migration path: load from REST_TABS and convert to unified format
+      // Migration path: load from both REST_TABS and GQL_TABS, convert to unified format
       const restLoadResult = await Store.get<any>(
         STORE_NAMESPACE,
         STORE_KEYS.REST_TABS
       )
+      const gqlLoadResult = await Store.get<any>(
+        STORE_NAMESPACE,
+        STORE_KEYS.GQL_TABS
+      )
+
+      const orderedDocs: any[] = []
+
       if (E.isRight(restLoadResult) && restLoadResult.right) {
-        const converted = {
-          lastActiveTabID: restLoadResult.right.lastActiveTabID,
-          orderedDocs: (restLoadResult.right.orderedDocs ?? []).map(
-            (item: any) => ({
-              tabID: item.tabID,
-              doc: { protocol: "rest", ...item.doc },
-            })
-          ),
-        }
-        this.unifiedTabService.loadTabsFromPersistedState(converted)
+        orderedDocs.push(
+          ...(restLoadResult.right.orderedDocs ?? []).map((item: any) => ({
+            tabID: item.tabID,
+            doc: { protocol: "rest" as const, ...item.doc },
+          }))
+        )
+      }
+
+      if (E.isRight(gqlLoadResult) && gqlLoadResult.right) {
+        orderedDocs.push(
+          ...(gqlLoadResult.right.orderedDocs ?? []).map((item: any) => ({
+            tabID: item.tabID,
+            doc: { protocol: "graphql" as const, ...item.doc },
+          }))
+        )
+      }
+
+      if (orderedDocs.length > 0) {
+        const lastActiveTabID =
+          (E.isRight(restLoadResult) &&
+            restLoadResult.right?.lastActiveTabID) ||
+          (E.isRight(gqlLoadResult) &&
+            gqlLoadResult.right?.lastActiveTabID) ||
+          orderedDocs[0].tabID
+        this.unifiedTabService.loadTabsFromPersistedState({
+          lastActiveTabID,
+          orderedDocs,
+        })
       }
     }
 

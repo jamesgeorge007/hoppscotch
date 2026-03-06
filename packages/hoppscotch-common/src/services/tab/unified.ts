@@ -79,22 +79,47 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
       return unifiedState
     }
 
-    // Fallback: Try loading REST tabs and convert
+    // Fallback: Try loading both REST and GQL tabs and convert
     const restState = await persistenceService.getNullable<any>(
       STORE_KEYS.REST_TABS
     )
+    const gqlState = await persistenceService.getNullable<any>(
+      STORE_KEYS.GQL_TABS
+    )
+
+    const orderedDocs: any[] = []
 
     if (restState) {
-      // Convert REST tabs to unified format
-      return {
-        lastActiveTabID: restState.lastActiveTabID,
-        orderedDocs: restState.orderedDocs.map((item: any) => ({
+      orderedDocs.push(
+        ...(restState.orderedDocs ?? []).map((item: any) => ({
           tabID: item.tabID,
           doc: {
-            protocol: "rest",
+            protocol: "rest" as const,
             ...item.doc,
           } as HoppUnifiedDocument,
-        })),
+        }))
+      )
+    }
+
+    if (gqlState) {
+      orderedDocs.push(
+        ...(gqlState.orderedDocs ?? []).map((item: any) => ({
+          tabID: item.tabID,
+          doc: {
+            protocol: "graphql" as const,
+            ...item.doc,
+          } as HoppUnifiedDocument,
+        }))
+      )
+    }
+
+    if (orderedDocs.length > 0) {
+      return {
+        lastActiveTabID:
+          restState?.lastActiveTabID ??
+          gqlState?.lastActiveTabID ??
+          orderedDocs[0].tabID,
+        orderedDocs,
       }
     }
 
@@ -204,52 +229,4 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
     )
   }
 
-  /**
-   * Convert a tab to a different protocol
-   * This creates a new request of the target protocol
-   */
-  public async convertTabProtocol(
-    tabID: string,
-    targetProtocol: "rest" | "graphql"
-  ) {
-    const tab = this.tabMap.get(tabID)
-    if (!tab) return
-
-    if (tab.document.protocol === targetProtocol) {
-      // Already the target protocol
-      return
-    }
-
-    // Create a new document of the target protocol
-    if (targetProtocol === "rest") {
-      const newDoc = createDefaultRESTDocument()
-      newDoc.isDirty = true // Mark as dirty since it's a conversion
-
-      // Try to preserve some fields
-      if (isGQLDocument(tab.document)) {
-        newDoc.request.name = tab.document.request.name || "Converted Request"
-        newDoc.request.endpoint =
-          tab.document.request.url || "https://echo.hoppscotch.io"
-      }
-
-      tab.document = newDoc
-    } else if (targetProtocol === "graphql") {
-      const { createDefaultGQLDocument } =
-        await import("~/helpers/unified/document")
-      const newDoc = createDefaultGQLDocument()
-      newDoc.isDirty = true
-
-      // Try to preserve some fields
-      if (isRESTDocument(tab.document)) {
-        newDoc.request.name = tab.document.request.name || "Converted Query"
-        newDoc.request.url =
-          tab.document.request.endpoint || "https://echo.hoppscotch.io/graphql"
-      }
-
-      tab.document = newDoc
-    }
-
-    // Update the tab
-    this.updateTab(tab)
-  }
 }
