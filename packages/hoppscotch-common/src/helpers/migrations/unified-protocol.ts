@@ -245,9 +245,12 @@ export function migrateToUnifiedProtocol(): MigrationResult {
       result.success = true
     }
 
-    // Store migrated collections in the new unified location
-    // This will be picked up by the unified store initialization
-    localStorage.setItem("collections", JSON.stringify(allMigratedCollections))
+    // Store migrated collections in the unified location, separate from REST collections
+    // to avoid overwriting the REST store key used by restCollectionStore
+    localStorage.setItem(
+      "collections/unified",
+      JSON.stringify(allMigratedCollections)
+    )
 
     return result
   } catch (error) {

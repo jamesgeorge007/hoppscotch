@@ -33,11 +33,12 @@ export function detectRequestProtocol(request: any): "rest" | "graphql" {
   // 2. Check for GraphQL-specific fields
   if ("query" in request && typeof request.query === "string") {
     // Check if it looks like a GraphQL query
+    const trimmedQuery = request.query.trim()
     if (
-      request.query.trim().startsWith("query") ||
-      request.query.trim().startsWith("mutation") ||
-      request.query.trim().startsWith("subscription") ||
-      request.query.trim().startsWith("{")
+      trimmedQuery.startsWith("query") ||
+      trimmedQuery.startsWith("mutation") ||
+      trimmedQuery.startsWith("subscription") ||
+      trimmedQuery.startsWith("{")
     ) {
       return "graphql"
     }
@@ -157,13 +158,21 @@ export function migrateImportedCollection(collection: any): any {
  *
  * Useful for showing warnings or info to users during import
  */
+/**
+ * Unwraps a request object — handles both protocol-wrapped ({ protocol, request })
+ * and flat request formats.
+ */
+function getRequestObject(req: any): any {
+  return req.request || req
+}
+
 export function hasMixedProtocols(collection: any): boolean {
   let hasREST = false
   let hasGraphQL = false
 
   const checkRequests = (requests: any[]) => {
     for (const req of requests) {
-      const protocol = detectRequestProtocol(req.request || req)
+      const protocol = detectRequestProtocol(getRequestObject(req))
       if (protocol === "rest") hasREST = true
       if (protocol === "graphql") hasGraphQL = true
 
@@ -197,7 +206,7 @@ export function countRequestsByProtocol(collection: any): {
 
   const countRequests = (requests: any[]) => {
     for (const req of requests) {
-      const protocol = detectRequestProtocol(req.request || req)
+      const protocol = detectRequestProtocol(getRequestObject(req))
       counts.total++
       if (protocol === "rest") {
         counts.rest++

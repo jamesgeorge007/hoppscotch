@@ -32,10 +32,11 @@ type TeamCollectionJSON = {
   data: string
 }
 
-type CollectionDataProps = {
+export type CollectionDataProps = {
   auth: HoppRESTAuth
   headers: HoppRESTHeaders
   variables: HoppCollectionVariable[]
+  description: string | null
 }
 
 export const BACKEND_PAGE_SIZE = 10
@@ -116,6 +117,7 @@ const parseCollectionData = (
     auth: { authType: "inherit", authActive: true },
     headers: [],
     variables: [],
+    description: null,
   }
 
   if (!data) {
@@ -153,6 +155,7 @@ const parseCollectionData = (
     auth,
     headers,
     variables,
+    description: null,
   }
 }
 
@@ -284,26 +287,14 @@ export const getSingleTeamCollectionJSON = async (
   collectionID: string
 ) => {
   try {
-    const collectionTree = await getCompleteCollectionTree(collectionID)
+    const collectionTree = await getCompleteCollectionTree(collectionID)()
 
     if (E.isLeft(collectionTree)) {
       return E.left(collectionTree.left.error.toString())
     }
 
     const collection = collectionTree.right
-    const hoppCollection = teamCollToHoppRESTColl({
-      name: collection.title || "Untitled",
-      folders: collection.children.map((child) =>
-        teamCollToHoppRESTColl({
-          name: child.title || "Untitled",
-          folders: [],
-          requests: [],
-          data: child.data || "{}",
-        })
-      ),
-      requests: collection.requests,
-      data: collection.data || "{}",
-    })
+    const hoppCollection = teamCollToHoppRESTColl(collection)
 
     return E.right(JSON.stringify(hoppCollection, null, 2))
   } catch (error) {
