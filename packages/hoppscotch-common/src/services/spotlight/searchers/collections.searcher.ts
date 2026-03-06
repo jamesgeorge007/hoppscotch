@@ -25,8 +25,11 @@ import {
 } from "@hoppscotch/data"
 import { WorkspaceService } from "~/services/workspace.service"
 import { invokeAction } from "~/helpers/actions"
-import { RESTTabService } from "~/services/tab/rest"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
+import {
+  createDefaultRESTDocument,
+  createDefaultGQLDocument,
+} from "~/helpers/unified/document"
 
 /**
  * A spotlight searcher that searches through the user's collections
@@ -44,8 +47,7 @@ export class CollectionsSpotlightSearcherService
   public searcherID = "collections"
   public searcherSectionTitle = this.t("collection.my_collections")
 
-  private readonly restTab = this.bind(RESTTabService)
-  private readonly gqlTab = this.bind(GQLTabService)
+  private readonly unifiedTab = this.bind(UnifiedTabService)
 
   private readonly spotlight = this.bind(SpotlightService)
   private readonly workspaceService = this.bind(WorkspaceService)
@@ -297,14 +299,17 @@ export class CollectionsSpotlightSearcherService
         })
       }
 
-      const possibleTab = this.restTab.getTabRefWithSaveContext({
-        originLocation: "user-collection",
-        folderPath: folderPath.join("/"),
-        requestIndex: reqIndex,
-      })
+      const possibleTab = this.unifiedTab.getTabRefWithSaveContext(
+        "rest",
+        {
+          originLocation: "user-collection",
+          folderPath: folderPath.join("/"),
+          requestIndex: reqIndex,
+        }
+      )
 
       if (possibleTab) {
-        this.restTab.setActiveTab(possibleTab.value.id)
+        this.unifiedTab.setActiveTab(possibleTab.value.id)
       } else {
         const reqWrapper = this.getRESTFolderFromFolderPath(
           folderPath.join("/")
@@ -312,10 +317,9 @@ export class CollectionsSpotlightSearcherService
 
         if (!reqWrapper || !isHoppRESTRequest(reqWrapper)) return
 
-        this.restTab.createNewTab(
+        this.unifiedTab.createNewTab(
           {
-            type: "request",
-            request: reqWrapper,
+            ...createDefaultRESTDocument(reqWrapper),
             isDirty: false,
             saveContext: {
               originLocation: "user-collection",
@@ -341,15 +345,15 @@ export class CollectionsSpotlightSearcherService
       // isHoppRESTRequest checks raw flat HoppRESTRequest shape (v11 collection storage).
       if (!reqWrapper || isHoppRESTRequest(reqWrapper)) return
 
-      this.gqlTab.createNewTab({
+      this.unifiedTab.createNewTab({
+        ...createDefaultGQLDocument(reqWrapper as HoppGQLRequest),
+        isDirty: false,
         saveContext: {
           originLocation: "user-collection",
           folderPath: folderPath.join("/"),
           requestIndex: reqIndex,
         },
         cursorPosition: 0,
-        request: reqWrapper as HoppGQLRequest,
-        isDirty: false,
         inheritedProperties: cascadeParentCollectionForProperties(
           folderPath.join("/"),
           "graphql"

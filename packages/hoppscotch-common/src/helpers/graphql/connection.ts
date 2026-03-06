@@ -417,10 +417,6 @@ export const runGQLOperation = async (options: RunQueryOptions) => {
     query,
     variables,
     auth: auth ?? request.auth,
-    preRequestScript: request.preRequestScript || "",
-    testScript: request.testScript || "",
-    requestVariables: request.requestVariables || [],
-    responses: request.responses || {},
   }
 
   if (operationType === "subscription") {

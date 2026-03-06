@@ -37,13 +37,6 @@ export const HoppGQLRequestEq = Eq.struct<HoppGQLRequest>({
   query: S.Eq,
   variables: S.Eq,
   auth: lodashIsEqualEq,
-  preRequestScript: S.Eq,
-  testScript: S.Eq,
-  requestVariables: mapThenEq(
-    (arr) => arr.filter((v) => v.key !== "" && v.value !== ""),
-    lodashIsEqualEq
-  ),
-  responses: lodashIsEqualEq,
   _ref_id: undefinedEq(S.Eq),
 })
 

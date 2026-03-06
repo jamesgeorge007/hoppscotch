@@ -151,11 +151,16 @@ const parseCollectionData = (
     defaultDataProps.variables
   )
 
+  const description =
+    typeof (parsedData as any)?.description === "string"
+      ? ((parsedData as any).description as string)
+      : null
+
   return {
     auth,
     headers,
     variables,
-    description: null,
+    description,
   }
 }
 

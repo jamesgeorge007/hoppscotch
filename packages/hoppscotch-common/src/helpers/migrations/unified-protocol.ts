@@ -238,9 +238,8 @@ export function migrateToUnifiedProtocol(): MigrationResult {
       )
     }
 
-    // Step 6: Mark migration as complete
-    // Only mark complete if no critical errors occurred
-    if (result.errors.length === 0 || result.migratedCollections > 0) {
+    // Step 6: Mark migration as complete only when all collections migrated without error
+    if (result.errors.length === 0) {
       markMigrationComplete()
       result.success = true
     }

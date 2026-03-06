@@ -64,7 +64,7 @@ function detectCollectionProtocol(
         }
       }
 
-      if (hasREST && hasGraphQL) return "mixed"
+      if (hasREST && hasGraphQL) return
     }
   }
 

@@ -1,25 +1,5 @@
 <template>
   <div class="flex flex-col h-full">
-    <!-- Loading state during protocol switch -->
-    <transition
-      enter-active-class="transition-opacity duration-200"
-      leave-active-class="transition-opacity duration-200"
-      enter-from-class="opacity-0"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="isSwitching"
-        class="absolute inset-0 z-20 flex items-center justify-center bg-primary/80 backdrop-blur-sm"
-      >
-        <div class="flex flex-col items-center gap-2">
-          <div
-            class="animate-spin rounded-full h-8 w-8 border-2 border-accent border-t-transparent"
-          ></div>
-          <span class="text-xs text-secondary">{{ t("state.loading") }}</span>
-        </div>
-      </div>
-    </transition>
-
     <!-- Protocol Switcher Toolbar -->
     <div
       class="flex items-center justify-between px-4 py-2 border-b border-dividerLight bg-primaryLight"
@@ -88,8 +68,6 @@ const emit = defineEmits<{
 }>()
 
 const tab = useVModel(props, "modelValue", emit)
-const isSwitching = ref(false)
-
 // TODO: Come up with a better dirty check
 let oldRequest = cloneDeep(tab.value.document.request)
 watch(
