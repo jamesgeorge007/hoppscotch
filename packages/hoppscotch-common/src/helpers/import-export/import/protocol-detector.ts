@@ -154,11 +154,6 @@ export function migrateImportedCollection(collection: any): any {
 }
 
 /**
- * Detects if a collection contains mixed protocols
- *
- * Useful for showing warnings or info to users during import
- */
-/**
  * Unwraps a request object — handles both protocol-wrapped ({ protocol, request })
  * and flat request formats.
  */
@@ -166,6 +161,11 @@ function getRequestObject(req: any): any {
   return req.request || req
 }
 
+/**
+ * Detects if a collection contains mixed protocols
+ *
+ * Useful for showing warnings or info to users during import
+ */
 export function hasMixedProtocols(collection: any): boolean {
   let hasREST = false
   let hasGraphQL = false
