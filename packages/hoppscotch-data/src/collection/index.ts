@@ -151,6 +151,9 @@ export type HoppRequestWithProtocol =
   | { protocol: "rest"; request: HoppRESTRequest }
   | { protocol: "graphql"; request: HoppGQLRequest }
 
+// These guards operate on HoppRequestWithProtocol — in-memory wrappers that carry a
+// `protocol` discriminator. They must NOT be used on flat HoppRESTRequest/HoppGQLRequest
+// objects stored in HoppCollection.requests (v11), which have no `protocol` field.
 export function isRESTRequest(
   req: any
 ): req is { protocol: "rest"; request: HoppRESTRequest } {

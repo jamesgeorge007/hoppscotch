@@ -337,6 +337,8 @@ export class CollectionsSpotlightSearcherService
       const reqWrapper = this.getGQLFolderFromFolderPath(folderPath.join("/"))
         ?.requests[reqIndex]
 
+      // Guard: skip if null or if it's a REST request — only proceed for GQL.
+      // isHoppRESTRequest checks raw flat HoppRESTRequest shape (v11 collection storage).
       if (!reqWrapper || isHoppRESTRequest(reqWrapper)) return
 
       this.gqlTab.createNewTab({
