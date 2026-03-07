@@ -30,7 +30,7 @@ type TeamCollectionJSON = {
   name: string
   folders: TeamCollectionJSON[]
   requests: HoppRESTRequest[]
-  data: string
+  data: string | null
 }
 
 export type CollectionDataProps = {
