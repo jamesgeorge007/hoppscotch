@@ -240,8 +240,7 @@ const getHoppFolder = (
     folders: getFoldersIn(folderRes, resources).map((f) =>
       getHoppFolder(f, resources)
     ),
-    requests: getRequestsIn(folderRes, resources)
-      .map(getHoppRequest),
+    requests: getRequestsIn(folderRes, resources).map(getHoppRequest),
     auth: { authType: "inherit", authActive: true },
     headers: [],
     variables: getCollectionVariables(undefined, folderRes), // undefined is used to indicate no environment variables for v4 and below
@@ -279,8 +278,7 @@ const getParsedHoppFolder = (
     folders: getFolders(collection.children ?? []).map((f) =>
       getParsedHoppFolder(f.name, f)
     ),
-    requests: getRequests(collection.children ?? [])
-      .map(getParsedHoppRequest),
+    requests: getRequests(collection.children ?? []).map(getParsedHoppRequest),
     auth: { authType: "inherit", authActive: true },
     headers: [],
     variables: getCollectionVariables(collection.environment),
@@ -318,8 +316,9 @@ const getParsedHoppCollections = (docs: InsomniaDocV5[]): HoppCollection[] =>
         folders: getFolders(doc.collection).map((f) =>
           getParsedHoppFolder(f.name, f)
         ),
-        requests: getRequests(doc.collection)
-          .map((x) => getParsedHoppRequest(x)),
+        requests: getRequests(doc.collection).map((x) =>
+          getParsedHoppRequest(x)
+        ),
         auth: { authType: "inherit", authActive: true },
         headers: [],
         variables: getCollectionVariables(doc.environments?.data),

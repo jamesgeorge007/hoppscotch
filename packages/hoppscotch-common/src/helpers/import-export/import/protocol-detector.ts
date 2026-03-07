@@ -27,7 +27,7 @@ import { translateToGQLRequest } from "@hoppscotch/data"
  */
 export function detectRequestProtocol(request: any): "rest" | "graphql" {
   // 1. Explicit protocol field (Hoppscotch format)
-  if (request.protocol) {
+  if (request.protocol === "rest" || request.protocol === "graphql") {
     return request.protocol
   }
 
@@ -64,11 +64,11 @@ export function detectRequestProtocol(request: any): "rest" | "graphql" {
       return "graphql"
     }
 
-    // Check URL for /graphql endpoint
+    // Check URL for /graphql endpoint (full path segment only)
     if (pmRequest.url) {
       const url =
         typeof pmRequest.url === "string" ? pmRequest.url : pmRequest.url.raw
-      if (url && url.includes("/graphql")) {
+      if (url && /\/graphql(?:[/?#]|$)/.test(url)) {
         return "graphql"
       }
     }
@@ -86,9 +86,9 @@ export function detectRequestProtocol(request: any): "rest" | "graphql" {
     }
   }
 
-  // 5. Direct URL check for Hoppscotch format
+  // 5. Direct URL check for Hoppscotch format (full path segment only)
   if (request.url && typeof request.url === "string") {
-    if (request.url.includes("/graphql")) {
+    if (/\/graphql(?:[/?#]|$)/.test(request.url)) {
       return "graphql"
     }
   }
