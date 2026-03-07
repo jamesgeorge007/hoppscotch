@@ -16,13 +16,14 @@ import { translateToGQLRequest } from "@hoppscotch/data"
 /**
  * Detects the protocol type of a request based on its structure
  *
- * Detection heuristics:
+ * Detection heuristics (in priority order):
  * 1. Explicit `protocol` field
- * 2. GraphQL-specific fields (query, variables as JSON)
- * 3. REST-specific fields (method, endpoint)
- * 4. Postman GraphQL detection (body.mode === "graphql")
+ * 2. GraphQL-specific fields (query string starting with query/mutation/subscription/{)
+ * 3. REST-specific fields (method + endpoint)
+ * 4. Postman GraphQL detection (body.mode === "graphql", body.graphql, /graphql URL)
  * 5. URL-based detection (contains "/graphql")
- * 6. Content-Type detection (application/graphql)
+ * 6. operationId/operation → REST (OpenAPI-style)
+ * 7. Default → REST (backward compatible)
  */
 export function detectRequestProtocol(request: any): "rest" | "graphql" {
   // 1. Explicit protocol field (Hoppscotch format)
@@ -95,11 +96,6 @@ export function detectRequestProtocol(request: any): "rest" | "graphql" {
   // 6. Check if it has OpenAPI-style operation
   if (request.operationId || request.operation) {
     return "rest"
-  }
-
-  // 7. Heuristic: GraphQL requests typically don't have a method field
-  if (!("method" in request) && "url" in request) {
-    return "graphql"
   }
 
   // Default to REST for backward compatibility

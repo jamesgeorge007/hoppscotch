@@ -306,7 +306,7 @@ export const getSingleTeamCollectionJSON = async (
     const collection = collectionTree.right
     const hoppCollection = teamCollToHoppRESTColl(collection)
 
-    return E.right(JSON.stringify(hoppCollection, null, 2))
+    return E.right(JSON.stringify(hoppCollection, stripRefIdReplacer, 2))
   } catch (error) {
     return E.left(error instanceof Error ? error.message : "Unknown error")
   }
