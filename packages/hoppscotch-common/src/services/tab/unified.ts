@@ -7,7 +7,7 @@
 
 import { Container } from "dioc"
 import { computed } from "vue"
-import { TabService } from "./tab"
+import { PersistableTabState, TabService } from "./tab"
 import {
   HoppUnifiedDocument,
   isRESTDocument,
@@ -28,6 +28,14 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
     })
 
     this.watchCurrentTabID()
+  }
+
+  /**
+   * Persistence loading is handled by PersistenceService.setupUnifiedTabsPersistence()
+   * which calls loadTabsFromPersistedState() directly with migration support.
+   */
+  protected override async loadPersistedState(): Promise<PersistableTabState<HoppUnifiedDocument> | null> {
+    return null
   }
 
   /**
