@@ -20,6 +20,7 @@ import {
 } from "~/services/oauth/oauth.service"
 import { PersistenceService } from "~/services/persistence"
 import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 
 const t = useI18n()
 const router = useRouter()
@@ -113,7 +114,12 @@ onMounted(async () => {
 
   const activeTab = tabs.currentActiveTab.value
 
-  if (activeTab.document.request.auth.authType === "oauth-2") {
+  // OAuth2 token injection only applies to REST requests — GQL v9 auth
+  // does not have grantTypeInfo fields
+  if (
+    isRESTDocument(activeTab.document) &&
+    activeTab.document.request.auth.authType === "oauth-2"
+  ) {
     activeTab.document.request.auth.grantTypeInfo.token =
       tokenInfo.right.access_token
 

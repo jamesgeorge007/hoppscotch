@@ -15,6 +15,7 @@ import { flow, pipe } from "fp-ts/function"
 import { z } from "zod"
 
 import { getI18n } from "~/modules/i18n"
+import { stripRefIdReplacer } from "../import-export/export"
 import { TeamCollection } from "../teams/TeamCollection"
 import { TeamRequest } from "../teams/TeamRequest"
 import { GQLError, runGQLQuery } from "./GQLClient"
@@ -282,7 +283,7 @@ export const getTeamCollectionJSON = async (teamID: string) => {
   }
 
   const hoppCollections = collections.map(teamCollectionJSONToHoppRESTColl)
-  return E.right(JSON.stringify(hoppCollections, null, 2))
+  return E.right(JSON.stringify(hoppCollections, stripRefIdReplacer, 2))
 }
 
 /**

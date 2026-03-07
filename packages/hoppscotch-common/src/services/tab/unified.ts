@@ -8,15 +8,12 @@
 import { Container } from "dioc"
 import { computed } from "vue"
 import { TabService } from "./tab"
-import { PersistableTabState } from "."
 import {
   HoppUnifiedDocument,
   isRESTDocument,
   isGQLDocument,
   createDefaultRESTDocument,
 } from "~/helpers/unified/document"
-import { getService } from "~/modules/dioc"
-import { PersistenceService, STORE_KEYS } from "../persistence"
 
 export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
   public static readonly ID = "UNIFIED_TAB_SERVICE"
@@ -69,65 +66,6 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
       }
     }),
   }))
-
-  protected async loadPersistedState(): Promise<PersistableTabState<HoppUnifiedDocument> | null> {
-    const persistenceService = getService(PersistenceService)
-
-    // Try loading unified tabs first
-    const unifiedState = await persistenceService.getNullable<
-      PersistableTabState<HoppUnifiedDocument>
-    >(STORE_KEYS.UNIFIED_TABS)
-
-    if (unifiedState) {
-      return unifiedState
-    }
-
-    // Fallback: Try loading both REST and GQL tabs and convert
-    const restState = await persistenceService.getNullable<any>(
-      STORE_KEYS.REST_TABS
-    )
-    const gqlState = await persistenceService.getNullable<any>(
-      STORE_KEYS.GQL_TABS
-    )
-
-    const orderedDocs: any[] = []
-
-    if (restState) {
-      orderedDocs.push(
-        ...(restState.orderedDocs ?? []).map((item: any) => ({
-          tabID: item.tabID,
-          doc: {
-            protocol: "rest" as const,
-            ...item.doc,
-          } as HoppUnifiedDocument,
-        }))
-      )
-    }
-
-    if (gqlState) {
-      orderedDocs.push(
-        ...(gqlState.orderedDocs ?? []).map((item: any) => ({
-          tabID: item.tabID,
-          doc: {
-            protocol: "graphql" as const,
-            ...item.doc,
-          } as HoppUnifiedDocument,
-        }))
-      )
-    }
-
-    if (orderedDocs.length > 0) {
-      return {
-        lastActiveTabID:
-          restState?.lastActiveTabID ??
-          gqlState?.lastActiveTabID ??
-          orderedDocs[0].tabID,
-        orderedDocs,
-      }
-    }
-
-    return null
-  }
 
   /**
    * Get tab by save context (protocol-aware)

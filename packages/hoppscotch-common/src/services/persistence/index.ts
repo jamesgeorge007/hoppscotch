@@ -1101,8 +1101,9 @@ export class PersistenceService extends Service {
       this.setupSocketIOPersistence(),
       this.setupSSEPersistence(),
       this.setupMQTTPersistence(),
-      this.setupRESTTabsPersistence(),
-      this.setupGQLTabsPersistence(),
+      // Unified tab persistence replaces the separate REST/GQL tab persistence.
+      // setupRESTTabsPersistence() and setupGQLTabsPersistence() are no longer
+      // called — unified handles migration from both legacy stores on first load.
       this.setupUnifiedTabsPersistence(),
 
       this.setupSecretEnvironmentsPersistence(),
