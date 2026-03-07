@@ -71,7 +71,7 @@
               @switch-protocol="
                 switchTabProtocol(
                   tab.id,
-                  currentProtocol.value === 'rest' ? 'graphql' : 'rest'
+                  currentProtocol === 'rest' ? 'graphql' : 'rest'
                 )
               "
             />
