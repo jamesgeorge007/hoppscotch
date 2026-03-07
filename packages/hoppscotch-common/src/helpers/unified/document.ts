@@ -110,22 +110,3 @@ export function createDefaultGQLDocument(
   }
 }
 
-/**
- * Convert legacy REST document to unified format
- */
-export function convertRESTDocumentToUnified(doc: any): HoppUnifiedDocument {
-  return {
-    protocol: "rest",
-    ...doc,
-  } as HoppUnifiedDocument
-}
-
-/**
- * Convert legacy GraphQL document to unified format
- */
-export function convertGQLDocumentToUnified(doc: any): HoppUnifiedDocument {
-  return {
-    protocol: "graphql",
-    ...doc,
-  } as HoppUnifiedDocument
-}

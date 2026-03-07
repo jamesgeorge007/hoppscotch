@@ -1055,11 +1055,18 @@ export class PersistenceService extends Service {
       }
 
       if (orderedDocs.length > 0) {
+        // During migration, we can't determine which tab service was used last,
+        // so prefer the first tab in the merged list as the active tab.
+        const restLastTabID =
+          E.isRight(restLoadResult) && restLoadResult.right?.lastActiveTabID
+        const gqlLastTabID =
+          E.isRight(gqlLoadResult) && gqlLoadResult.right?.lastActiveTabID
+
+        // Use whichever lastActiveTabID exists in the merged orderedDocs
+        const tabIDs = new Set(orderedDocs.map((d) => d.tabID))
         const lastActiveTabID =
-          (E.isRight(restLoadResult) &&
-            restLoadResult.right?.lastActiveTabID) ||
-          (E.isRight(gqlLoadResult) &&
-            gqlLoadResult.right?.lastActiveTabID) ||
+          (restLastTabID && tabIDs.has(restLastTabID) && restLastTabID) ||
+          (gqlLastTabID && tabIDs.has(gqlLastTabID) && gqlLastTabID) ||
           orderedDocs[0].tabID
         this.unifiedTabService.loadTabsFromPersistedState({
           lastActiveTabID,
