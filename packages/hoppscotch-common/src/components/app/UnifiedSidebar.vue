@@ -198,19 +198,16 @@ type NavigationTabs =
 const selectedNavigationTab = ref<NavigationTabs>("collections")
 
 // Switch to appropriate default tab when protocol changes
+const REST_ONLY_TABS: NavigationTabs[] = ["share-request", "codegen", "mock-servers"]
+const GQL_ONLY_TABS: NavigationTabs[] = ["docs", "schema"]
+
 watch(
   () => props.protocol,
   (newProtocol) => {
-    if (
-      newProtocol === "graphql" &&
-      selectedNavigationTab.value === "codegen"
-    ) {
-      selectedNavigationTab.value = "docs"
-    } else if (
-      newProtocol === "rest" &&
-      (selectedNavigationTab.value === "docs" ||
-        selectedNavigationTab.value === "schema")
-    ) {
+    const current = selectedNavigationTab.value
+    if (newProtocol === "graphql" && REST_ONLY_TABS.includes(current)) {
+      selectedNavigationTab.value = "collections"
+    } else if (newProtocol === "rest" && GQL_ONLY_TABS.includes(current)) {
       selectedNavigationTab.value = "collections"
     }
   }
