@@ -1037,8 +1037,12 @@ export class PersistenceService extends Service {
       const orderedDocs: any[] = []
 
       if (E.isRight(restLoadResult) && restLoadResult.right) {
+        // Fix broken request versions before converting to unified format
+        const fixedRestDocs = fixBrokenRequestVersion(
+          cloneDeep(restLoadResult.right.orderedDocs) ?? []
+        )
         orderedDocs.push(
-          ...(restLoadResult.right.orderedDocs ?? []).map((item: any) => ({
+          ...fixedRestDocs.map((item: any) => ({
             tabID: item.tabID,
             doc: { protocol: "rest" as const, ...item.doc },
           }))

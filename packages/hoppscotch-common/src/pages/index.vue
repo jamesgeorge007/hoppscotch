@@ -356,7 +356,8 @@ const switchTabProtocol = (
   let newDocument: any
 
   if (targetProtocol === "graphql") {
-    // Create new GraphQL document
+    // Create new GraphQL document — saveContext is intentionally omitted
+    // because the old protocol's save context is invalid for the new protocol
     newDocument = {
       protocol: "graphql" as const,
       request: getDefaultGQLRequest(),
@@ -365,7 +366,8 @@ const switchTabProtocol = (
       inheritedProperties: currentDoc.inheritedProperties,
     }
   } else {
-    // Create new REST document
+    // Create new REST document — saveContext is intentionally omitted
+    // because the old protocol's save context is invalid for the new protocol
     newDocument = {
       protocol: "rest" as const,
       request: getDefaultRESTRequest(),
