@@ -1022,7 +1022,17 @@ export class PersistenceService extends Service {
     )
 
     if (E.isRight(unifiedLoadResult) && unifiedLoadResult.right) {
-      this.unifiedTabService.loadTabsFromPersistedState(unifiedLoadResult.right)
+      // Basic structural validation before loading
+      const raw = unifiedLoadResult.right
+      if (
+        raw &&
+        typeof raw === "object" &&
+        Array.isArray(raw.orderedDocs)
+      ) {
+        this.unifiedTabService.loadTabsFromPersistedState(raw)
+      } else {
+        console.error("Failed parsing persisted UNIFIED_TABS:", JSON.stringify(raw))
+      }
     } else {
       // Migration path: load from both REST_TABS and GQL_TABS, convert to unified format
       const restLoadResult = await Store.get<any>(
