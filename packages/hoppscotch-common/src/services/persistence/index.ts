@@ -1060,8 +1060,9 @@ export class PersistenceService extends Service {
       }
 
       if (E.isRight(gqlLoadResult) && gqlLoadResult.right) {
+        const gqlDocs = cloneDeep(gqlLoadResult.right.orderedDocs) ?? []
         orderedDocs.push(
-          ...(gqlLoadResult.right.orderedDocs ?? []).map((item: any) => ({
+          ...gqlDocs.map((item: any) => ({
             tabID: item.tabID,
             doc: { protocol: "graphql" as const, ...item.doc },
           }))
