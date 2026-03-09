@@ -157,6 +157,9 @@ export class TestRunnerService extends Service {
       }
 
       // Process requests progressively
+      // Use a separate index for the result collection to avoid sparse arrays
+      // when non-REST requests are skipped
+      let restRequestIndex = 0
       for (let i = 0; i < collection.requests.length; i++) {
         if (options.stopRef?.value) {
           tab.value.document.status = "stopped"
@@ -173,7 +176,8 @@ export class TestRunnerService extends Service {
         }
 
         const request = requestWrapper as TestRunnerRequest
-        const currentPath = [...parentPath, i]
+        const currentPath = [...parentPath, restRequestIndex]
+        restRequestIndex++
 
         // Add request to the result collection before execution
         this.addRequestToPath(
