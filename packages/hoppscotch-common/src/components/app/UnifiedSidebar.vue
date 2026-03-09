@@ -243,18 +243,10 @@ useCodemirror(
 
 const downloadSchema = async () => {
   const dataToWrite = schemaString.value
-  const file = new Blob([dataToWrite], { type: "application/graphql" })
-  const url = URL.createObjectURL(file)
-
-  const filename = `${
-    url.split("/").pop()!.split("#")[0].split("?")[0]
-  }.graphql`
-
-  URL.revokeObjectURL(url)
 
   const result = await platform.kernelIO.saveFileWithDialog({
     data: dataToWrite,
-    fileName: filename,
+    fileName: "schema.graphql",
   })
 
   if (result.type === "ok") {
