@@ -101,6 +101,7 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
             return this.getTabRef(tab.id)
           }
         } else if (
+          saveContext.originLocation === "user-collection" &&
           ctx.originLocation === "user-collection" &&
           ctx.folderPath === saveContext.folderPath &&
           ctx.requestIndex === saveContext.requestIndex &&
@@ -123,6 +124,7 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
             return this.getTabRef(tab.id)
           }
         } else if (
+          saveContext.originLocation === "user-collection" &&
           ctx.originLocation === "user-collection" &&
           ctx.folderPath === saveContext.folderPath &&
           ctx.requestIndex === saveContext.requestIndex
