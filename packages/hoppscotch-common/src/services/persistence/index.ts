@@ -1054,7 +1054,7 @@ export class PersistenceService extends Service {
         orderedDocs.push(
           ...fixedRestDocs.map((item: any) => ({
             tabID: item.tabID,
-            doc: { protocol: "rest" as const, ...item.doc },
+            doc: { ...item.doc, protocol: "rest" as const },
           }))
         )
       }
@@ -1064,7 +1064,7 @@ export class PersistenceService extends Service {
         orderedDocs.push(
           ...gqlDocs.map((item: any) => ({
             tabID: item.tabID,
-            doc: { protocol: "graphql" as const, ...item.doc },
+            doc: { ...item.doc, protocol: "graphql" as const },
           }))
         )
       }
