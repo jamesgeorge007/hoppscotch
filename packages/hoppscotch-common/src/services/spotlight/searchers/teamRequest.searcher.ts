@@ -44,14 +44,12 @@ export class TeamsSpotlightSearcherService
   }
 
   private getCurrentPageCategory() {
-    // TODO: Better logic for this ?
     try {
       const url = new URL(window.location.href)
 
-      if (url.pathname.startsWith("/graphql")) {
-        return "graphql"
-      } else if (url.pathname === "/") {
-        return "rest"
+      // The unified playground lives at "/", serving both REST and GQL.
+      if (url.pathname === "/" || url.pathname.startsWith("/graphql")) {
+        return "unified"
       }
       return "other"
     } catch (_e) {
@@ -64,8 +62,8 @@ export class TeamsSpotlightSearcherService
   ): [Ref<SpotlightSearcherSessionState>, () => void] {
     const pageCategory = this.getCurrentPageCategory()
 
-    // Only show the searcher on the REST page
-    if (pageCategory !== "rest") {
+    // Only show the searcher on the unified page
+    if (pageCategory !== "unified") {
       return [computed(() => ({ loading: false, results: [] })), () => {}]
     }
 

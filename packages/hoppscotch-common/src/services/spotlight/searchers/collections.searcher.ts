@@ -77,7 +77,7 @@ export class CollectionsSpotlightSearcherService
       minisearch.addAll(
         coll.requests.map((req, reqIndex) => ({
           id: `gql-${index}/${reqIndex}`,
-          name: (req as any).name ?? "Unnamed",
+          name: req.name,
         }))
       )
     }
@@ -104,7 +104,7 @@ export class CollectionsSpotlightSearcherService
       minisearch.addAll(
         coll.requests.map((req, reqIndex) => ({
           id: `rest-${index}/${reqIndex}`,
-          name: (req as any).name ?? "Unnamed",
+          name: req.name,
         }))
       )
     }

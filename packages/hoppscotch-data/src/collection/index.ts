@@ -16,9 +16,7 @@ export { CollectionVariable } from "./v/10"
 
 import { z } from "zod"
 import { translateToNewRequest } from "../rest"
-import type { HoppRESTRequest } from "../rest"
 import { translateToGQLRequest } from "../graphql"
-import type { HoppGQLRequest } from "../graphql"
 import { generateUniqueRefId } from "../utils/collection"
 
 const versionedObject = z.object({
@@ -143,37 +141,3 @@ export function translateToNewGQLCollection(x: any): HoppCollection {
   return obj
 }
 
-// ---------------------------------------------------------------------------
-// Protocol-tagged request helpers (in-memory use only; not part of the schema)
-// ---------------------------------------------------------------------------
-
-export type HoppRequestWithProtocol =
-  | { protocol: "rest"; request: HoppRESTRequest }
-  | { protocol: "graphql"; request: HoppGQLRequest }
-
-// These guards operate on HoppRequestWithProtocol — in-memory wrappers that carry a
-// `protocol` discriminator. They must NOT be used on flat HoppRESTRequest/HoppGQLRequest
-// objects stored in HoppCollection.requests (v11), which have no `protocol` field.
-export function isRESTRequest(
-  req: any
-): req is { protocol: "rest"; request: HoppRESTRequest } {
-  return req?.protocol === "rest"
-}
-
-export function isGQLRequest(
-  req: any
-): req is { protocol: "graphql"; request: HoppGQLRequest } {
-  return req?.protocol === "graphql"
-}
-
-export function wrapRESTRequest(
-  request: HoppRESTRequest
-): HoppRequestWithProtocol {
-  return { protocol: "rest", request }
-}
-
-export function wrapGQLRequest(
-  request: HoppGQLRequest
-): HoppRequestWithProtocol {
-  return { protocol: "graphql", request }
-}
