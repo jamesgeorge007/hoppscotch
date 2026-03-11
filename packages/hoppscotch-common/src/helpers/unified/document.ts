@@ -5,7 +5,11 @@
  * It provides a unified interface while preserving protocol-specific features.
  */
 
-import type { HoppRESTRequest, HoppGQLRequest } from "@hoppscotch/data"
+import type {
+  HoppRESTRequest,
+  HoppGQLRequest,
+  HoppRESTRequestResponse,
+} from "@hoppscotch/data"
 import { getDefaultRESTRequest, getDefaultGQLRequest } from "@hoppscotch/data"
 import { HoppRESTSaveContext } from "../rest/document"
 import { HoppGQLSaveContext } from "../graphql/document"
@@ -22,15 +26,27 @@ import { GQLOptionTabs } from "~/components/graphql/RequestOptions.vue"
 export type HoppUnifiedSaveContext = HoppRESTSaveContext | HoppGQLSaveContext
 
 /**
- * REST-specific document properties
+ * REST-specific document properties for request editing tabs
  */
 export interface HoppRESTDocumentProps {
   protocol: "rest"
+  type?: "request"
   request: HoppRESTRequest
   response?: HoppRESTResponse | null
   testResults?: HoppTestResult | null
   responseTabPreference?: string
   optionTabPreference?: RESTOptionTabs
+  saveContext?: HoppRESTSaveContext
+}
+
+/**
+ * REST example-response document properties for viewing saved example responses
+ */
+export interface HoppExampleResponseDocumentProps {
+  protocol: "rest"
+  type: "example-response"
+  response: HoppRESTRequestResponse
+  request?: undefined
   saveContext?: HoppRESTSaveContext
 }
 
@@ -60,15 +76,24 @@ export type HoppUnifiedDocument = {
    * The inherited properties from the parent collection
    */
   inheritedProperties?: HoppInheritedProperty
-} & (HoppRESTDocumentProps | HoppGQLDocumentProps)
+} & (HoppRESTDocumentProps | HoppGQLDocumentProps | HoppExampleResponseDocumentProps)
 
 /**
- * Type guard to check if a document is a REST document
+ * Type guard to check if a document is a REST request document (not an example-response)
  */
 export function isRESTDocument(
   doc: HoppUnifiedDocument
 ): doc is HoppUnifiedDocument & HoppRESTDocumentProps {
-  return doc.protocol === "rest"
+  return doc.protocol === "rest" && doc.type !== "example-response"
+}
+
+/**
+ * Type guard to check if a document is an example-response document
+ */
+export function isExampleResponseDocument(
+  doc: HoppUnifiedDocument
+): doc is HoppUnifiedDocument & HoppExampleResponseDocumentProps {
+  return doc.protocol === "rest" && doc.type === "example-response"
 }
 
 /**

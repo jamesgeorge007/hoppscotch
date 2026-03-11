@@ -18,7 +18,7 @@
             :is-removable="activeTabs.length > 1"
             :close-visibility="'hover'"
           >
-            <template v-if="isRESTDocument(tab.document)" #tabhead>
+            <template v-if="isRESTDocument(tab.document) || isExampleResponseDocument(tab.document)" #tabhead>
               <!-- REST TabHead -->
               <HttpTabHead
                 :tab="tab"
@@ -63,8 +63,15 @@
               </span>
             </template>
 
+            <!-- Example Response Tab -->
+            <HttpExampleResponseTab
+              v-if="isExampleResponseDocument(tab.document)"
+              :model-value="tab"
+              @update:model-value="onTabUpdate"
+            />
             <!-- Dynamic Request Panel based on protocol -->
             <component
+              v-else
               :is="getRequestComponent(tab.document.protocol)"
               :model-value="tab"
               @update:model-value="onTabUpdate"
@@ -169,6 +176,7 @@ import {
   HoppUnifiedDocument,
   isRESTDocument,
   isGQLDocument,
+  isExampleResponseDocument,
   createDefaultRESTDocument,
   createDefaultGQLDocument,
 } from "~/helpers/unified/document"
@@ -180,6 +188,9 @@ const HttpRequestTab = defineAsyncComponent(
 )
 const GraphqlRequestTab = defineAsyncComponent(
   () => import("~/components/graphql/RequestTab.vue")
+)
+const HttpExampleResponseTab = defineAsyncComponent(
+  () => import("~/components/http/example/ResponseRequest.vue")
 )
 const UnifiedSidebar = defineAsyncComponent(
   () => import("~/components/app/UnifiedSidebar.vue")
@@ -249,8 +260,11 @@ function getRequestComponent(protocol: "rest" | "graphql") {
   return protocol === "rest" ? HttpRequestTab : GraphqlRequestTab
 }
 
-// Get tab name based on protocol
+// Get tab name based on document type
 function getTabName(tab: HoppTab<HoppUnifiedDocument>) {
+  if (isExampleResponseDocument(tab.document)) {
+    return tab.document.response.name || "Untitled"
+  }
   return tab.document.request.name || "Untitled"
 }
 

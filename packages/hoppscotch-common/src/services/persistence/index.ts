@@ -1053,8 +1053,8 @@ export class PersistenceService extends Service {
           cloneDeep(restLoadResult.right.orderedDocs) ?? []
         )
         for (const item of fixedRestDocs) {
-          // Skip test-runner and example-response tabs — not supported in unified
-          if (item.doc?.type !== "request") continue
+          // Skip test-runner tabs — not supported in unified model
+          if (item.doc?.type === "test-runner") continue
           // Guard against tab ID collisions between REST and GQL stores
           if (seenTabIDs.has(item.tabID)) continue
           seenTabIDs.add(item.tabID)

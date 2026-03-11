@@ -388,7 +388,7 @@ import { platform } from "~/platform"
 import { PersistedOAuthConfig } from "~/services/oauth/oauth.service"
 import { PersistenceService } from "~/services/persistence"
 import { UnifiedTabService } from "~/services/tab/unified"
-import { isRESTDocument } from "~/helpers/unified/document"
+import { isRESTDocument, isExampleResponseDocument } from "~/helpers/unified/document"
 import { TeamWorkspace, WorkspaceService } from "~/services/workspace.service"
 import { RESTOptionTabs } from "../http/RequestOptions.vue"
 import { Collection as NodeCollection } from "./MyCollections.vue"
@@ -1462,7 +1462,7 @@ const updateEditingResponse = (newName: string) => {
 
     if (
       possibleExampleActiveTab &&
-      isRESTDocument(possibleExampleActiveTab.value.document)
+      isExampleResponseDocument(possibleExampleActiveTab.value.document)
     ) {
       possibleExampleActiveTab.value.document.response.name = newName
 
@@ -1529,7 +1529,7 @@ const updateEditingResponse = (newName: string) => {
 
     if (
       possibleActiveResponseTab &&
-      isRESTDocument(possibleActiveResponseTab.value.document)
+      isExampleResponseDocument(possibleActiveResponseTab.value.document)
     ) {
       possibleActiveResponseTab.value.document.response.name = newName
       nextTick(() => {
@@ -1812,6 +1812,7 @@ const onAddExample = async () => {
 
     // Open the new example in a new tab
     tabs.createNewTab({
+      type: "example-response",
       response: {
         ...cloneDeep(newExample),
         name: exampleName,
@@ -1882,6 +1883,7 @@ const onAddExample = async () => {
 
           // Open the new example in a new tab
           tabs.createNewTab({
+            type: "example-response",
             response: {
               ...cloneDeep(newExample),
               name: exampleName,
@@ -2271,11 +2273,8 @@ const onRemoveResponse = async () => {
       folderPath,
     })
 
-    // If there is a tab attached to this request, close it and set the active tab to the first one
-    if (
-      possibleActiveResponseTab &&
-      isRESTDocument(possibleActiveResponseTab.value.document)
-    ) {
+    // If there is a tab attached to this example response, close it
+    if (possibleActiveResponseTab) {
       const activeTabs = tabs.getActiveTabs()
 
       // if the last tab is the one we are closing, we need to create a new tab
@@ -2345,11 +2344,8 @@ const onRemoveResponse = async () => {
       requestID,
     })
 
-    // If there is a tab attached to this request, close it and set the active tab to the first one
-    if (
-      possibleActiveResponseTab &&
-      isRESTDocument(possibleActiveResponseTab.value.document)
-    ) {
+    // If there is a tab attached to this example response, close it
+    if (possibleActiveResponseTab) {
       const activeTabs = tabs.getActiveTabs()
 
       // if the last tab is the one we are closing, we need to create a new tab
@@ -2492,6 +2488,7 @@ const selectResponse = (payload: {
       tabs.setActiveTab(possibleTab.value.id)
     } else {
       tabs.createNewTab({
+        type: "example-response",
         response: {
           ...cloneDeep(response),
           name: responseName,
@@ -2521,6 +2518,7 @@ const selectResponse = (payload: {
       tabs.setActiveTab(possibleTab.value.id)
     } else {
       tabs.createNewTab({
+        type: "example-response",
         response: {
           ...cloneDeep(response),
           name: responseName,
