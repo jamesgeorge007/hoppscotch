@@ -251,7 +251,7 @@ function getRequestComponent(protocol: "rest" | "graphql") {
 
 // Get tab name based on protocol
 function getTabName(tab: HoppTab<HoppUnifiedDocument>) {
-  return tab.document.request.name || "Unnamed request"
+  return tab.document.request.name || "Untitled"
 }
 
 function bindRequestToURLParams() {
@@ -351,41 +351,24 @@ const switchTabProtocol = (
 
   if (!currentTab) return
 
-  const currentDoc = currentTab.document as any
+  const currentDoc = currentTab.document
+  const requestName = currentDoc.request.name
 
-  let newDocument: any
+  let newDocument: HoppUnifiedDocument
 
   if (targetProtocol === "graphql") {
-    // Create new GraphQL document — saveContext is intentionally omitted
-    // because the old protocol's save context is invalid for the new protocol
-    newDocument = {
-      protocol: "graphql" as const,
-      request: getDefaultGQLRequest(),
-      isDirty: currentDoc.isDirty || false,
-      response: null,
-      inheritedProperties: currentDoc.inheritedProperties,
-    }
+    const req = getDefaultGQLRequest()
+    if (requestName) req.name = requestName
+    newDocument = createDefaultGQLDocument(req)
   } else {
-    // Create new REST document — saveContext is intentionally omitted
-    // because the old protocol's save context is invalid for the new protocol
-    newDocument = {
-      protocol: "rest" as const,
-      request: getDefaultRESTRequest(),
-      isDirty: currentDoc.isDirty || false,
-      response: null,
-      testResults: null,
-      optionTabPreference: "params" as const,
-      inheritedProperties: currentDoc.inheritedProperties,
-    }
+    const req = getDefaultRESTRequest()
+    if (requestName) req.name = requestName
+    newDocument = createDefaultRESTDocument(req)
   }
 
-  // Preserve the request name
-  if (currentDoc.request && currentDoc.request.name) {
-    newDocument.request.name = currentDoc.request.name
-  }
+  newDocument.isDirty = currentDoc.isDirty
+  newDocument.inheritedProperties = currentDoc.inheritedProperties
 
-  // Use the setter to update the tab via the computed ref
-  // This ensures Vue reactivity is properly triggered
   tabRef.value = {
     ...currentTab,
     document: newDocument,

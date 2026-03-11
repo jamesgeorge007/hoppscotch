@@ -16,7 +16,7 @@ import { resolveSaveContextOnRequestReorder } from "~/helpers/collection/request
 import { HoppInheritedProperty } from "~/helpers/types/HoppInheritedProperties"
 import { getService } from "~/modules/dioc"
 import { getI18n } from "~/modules/i18n"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
 import DispatchingStore, { defineDispatchers } from "./DispatchingStore"
 import { SecretEnvironmentService } from "~/services/secret-environment.service"
 import { CurrentValueService } from "~/services/current-environment-value.service"
@@ -785,9 +785,9 @@ const restCollectionDispatchers = defineDispatchers({
     // Deal with situations where a tab with the given thing is deleted
     // We are just going to dissociate the save context of the tab and mark it dirty
 
-    const tabService = getService(RESTTabService)
+    const tabService = getService(UnifiedTabService)
 
-    const tab = tabService.getTabRefWithSaveContext({
+    const tab = tabService.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       folderPath: path,
       requestIndex: requestIndex,
@@ -845,8 +845,8 @@ const restCollectionDispatchers = defineDispatchers({
     destLocation.requests.push(req)
     targetLocation.requests.splice(requestIndex, 1)
 
-    const tabService = getService(RESTTabService)
-    const possibleTab = tabService.getTabRefWithSaveContext({
+    const tabService = getService(UnifiedTabService)
+    const possibleTab = tabService.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       folderPath: path,
       requestIndex,

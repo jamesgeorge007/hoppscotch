@@ -16,8 +16,7 @@ import IconArrowRight from "~icons/lucide/arrow-right"
 import IconChevronsLeft from "~icons/lucide/chevrons-left"
 import IconChevronsRight from "~icons/lucide/chevrons-right"
 import { invokeAction } from "~/helpers/actions"
-import { RESTTabService } from "~/services/tab/rest"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
 import { Container } from "dioc"
 import { getKernelMode } from "@hoppscotch/kernel"
 
@@ -46,16 +45,13 @@ export class TabSpotlightSearcherService extends StaticSpotlightSearcherService<
 
   private route = useRoute()
   private showAction = computed(
-    () => this.route.name === "index" || this.route.name === "graphql"
+    () => this.route.name === "index"
   )
 
-  private readonly restTab = this.bind(RESTTabService)
-  private readonly gqlTab = this.bind(GQLTabService)
+  private readonly tabs = this.bind(UnifiedTabService)
 
   private isOnlyTab = computed(() =>
-    this.route.name === "graphql"
-      ? this.gqlTab.getActiveTabs().value.length === 1
-      : this.restTab.getActiveTabs().value.length === 1
+    this.tabs.getActiveTabs().value.length === 1
   )
 
   private isDesktopMode = computed(() => getKernelMode() === "desktop")

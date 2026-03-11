@@ -103,7 +103,8 @@ import completer from "~/helpers/editor/completion/preRequest"
 import linter from "~/helpers/editor/linting/preRequest"
 import { toggleNestedSetting } from "~/newstore/settings"
 import { platform } from "~/platform"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import IconHelpCircle from "~icons/lucide/help-circle"
 import IconSparkles from "~icons/lucide/sparkles"
 import IconTrash2 from "~icons/lucide/trash-2"
@@ -151,13 +152,12 @@ const useSnippet = (script: string) => {
 const clearContent = () => {
   preRequestScript.value = ""
 }
-const tabService = useService(RESTTabService)
+const tabService = useService(UnifiedTabService)
 
-const currentRequest = computed(() =>
-  tabService.currentActiveTab.value?.document.type === "request"
-    ? tabService.currentActiveTab.value?.document.request
-    : null
-)
+const currentRequest = computed(() => {
+  const doc = tabService.currentActiveTab.value?.document
+  return doc && isRESTDocument(doc) ? doc.request : null
+})
 
 const { shouldEnableAIFeatures } = useAIExperiments()
 const isModifyPreRequestModalOpen = ref(false)

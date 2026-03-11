@@ -1045,28 +1045,36 @@ export class PersistenceService extends Service {
       )
 
       const orderedDocs: any[] = []
+      const seenTabIDs = new Set<string>()
 
       if (E.isRight(restLoadResult) && restLoadResult.right) {
         // Fix broken request versions before converting to unified format
         const fixedRestDocs = fixBrokenRequestVersion(
           cloneDeep(restLoadResult.right.orderedDocs) ?? []
         )
-        orderedDocs.push(
-          ...fixedRestDocs.map((item: any) => ({
+        for (const item of fixedRestDocs) {
+          // Skip test-runner and example-response tabs — not supported in unified
+          if (item.doc?.type !== "request") continue
+          // Guard against tab ID collisions between REST and GQL stores
+          if (seenTabIDs.has(item.tabID)) continue
+          seenTabIDs.add(item.tabID)
+          orderedDocs.push({
             tabID: item.tabID,
             doc: { ...item.doc, protocol: "rest" as const },
-          }))
-        )
+          })
+        }
       }
 
       if (E.isRight(gqlLoadResult) && gqlLoadResult.right) {
         const gqlDocs = cloneDeep(gqlLoadResult.right.orderedDocs) ?? []
-        orderedDocs.push(
-          ...gqlDocs.map((item: any) => ({
+        for (const item of gqlDocs) {
+          if (seenTabIDs.has(item.tabID)) continue
+          seenTabIDs.add(item.tabID)
+          orderedDocs.push({
             tabID: item.tabID,
             doc: { ...item.doc, protocol: "graphql" as const },
-          }))
-        )
+          })
+        }
       }
 
       if (orderedDocs.length > 0) {

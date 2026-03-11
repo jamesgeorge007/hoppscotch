@@ -10,6 +10,7 @@ import { computed } from "vue"
 import { PersistableTabState, TabService } from "./tab"
 import {
   HoppUnifiedDocument,
+  HoppUnifiedSaveContext,
   isRESTDocument,
   isGQLDocument,
   createDefaultRESTDocument,
@@ -80,7 +81,7 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
    */
   public getTabRefWithSaveContext(
     protocol: "rest" | "graphql",
-    saveContext: any
+    saveContext: HoppUnifiedSaveContext
   ) {
     for (const tab of this.tabMap.values()) {
       // Skip tabs of different protocol
@@ -164,15 +165,6 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
     }
 
     return count
-  }
-
-  /**
-   * Get tabs filtered by protocol
-   */
-  public getTabsByProtocol(protocol: "rest" | "graphql") {
-    return Array.from(this.tabMap.values()).filter(
-      (tab) => tab.document.protocol === protocol
-    )
   }
 
 }

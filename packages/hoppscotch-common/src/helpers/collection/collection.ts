@@ -4,8 +4,7 @@ import { GetSingleRequestDocument } from "../backend/graphql"
 import { runGQLQuery } from "../backend/GQLClient"
 import * as E from "fp-ts/Either"
 import { getService } from "~/modules/dioc"
-import { RESTTabService } from "~/services/tab/rest"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
 import { TeamCollectionsService } from "~/services/team-collection.service"
 import { cascadeParentCollectionForProperties } from "~/newstore/collections"
 import { CollectionDataProps } from "../backend/helpers"
@@ -55,10 +54,9 @@ export function resolveSaveContextOnCollectionReorder(
     }
   }
 
-  const tabService = getService(RESTTabService)
+  const tabService = getService(UnifiedTabService)
 
   const tabs = tabService.getTabsRefTo((tab) => {
-    if (tab.document.type === "test-runner") return false
     return (
       tab.document.saveContext?.originLocation === "user-collection" &&
       affectedPaths.has(tab.document.saveContext.folderPath)
@@ -67,7 +65,6 @@ export function resolveSaveContextOnCollectionReorder(
 
   for (const tab of tabs) {
     if (
-      tab.value.document.type !== "test-runner" &&
       tab.value.document.saveContext?.originLocation === "user-collection"
     ) {
       const newPath = affectedPaths.get(
@@ -115,10 +112,8 @@ export function updateSaveContextForAffectedRequests(
   oldFolderPath: string,
   newFolderPath: string | null
 ) {
-  const tabService = getService(RESTTabService)
+  const tabService = getService(UnifiedTabService)
   const tabs = tabService.getTabsRefTo((tab) => {
-    if (tab.document.type === "test-runner") return false
-
     return tab.document.saveContext?.originLocation === "user-collection"
       ? tab.document.saveContext.folderPath.startsWith(oldFolderPath)
       : tab.document.saveContext?.originLocation === "team-collection"
@@ -128,8 +123,6 @@ export function updateSaveContextForAffectedRequests(
   })
 
   for (const tab of tabs) {
-    if (tab.value.document.type === "test-runner") return
-
     if (
       tab.value.document.saveContext?.originLocation === "user-collection" &&
       newFolderPath
@@ -160,13 +153,11 @@ export function updateInheritedPropertiesForAffectedRequests(
   path: string,
   type: "rest" | "graphql"
 ) {
-  const tabService =
-    type === "rest" ? getService(RESTTabService) : getService(GQLTabService)
+  const tabService = getService(UnifiedTabService)
   const teamCollectionService = getService(TeamCollectionsService)
 
   const effectedTabs = tabService.getTabsRefTo((tab) => {
-    if ("type" in tab.document && tab.document.type === "test-runner")
-      return false
+    if (tab.document.protocol !== type) return false
     const saveContext = tab.document.saveContext
 
     const saveContextPath =
@@ -183,13 +174,6 @@ export function updateInheritedPropertiesForAffectedRequests(
   })
 
   effectedTabs.forEach((tab) => {
-    if (
-      "type" in tab.value.document &&
-      tab.value.document.type === "test-runner"
-    )
-      return
-    if (!("inheritedProperties" in tab.value.document)) return
-
     if (
       tab.value.document.saveContext?.originLocation === "team-collection" &&
       tab.value.document.inheritedProperties
@@ -214,9 +198,8 @@ export function updateInheritedPropertiesForAffectedRequests(
 }
 
 function resetSaveContextForAffectedRequests(folderPath: string) {
-  const tabService = getService(RESTTabService)
+  const tabService = getService(UnifiedTabService)
   const tabs = tabService.getTabsRefTo((tab) => {
-    if (tab.document.type === "test-runner") return false
     return (
       tab.document.saveContext?.originLocation === "user-collection" &&
       tab.document.saveContext.folderPath.startsWith(folderPath)
@@ -224,17 +207,9 @@ function resetSaveContextForAffectedRequests(folderPath: string) {
   })
 
   for (const tab of tabs) {
-    if (tab.value.document.type === "test-runner") return
-    tab.value.document.saveContext = null
+    tab.value.document.saveContext = undefined
     tab.value.document.isDirty = true
-
-    if (tab.value.document.type === "request") {
-      // since the request is deleted, we need to remove the saved responses as well
-      tab.value.document.request.responses = {}
-
-      // remove inherited properties
-      tab.value.document.inheritedProperties = undefined
-    }
+    tab.value.document.inheritedProperties = undefined
   }
 }
 
@@ -243,14 +218,12 @@ function resetSaveContextForAffectedRequests(folderPath: string) {
  * only runs when collection or folder is deleted
  */
 export async function resetTeamRequestsContext() {
-  const tabService = getService(RESTTabService)
+  const tabService = getService(UnifiedTabService)
   const tabs = tabService.getTabsRefTo((tab) => {
-    if (tab.document.type === "test-runner") return false
     return tab.document.saveContext?.originLocation === "team-collection"
   })
 
   for (const tab of tabs) {
-    if (tab.value.document.type === "test-runner") return
     if (tab.value.document.saveContext?.originLocation === "team-collection") {
       const data = await runGQLQuery({
         query: GetSingleRequestDocument,
@@ -258,16 +231,9 @@ export async function resetTeamRequestsContext() {
       })
 
       if (E.isRight(data) && data.right.request === null) {
-        tab.value.document.saveContext = null
+        tab.value.document.saveContext = undefined
         tab.value.document.isDirty = true
-
-        if (tab.value.document.type === "request") {
-          // since the request is deleted, we need to remove the saved responses as well
-          tab.value.document.request.responses = {}
-
-          // remove inherited properties
-          tab.value.document.inheritedProperties = undefined
-        }
+        tab.value.document.inheritedProperties = undefined
       }
     }
   }

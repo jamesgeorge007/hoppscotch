@@ -131,7 +131,8 @@ import { ref } from "vue"
 import { HoppRESTRequest } from "@hoppscotch/data"
 import { copyToClipboard } from "~/helpers/utils/clipboard"
 import * as E from "fp-ts/Either"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import { useService } from "dioc/vue"
 import { watch } from "vue"
 
@@ -219,7 +220,7 @@ watch(
   { deep: true }
 )
 
-const restTab = useService(RESTTabService)
+const restTab = useService(UnifiedTabService)
 
 const currentUser = useReadonlyStream(
   platform.auth.getCurrentUserStream(),
@@ -302,8 +303,10 @@ onAuthEvent((ev) => {
 const shareRequest = () => {
   if (currentUser.value) {
     const tab = restTab.currentActiveTab
+    const doc = tab.value.document
+    if (!isRESTDocument(doc)) return
     invokeAction("share.request", {
-      request: tab.value.document.request,
+      request: doc.request,
     })
   } else {
     invokeAction("modals.login.toggle")
@@ -507,7 +510,7 @@ const openRequestInNewTab = (request: HoppRESTRequest) => {
   restTab.createNewTab({
     isDirty: false,
     request,
-    type: "request",
+    protocol: "rest",
   })
 }
 

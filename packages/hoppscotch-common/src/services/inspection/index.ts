@@ -16,7 +16,8 @@ import {
   EffectScope,
 } from "vue"
 import { HoppRESTResponse } from "~/helpers/types/HoppRESTResponse"
-import { RESTTabService } from "../tab/rest"
+import { UnifiedTabService } from "../tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 /**
  * Defines how to render the text in an Inspector Result
  */
@@ -120,7 +121,7 @@ export class InspectionService extends Service {
 
   private tabs: Ref<Map<string, InspectorResult[]>> = ref(new Map())
 
-  private readonly restTab = this.bind(RESTTabService)
+  private readonly tabService = this.bind(UnifiedTabService)
 
   private watcherStopHandle: (() => void) | null = null
   private effectScope: EffectScope | null = null
@@ -131,7 +132,7 @@ export class InspectionService extends Service {
     // Watch for tab changes and inspector registration to reinitialize
     // and create new debounced refs
     watch(
-      () => [this.inspectors.entries(), this.restTab.currentActiveTab.value.id],
+      () => [this.inspectors.entries(), this.tabService.currentActiveTab.value.id],
       () => {
         this.initializeListeners()
       },
@@ -158,20 +159,15 @@ export class InspectionService extends Service {
 
     this.effectScope.run(() => {
       const currentTabRequest = computed(() => {
-        if (this.restTab.currentActiveTab.value.document.type === "test-runner")
-          return null
-
-        return this.restTab.currentActiveTab.value.document.type === "request"
-          ? this.restTab.currentActiveTab.value.document.request
-          : this.restTab.currentActiveTab.value.document.response
-              .originalRequest
+        const doc = this.tabService.currentActiveTab.value.document
+        if (!isRESTDocument(doc)) return null
+        return doc.request
       })
 
       const currentTabResponse = computed(() => {
-        if (this.restTab.currentActiveTab.value.document.type === "request") {
-          return this.restTab.currentActiveTab.value.document.response
-        }
-        return null
+        const doc = this.tabService.currentActiveTab.value.document
+        if (!isRESTDocument(doc)) return null
+        return doc.response
       })
 
       const debouncedReq = refDebounced(currentTabRequest, 1000, {
@@ -202,7 +198,7 @@ export class InspectionService extends Service {
         () => [...activeInspections.value],
         () => {
           this.tabs.value.set(
-            this.restTab.currentActiveTab.value.id,
+            this.tabService.currentActiveTab.value.id,
             activeInspections.value
           )
         },

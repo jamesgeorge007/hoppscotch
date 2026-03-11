@@ -100,7 +100,7 @@ import IconCopy from "~icons/lucide/copy"
 import IconExternalLink from "~icons/lucide/external-link"
 import { useToast } from "~/composables/toast"
 import { useService } from "dioc/vue"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
 import { TeamCollectionsService } from "~/services/team-collection.service"
 import { DocumentationService } from "~/services/documentation.service"
 import { cascadeParentCollectionForProperties } from "~/newstore/collections"
@@ -152,7 +152,7 @@ const emit = defineEmits<{
   (event: "close-modal"): void
 }>()
 
-const restTabs = useService(RESTTabService)
+const restTabs = useService(UnifiedTabService)
 const teamCollectionsService = useService(TeamCollectionsService)
 const documentationService = useService(DocumentationService)
 
@@ -442,13 +442,13 @@ const openInNewTab = () => {
         collectionID: props.folderPath!,
       }
 
-      const possibleTeamTab = restTabs.getTabRefWithSaveContext(saveContext)
+      const possibleTeamTab = restTabs.getTabRefWithSaveContext("rest", saveContext)
 
       if (possibleTeamTab) {
         restTabs.setActiveTab(possibleTeamTab.value.id)
       } else {
         restTabs.createNewTab({
-          type: "request",
+          protocol: "rest",
           request: cloneDeep(props.request),
           isDirty: false,
           saveContext,
@@ -466,13 +466,13 @@ const openInNewTab = () => {
         requestRefID: requestId.value,
       }
 
-      const possibleUserTab = restTabs.getTabRefWithSaveContext(saveContext)
+      const possibleUserTab = restTabs.getTabRefWithSaveContext("rest", saveContext)
 
       if (possibleUserTab) {
         restTabs.setActiveTab(possibleUserTab.value.id)
       } else {
         restTabs.createNewTab({
-          type: "request",
+          protocol: "rest",
           request: cloneDeep(props.request),
           isDirty: false,
           saveContext,
@@ -488,7 +488,7 @@ const openInNewTab = () => {
         "Unable to determine collection type, creating tab without save context"
       )
       restTabs.createNewTab({
-        type: "request",
+        protocol: "rest",
         request: cloneDeep(props.request),
         isDirty: false,
         saveContext: undefined,

@@ -180,7 +180,7 @@ import { useReadonlyStream } from "@composables/stream"
 import { useColorMode } from "@composables/theming"
 import { platform } from "~/platform"
 import { useService } from "dioc/vue"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
 import { computed } from "vue"
 import {
   getDefaultGQLRequest,
@@ -210,7 +210,7 @@ defineProps<{
 
 const collections = useReadonlyStream(graphqlCollections$, [], "deep")
 const colorMode = useColorMode()
-const tabs = useService(GQLTabService)
+const tabs = useService(UnifiedTabService)
 
 const showModalAdd = ref(false)
 const showModalEdit = ref(false)
@@ -415,6 +415,7 @@ const onAddRequest = async ({ name, path }: { name: string; path: string }) => {
   const insertionIndex = saveGraphqlRequestAs(path, newRequest)
 
   tabs.createNewTab({
+    protocol: "graphql",
     saveContext: {
       originLocation: "user-collection",
       folderPath: path,
@@ -528,7 +529,7 @@ const selectRequest = ({
   folderPath: string
   requestIndex: number
 }) => {
-  const possibleTab = tabs.getTabRefWithSaveContext({
+  const possibleTab = tabs.getTabRefWithSaveContext("graphql", {
     originLocation: "user-collection",
     folderPath: folderPath,
     requestIndex: requestIndex,
@@ -539,6 +540,7 @@ const selectRequest = ({
     return
   }
   tabs.createNewTab({
+    protocol: "graphql",
     saveContext: {
       originLocation: "user-collection",
       folderPath: folderPath,
@@ -565,7 +567,7 @@ const dropRequest = async ({
   const isValidToken = await handleTokenValidation()
   if (!isValidToken) return
 
-  const possibleTab = tabs.getTabRefWithSaveContext({
+  const possibleTab = tabs.getTabRefWithSaveContext("graphql", {
     originLocation: "user-collection",
     folderPath,
     requestIndex: Number(requestIndex),

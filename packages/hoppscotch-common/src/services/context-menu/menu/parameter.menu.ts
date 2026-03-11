@@ -8,7 +8,8 @@ import {
 import { markRaw, ref } from "vue"
 import IconArrowDownRight from "~icons/lucide/arrow-down-right"
 import { getI18n } from "~/modules/i18n"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import { getService } from "~/modules/dioc"
 
 //regex containing both url and parameter
@@ -87,15 +88,12 @@ export class ParameterMenuService extends Service implements ContextMenu {
       queryParams.push({ key, value, active: true })
     }
 
-    const tabService = getService(RESTTabService)
+    const tabService = getService(UnifiedTabService)
 
-    if (tabService.currentActiveTab.value.document.type === "test-runner")
-      return
+    const currentDoc = tabService.currentActiveTab.value.document
+    if (!isRESTDocument(currentDoc)) return
 
-    const currentActiveRequest =
-      tabService.currentActiveTab.value.document.type === "request"
-        ? tabService.currentActiveTab.value.document.request
-        : tabService.currentActiveTab.value.document.response.originalRequest
+    const currentActiveRequest = currentDoc.request
 
     // add the parameters to the current request parameters
     currentActiveRequest.params = [

@@ -146,7 +146,8 @@ import { HoppGQLRequest } from "@hoppscotch/data"
 import { removeGraphqlRequest } from "~/newstore/collections"
 import { handleTokenValidation } from "~/helpers/handleTokenValidation"
 import { useService } from "dioc/vue"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isGQLDocument } from "~/helpers/unified/document"
 
 // Template refs
 const tippyActions = ref<any | null>(null)
@@ -158,7 +159,7 @@ const deleteAction = ref<any | null>(null)
 const t = useI18n()
 const toast = useToast()
 
-const tabs = useService(GQLTabService)
+const tabs = useService(UnifiedTabService)
 
 const props = defineProps({
   // Whether the object is selected (show the tick mark)
@@ -171,14 +172,13 @@ const props = defineProps({
 })
 
 const isActive = computed(() => {
-  const saveCtx = tabs.currentActiveTab.value?.document.saveContext
-
-  if (!saveCtx) return false
+  const doc = tabs.currentActiveTab.value?.document
+  if (!doc || !isGQLDocument(doc) || !doc.saveContext) return false
 
   return (
-    saveCtx.originLocation === "user-collection" &&
-    saveCtx.folderPath === props.folderPath &&
-    saveCtx.requestIndex === props.requestIndex
+    doc.saveContext.originLocation === "user-collection" &&
+    doc.saveContext.folderPath === props.folderPath &&
+    doc.saveContext.requestIndex === props.requestIndex
   )
 })
 
@@ -241,7 +241,7 @@ const removeRequest = async () => {
   }
 
   // Detach the request from any of the tabs
-  const possibleTab = tabs.getTabRefWithSaveContext({
+  const possibleTab = tabs.getTabRefWithSaveContext("graphql", {
     originLocation: "user-collection",
     folderPath: props.folderPath,
     requestIndex: props.requestIndex,

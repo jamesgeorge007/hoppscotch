@@ -387,7 +387,8 @@ import { currentReorderingStatus$ } from "~/newstore/reordering"
 import { platform } from "~/platform"
 import { PersistedOAuthConfig } from "~/services/oauth/oauth.service"
 import { PersistenceService } from "~/services/persistence"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import { TeamWorkspace, WorkspaceService } from "~/services/workspace.service"
 import { RESTOptionTabs } from "../http/RequestOptions.vue"
 import { Collection as NodeCollection } from "./MyCollections.vue"
@@ -402,7 +403,7 @@ import { CurrentSortValuesService } from "~/services/current-sort.service"
 
 const t = useI18n()
 const toast = useToast()
-const tabs = useService(RESTTabService)
+const tabs = useService(UnifiedTabService)
 
 const props = defineProps({
   saveRequest: {
@@ -971,7 +972,7 @@ const onAddRequest = async (requestName: string) => {
     const insertionIndex = saveRESTRequestAs(path, newRequest)
 
     tabs.createNewTab({
-      type: "request",
+      protocol: "rest",
       request: newRequest,
       isDirty: false,
       saveContext: {
@@ -1023,7 +1024,7 @@ const onAddRequest = async (requestName: string) => {
           const { createRequestInCollection } = result
 
           tabs.createNewTab({
-            type: "request",
+            protocol: "rest",
             request: newRequest,
             isDirty: false,
             saveContext: {
@@ -1326,7 +1327,7 @@ const updateEditingRequest = async (newName: string) => {
 
     if (folderPath === null || requestIndex === null) return
 
-    const possibleActiveTab = tabs.getTabRefWithSaveContext({
+    const possibleActiveTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       requestIndex,
       folderPath,
@@ -1336,7 +1337,7 @@ const updateEditingRequest = async (newName: string) => {
 
     if (
       possibleActiveTab &&
-      possibleActiveTab.value.document.type === "request"
+      isRESTDocument(possibleActiveTab.value.document)
     ) {
       possibleActiveTab.value.document.request.name = requestUpdated.name
       nextTick(() => {
@@ -1373,12 +1374,12 @@ const updateEditingRequest = async (newName: string) => {
       )
     )()
 
-    const possibleTab = tabs.getTabRefWithSaveContext({
+    const possibleTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "team-collection",
       requestID,
     })
 
-    if (possibleTab && possibleTab.value.document.type === "request") {
+    if (possibleTab && isRESTDocument(possibleTab.value.document)) {
       possibleTab.value.document.request.name = requestName
       nextTick(() => {
         possibleTab.value.document.isDirty = false
@@ -1444,14 +1445,14 @@ const updateEditingResponse = (newName: string) => {
 
     if (folderPath === null || requestIndex === null) return
 
-    const possibleExampleActiveTab = tabs.getTabRefWithSaveContext({
+    const possibleExampleActiveTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       requestIndex,
       folderPath,
       exampleID: editingResponseID.value ?? undefined,
     })
 
-    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext({
+    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       requestIndex,
       folderPath,
@@ -1461,14 +1462,11 @@ const updateEditingResponse = (newName: string) => {
 
     if (
       possibleExampleActiveTab &&
-      possibleExampleActiveTab.value.document.type === "example-response"
+      isRESTDocument(possibleExampleActiveTab.value.document)
     ) {
       possibleExampleActiveTab.value.document.response.name = newName
 
       nextTick(() => {
-        if (possibleExampleActiveTab.value.document.type === "test-runner")
-          return
-
         possibleExampleActiveTab.value.document.isDirty = false
         possibleExampleActiveTab.value.document.saveContext = {
           originLocation: "user-collection",
@@ -1482,7 +1480,7 @@ const updateEditingResponse = (newName: string) => {
     // update the request tab responses if it's open
     if (
       possibleRequestActiveTab &&
-      possibleRequestActiveTab.value.document.type === "request"
+      isRESTDocument(possibleRequestActiveTab.value.document)
     ) {
       possibleRequestActiveTab.value.document.request.responses =
         request.responses
@@ -1518,25 +1516,23 @@ const updateEditingResponse = (newName: string) => {
       )
     )()
 
-    const possibleActiveResponseTab = tabs.getTabRefWithSaveContext({
+    const possibleActiveResponseTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "team-collection",
       requestID,
       exampleID: editingResponseID.value ?? undefined,
     })
 
-    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext({
+    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "team-collection",
       requestID,
     })
 
     if (
       possibleActiveResponseTab &&
-      possibleActiveResponseTab.value.document.type === "example-response"
+      isRESTDocument(possibleActiveResponseTab.value.document)
     ) {
       possibleActiveResponseTab.value.document.response.name = newName
       nextTick(() => {
-        if (possibleActiveResponseTab.value.document.type === "test-runner")
-          return
         possibleActiveResponseTab.value.document.isDirty = false
         possibleActiveResponseTab.value.document.saveContext = {
           originLocation: "team-collection",
@@ -1549,7 +1545,7 @@ const updateEditingResponse = (newName: string) => {
     // update the request tab responses if it's open
     if (
       possibleRequestActiveTab &&
-      possibleRequestActiveTab.value.document.type === "request"
+      isRESTDocument(possibleRequestActiveTab.value.document)
     ) {
       possibleRequestActiveTab.value.document.request.responses =
         request.responses
@@ -1638,7 +1634,7 @@ const duplicateResponse = async (payload: ResponseConfigPayload) => {
     editRESTRequest(folderPath, parseInt(requestIndex), updatedRequest)
     toast.success(t("response.duplicated"))
 
-    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext({
+    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       requestIndex: parseInt(requestIndex),
       folderPath,
@@ -1647,7 +1643,7 @@ const duplicateResponse = async (payload: ResponseConfigPayload) => {
     // update the request tab responses if it's open
     if (
       possibleRequestActiveTab &&
-      possibleRequestActiveTab.value.document.type === "request"
+      isRESTDocument(possibleRequestActiveTab.value.document)
     ) {
       possibleRequestActiveTab.value.document.request.responses =
         updatedRequest.responses
@@ -1678,14 +1674,14 @@ const duplicateResponse = async (payload: ResponseConfigPayload) => {
     )()
 
     // update the request tab responses if it's open
-    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext({
+    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "team-collection",
       requestID: requestIndex,
     })
 
     if (
       possibleRequestActiveTab &&
-      possibleRequestActiveTab.value.document.type === "request"
+      isRESTDocument(possibleRequestActiveTab.value.document)
     ) {
       possibleRequestActiveTab.value.document.request.responses =
         updatedRequest.responses
@@ -1796,7 +1792,7 @@ const onAddExample = async () => {
     editRESTRequest(folderPath, requestIndex, updatedRequest)
     toast.success(t("response.saved"))
 
-    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext({
+    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       requestIndex,
       folderPath,
@@ -1805,7 +1801,7 @@ const onAddExample = async () => {
     // Update request tab responses if it's open
     if (
       possibleRequestActiveTab &&
-      possibleRequestActiveTab.value.document.type === "request"
+      isRESTDocument(possibleRequestActiveTab.value.document)
     ) {
       possibleRequestActiveTab.value.document.request.responses =
         updatedRequest.responses
@@ -1821,7 +1817,7 @@ const onAddExample = async () => {
         name: exampleName,
       },
       isDirty: false,
-      type: "example-response",
+      protocol: "rest",
       saveContext: {
         originLocation: "user-collection",
         folderPath: folderPath,
@@ -1871,14 +1867,14 @@ const onAddExample = async () => {
           if (!requestID) return
 
           // Update the request tab responses if it's open
-          const possibleRequestActiveTab = tabs.getTabRefWithSaveContext({
+          const possibleRequestActiveTab = tabs.getTabRefWithSaveContext("rest", {
             originLocation: "team-collection",
             requestID: requestID,
           })
 
           if (
             possibleRequestActiveTab &&
-            possibleRequestActiveTab.value.document.type === "request"
+            isRESTDocument(possibleRequestActiveTab.value.document)
           ) {
             possibleRequestActiveTab.value.document.request.responses =
               updatedRequest.responses
@@ -1891,7 +1887,7 @@ const onAddExample = async () => {
               name: exampleName,
             },
             isDirty: false,
-            type: "example-response",
+            protocol: "rest",
             saveContext: {
               originLocation: "team-collection",
               requestID: requestID,
@@ -2135,14 +2131,14 @@ const onRemoveRequest = async () => {
       emit("select", null)
     }
 
-    const possibleTab = tabs.getTabRefWithSaveContext({
+    const possibleTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       folderPath,
       requestIndex,
     })
 
     // If there is a tab attached to this request, dissociate its state and mark it dirty
-    if (possibleTab && possibleTab.value.document.type === "request") {
+    if (possibleTab && isRESTDocument(possibleTab.value.document)) {
       possibleTab.value.document.saveContext = null
       possibleTab.value.document.isDirty = true
 
@@ -2201,12 +2197,12 @@ const onRemoveRequest = async () => {
     )()
 
     // If there is a tab attached to this request, dissociate its state and mark it dirty
-    const possibleTab = tabs.getTabRefWithSaveContext({
+    const possibleTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "team-collection",
       requestID,
     })
 
-    if (possibleTab && possibleTab.value.document.type === "request") {
+    if (possibleTab && isRESTDocument(possibleTab.value.document)) {
       possibleTab.value.document.saveContext = null
       possibleTab.value.document.isDirty = true
 
@@ -2262,14 +2258,14 @@ const onRemoveResponse = async () => {
 
     editRESTRequest(folderPath, requestIndex, requestUpdated)
 
-    const possibleActiveResponseTab = tabs.getTabRefWithSaveContext({
+    const possibleActiveResponseTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       folderPath,
       requestIndex,
       exampleID: responseID ?? undefined,
     })
 
-    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext({
+    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       requestIndex,
       folderPath,
@@ -2278,7 +2274,7 @@ const onRemoveResponse = async () => {
     // If there is a tab attached to this request, close it and set the active tab to the first one
     if (
       possibleActiveResponseTab &&
-      possibleActiveResponseTab.value.document.type === "example-response"
+      isRESTDocument(possibleActiveResponseTab.value.document)
     ) {
       const activeTabs = tabs.getActiveTabs()
 
@@ -2290,7 +2286,7 @@ const onRemoveResponse = async () => {
         tabs.createNewTab({
           request: getDefaultRESTRequest(),
           isDirty: false,
-          type: "request",
+          protocol: "rest",
           saveContext: undefined,
         })
         tabs.closeTab(possibleActiveResponseTab.value.id)
@@ -2303,7 +2299,7 @@ const onRemoveResponse = async () => {
     // update the request tab responses if it's open
     if (
       possibleRequestActiveTab &&
-      possibleRequestActiveTab.value.document.type === "request"
+      isRESTDocument(possibleRequestActiveTab.value.document)
     ) {
       possibleRequestActiveTab.value.document.request.responses =
         requestUpdated.responses
@@ -2338,13 +2334,13 @@ const onRemoveResponse = async () => {
       )
     )()
 
-    const possibleActiveResponseTab = tabs.getTabRefWithSaveContext({
+    const possibleActiveResponseTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "team-collection",
       requestID,
       exampleID: responseID ?? undefined,
     })
 
-    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext({
+    const possibleRequestActiveTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "team-collection",
       requestID,
     })
@@ -2352,7 +2348,7 @@ const onRemoveResponse = async () => {
     // If there is a tab attached to this request, close it and set the active tab to the first one
     if (
       possibleActiveResponseTab &&
-      possibleActiveResponseTab.value.document.type === "example-response"
+      isRESTDocument(possibleActiveResponseTab.value.document)
     ) {
       const activeTabs = tabs.getActiveTabs()
 
@@ -2364,7 +2360,7 @@ const onRemoveResponse = async () => {
         tabs.createNewTab({
           request: getDefaultRESTRequest(),
           isDirty: false,
-          type: "request",
+          protocol: "rest",
           saveContext: undefined,
         })
         tabs.closeTab(possibleActiveResponseTab.value.id)
@@ -2377,7 +2373,7 @@ const onRemoveResponse = async () => {
     // update the request tab responses if it's open
     if (
       possibleRequestActiveTab &&
-      possibleRequestActiveTab.value.document.type === "request"
+      isRESTDocument(possibleRequestActiveTab.value.document)
     ) {
       possibleRequestActiveTab.value.document.request.responses =
         requestUpdated.responses
@@ -2419,16 +2415,16 @@ const selectRequest = (selectedRequest: {
         teamCollectionService.cascadeParentCollectionForProperties(folderPath)
     }
 
-    const possibleTab = tabs.getTabRefWithSaveContext({
+    const possibleTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "team-collection",
       requestID: requestIndex,
     })
 
-    if (possibleTab && possibleTab.value.document.type === "request") {
+    if (possibleTab && isRESTDocument(possibleTab.value.document)) {
       tabs.setActiveTab(possibleTab.value.id)
     } else {
       tabs.createNewTab({
-        type: "request",
+        protocol: "rest",
         request: cloneDeep(request),
         isDirty: false,
         saveContext: {
@@ -2442,7 +2438,7 @@ const selectRequest = (selectedRequest: {
       })
     }
   } else {
-    possibleTab = tabs.getTabRefWithSaveContext({
+    possibleTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       requestIndex: parseInt(requestIndex),
       folderPath: folderPath!,
@@ -2454,7 +2450,7 @@ const selectRequest = (selectedRequest: {
     } else {
       // If not, open the request in a new tab
       tabs.createNewTab({
-        type: "request",
+        protocol: "rest",
         request: cloneDeep(request),
         isDirty: false,
         saveContext: {
@@ -2485,7 +2481,7 @@ const selectResponse = (payload: {
   const response = request.responses[responseName]
 
   if (collectionsType.value.type === "my-collections") {
-    const possibleTab = tabs.getTabRefWithSaveContext({
+    const possibleTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       requestIndex: parseInt(requestIndex),
       folderPath: folderPath!,
@@ -2501,7 +2497,7 @@ const selectResponse = (payload: {
           name: responseName,
         },
         isDirty: false,
-        type: "example-response",
+        protocol: "rest",
         saveContext: {
           originLocation: "user-collection",
           folderPath: folderPath!,
@@ -2515,7 +2511,7 @@ const selectResponse = (payload: {
       })
     }
   } else {
-    const possibleTab = tabs.getTabRefWithSaveContext({
+    const possibleTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "team-collection",
       requestID: requestIndex,
       exampleID: responseID,
@@ -2530,7 +2526,7 @@ const selectResponse = (payload: {
           name: responseName,
         },
         isDirty: false,
-        type: "example-response",
+        protocol: "rest",
         saveContext: {
           originLocation: "team-collection",
           requestID: requestIndex,
@@ -2582,7 +2578,7 @@ const dropRequest = async (payload: {
   if (collectionsType.value.type === "my-collections") {
     const isValidToken = await handleTokenValidation()
     if (!isValidToken) return
-    possibleTab = tabs.getTabRefWithSaveContext({
+    possibleTab = tabs.getTabRefWithSaveContext("rest", {
       originLocation: "user-collection",
       folderPath,
       requestIndex: pathToLastIndex(requestIndex),
@@ -2590,7 +2586,7 @@ const dropRequest = async (payload: {
     })
 
     // If there is a tab attached to this request, change save its save context
-    if (possibleTab && possibleTab.value.document.type === "request") {
+    if (possibleTab && isRESTDocument(possibleTab.value.document)) {
       possibleTab.value.document.saveContext = {
         originLocation: "user-collection",
         folderPath: destinationCollectionIndex,
@@ -2641,12 +2637,12 @@ const dropRequest = async (payload: {
             1
           )
 
-          possibleTab = tabs.getTabRefWithSaveContext({
+          possibleTab = tabs.getTabRefWithSaveContext("rest", {
             originLocation: "team-collection",
             requestID: requestIndex,
           })
 
-          if (possibleTab && possibleTab.value.document.type === "request") {
+          if (possibleTab && isRESTDocument(possibleTab.value.document)) {
             possibleTab.value.document.saveContext = {
               originLocation: "team-collection",
               requestID: requestIndex,

@@ -71,11 +71,12 @@ import { disconnect } from "~/helpers/graphql/connection"
 import { KernelInterceptorService } from "~/services/kernel-interceptor.service"
 import { useService } from "dioc/vue"
 import { defineActionHandler } from "~/helpers/actions"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isGQLDocument } from "~/helpers/unified/document"
 import { HoppGQLAuth, HoppGQLRequest } from "@hoppscotch/data"
 
 const t = useI18n()
-const tabs = useService(GQLTabService)
+const tabs = useService(UnifiedTabService)
 
 const interceptorService = useService(KernelInterceptorService)
 
@@ -83,10 +84,19 @@ const connectionSwitchModal = ref(false)
 
 const connected = computed(() => connection.state === "CONNECTED")
 
+// This component only renders for GQL tabs
+const currentGQLDoc = computed(() => {
+  const doc = tabs.currentActiveTab.value?.document
+  return doc && isGQLDocument(doc) ? doc : null
+})
+
 const url = computed({
-  get: () => tabs.currentActiveTab.value?.document.request.url ?? "",
+  get: () => currentGQLDoc.value?.request.url ?? "",
   set: (value) => {
-    tabs.currentActiveTab.value!.document.request.url = value
+    const doc = tabs.currentActiveTab.value?.document
+    if (doc && isGQLDocument(doc)) {
+      doc.request.url = value
+    }
   },
 })
 
@@ -99,8 +109,11 @@ const onConnectClick = () => {
 }
 
 const gqlConnect = () => {
+  const doc = currentGQLDoc.value
+  if (!doc) return
+
   const inheritedHeaders =
-    tabs.currentActiveTab.value.document.inheritedProperties?.headers.map(
+    doc.inheritedProperties?.headers.map(
       (header) => {
         if (header.inheritedHeader) {
           return header.inheritedHeader
@@ -111,9 +124,9 @@ const gqlConnect = () => {
 
   connect({
     url: url.value,
-    request: tabs.currentActiveTab.value.document.request,
+    request: doc.request,
     inheritedHeaders,
-    inheritedAuth: tabs.currentActiveTab.value.document.inheritedProperties
+    inheritedAuth: doc.inheritedProperties
       ?.auth.inheritedAuth as HoppGQLAuth,
   })
 
@@ -134,7 +147,7 @@ const lastTwoUrls = ref<string[]>([])
 watch(
   tabs.currentActiveTab,
   (newVal) => {
-    if (newVal) {
+    if (newVal && isGQLDocument(newVal.document)) {
       lastTwoUrls.value.push(newVal.document.request.url)
       if (lastTwoUrls.value.length > 2) {
         lastTwoUrls.value.shift()

@@ -2,7 +2,8 @@ import { Service } from "dioc"
 import { markRaw, ref } from "vue"
 import { getDefaultRESTRequest } from "~/helpers/rest/default"
 import { getI18n } from "~/modules/i18n"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import IconCopyPlus from "~icons/lucide/copy-plus"
 import IconLock from "~icons/lucide/lock"
 import IconUnlock from "~icons/lucide/unlock"
@@ -60,7 +61,7 @@ export class URLMenuService extends Service implements ContextMenu {
   public readonly menuID = "url"
 
   private readonly contextMenu = this.bind(ContextMenuService)
-  private readonly restTab = this.bind(RESTTabService)
+  private readonly tabs = this.bind(UnifiedTabService)
 
   override onServiceInit() {
     this.contextMenu.registerMenu(this)
@@ -77,8 +78,8 @@ export class URLMenuService extends Service implements ContextMenu {
       endpoint: url,
     }
 
-    this.restTab.createNewTab({
-      type: "request",
+    this.tabs.createNewTab({
+      protocol: "rest",
       request: request,
       isDirty: false,
     })
@@ -90,9 +91,9 @@ export class URLMenuService extends Service implements ContextMenu {
    * @param replacement The replacement text (encoded or decoded)
    */
   private replaceSelectedText(selectedText: string, replacement: string) {
-    const currentTab = this.restTab.currentActiveTab.value
+    const currentTab = this.tabs.currentActiveTab.value
 
-    if (!currentTab || currentTab.document.type !== "request") {
+    if (!currentTab || !isRESTDocument(currentTab.document)) {
       return
     }
 

@@ -140,12 +140,12 @@ import {
   Language,
 } from "~/helpers/utils/interfaceLanguages"
 import { toggleNestedSetting } from "~/newstore/settings"
-import { RESTTabService } from "~/services/tab/rest"
 import IconCheck from "~icons/lucide/check"
 import IconWrapText from "~icons/lucide/wrap-text"
 import jsonToLanguage from "~/helpers/utils/json-to-language"
 import { watch } from "vue"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument, isGQLDocument } from "~/helpers/unified/document"
 import { useColorMode } from "~/composables/theming"
 
 const t = useI18n()
@@ -159,49 +159,21 @@ const emit = defineEmits<{
   (e: "close"): void
 }>()
 
-const restTabs = useService(RESTTabService)
-const gqlTabs = useService(GQLTabService)
-
-function getCurrentPageCategory(): "graphql" | "rest" | "other" {
-  try {
-    const url = new URL(window.location.href)
-
-    if (url.pathname.startsWith("/graphql")) {
-      return "graphql"
-    } else if (url.pathname === "/") {
-      return "rest"
-    }
-    return "other"
-  } catch (_e) {
-    return "other"
-  }
-}
+const tabs = useService(UnifiedTabService)
 
 const selectedInterface = ref<InterfaceLanguage>("typescript")
 const response = computed(() => {
   let response = ""
-  const pageCategory = getCurrentPageCategory()
+  const doc = tabs.currentActiveTab.value?.document
+  if (!doc) return response
 
-  if (pageCategory === "rest") {
-    const doc = restTabs.currentActiveTab.value.document
-    if (doc.type === "request") {
-      const res = doc.response
-      if (res?.type === "success" || res?.type === "fail") {
-        response = getResponseBodyText(res.body)
-      }
-    } else if (doc.type === "test-runner") {
-      const res = doc.request?.response
-      if (res?.type === "success" || res?.type === "fail") {
-        response = getResponseBodyText(res.body)
-      }
-    } else {
-      const res = doc.response.body
-      response = res
+  if (isRESTDocument(doc)) {
+    const res = doc.response
+    if (res?.type === "success" || res?.type === "fail") {
+      response = getResponseBodyText(res.body)
     }
-  }
-
-  if (pageCategory === "graphql") {
-    const res = gqlTabs.currentActiveTab.value.document.response
+  } else if (isGQLDocument(doc)) {
+    const res = doc.response
     if (res && res.length === 1 && res[0].type === "response" && res[0].data) {
       response = JSON.stringify(JSON.parse(res[0].data), null, 2)
     }

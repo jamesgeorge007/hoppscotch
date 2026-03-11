@@ -98,7 +98,8 @@ import IconEye from "~icons/lucide/eye"
 import IconEyeoff from "~icons/lucide/eye-off"
 import { CompletionContext, autocompletion } from "@codemirror/autocomplete"
 import { useService } from "dioc/vue"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import { syntaxTree } from "@codemirror/language"
 import { uniqueID } from "~/helpers/utils/uniqueID"
 import { transformInheritedCollectionVariablesToAggregateEnv } from "~/helpers/utils/inheritedCollectionVarTransformer"
@@ -389,7 +390,7 @@ const aggregateEnvs = useReadonlyStream(
   []
 ) as Ref<AggregateEnvironment[]>
 
-const tabs = useService(RESTTabService)
+const tabs = useService(UnifiedTabService)
 
 const envVars = computed(() => {
   // If envs are passed directly as props, mask secrets and return them
@@ -407,24 +408,20 @@ const envVars = computed(() => {
 
   const currentTab = tabs.currentActiveTab.value
   const { document } = currentTab
-  const isRequest = document.type === "request"
-  const isExample = document.type === "example-response"
+
+  if (!isRESTDocument(document)) {
+    return aggregateEnvs.value
+  }
 
   // variables inherited from the collection if we're in a request or example
   const collectionVariables =
-    isRequest || isExample
-      ? transformInheritedCollectionVariablesToAggregateEnv(
-          document.inheritedProperties?.variables ?? [],
-          false
-        )
-      : []
+    transformInheritedCollectionVariablesToAggregateEnv(
+      document.inheritedProperties?.variables ?? [],
+      false
+    )
 
   // request-level variables
-  const rawRequestVars = isRequest
-    ? document.request.requestVariables
-    : isExample
-      ? document.response.originalRequest.requestVariables
-      : []
+  const rawRequestVars = document.request.requestVariables
 
   // formated request variables
   const requestVariables = rawRequestVars

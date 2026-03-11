@@ -210,7 +210,7 @@ import IconHome from "~icons/lucide/home"
 import IconRefreshCW from "~icons/lucide/refresh-cw"
 import { getDefaultRESTRequest } from "~/helpers/rest/default"
 import { platform } from "~/platform"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
 import { useService } from "dioc/vue"
 import { invokeAction } from "~/helpers/actions"
 import { useColorMode } from "~/composables/theming"
@@ -222,7 +222,7 @@ const router = useRouter()
 
 const t = useI18n()
 
-const tabs = useService(RESTTabService)
+const tabs = useService(UnifiedTabService)
 
 const invalidLink = ref(false)
 const sharedRequestID = ref("")
@@ -289,7 +289,7 @@ const addRequestToTab = () => {
     const request: unknown = JSON.parse(data.right.shortcode?.request as string)
 
     tabs.createNewTab({
-      type: "request",
+      protocol: "rest",
       request: safelyExtractRESTRequest(request, getDefaultRESTRequest()),
       isDirty: false,
     })

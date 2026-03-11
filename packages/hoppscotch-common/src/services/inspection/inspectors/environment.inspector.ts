@@ -21,7 +21,8 @@ import {
 import { invokeAction } from "~/helpers/actions"
 import { useStreamStatic } from "~/composables/stream"
 import { SecretEnvironmentService } from "~/services/secret-environment.service"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import { CurrentValueService } from "~/services/current-environment-value.service"
 import { transformInheritedCollectionVariablesToAggregateEnv } from "~/helpers/utils/inheritedCollectionVarTransformer"
 import { HOPP_ENVIRONMENT_REGEX } from "~/helpers/environment-regex"
@@ -45,7 +46,7 @@ export class EnvironmentInspectorService extends Service implements Inspector {
   private readonly inspection = this.bind(InspectionService)
   private readonly secretEnvs = this.bind(SecretEnvironmentService)
   private readonly currentEnvs = this.bind(CurrentValueService)
-  private readonly restTabs = this.bind(RESTTabService)
+  private readonly tabs = this.bind(UnifiedTabService)
 
   private aggregateEnvsWithValue = useStreamStatic(
     aggregateEnvsWithCurrentValue$,
@@ -71,24 +72,19 @@ export class EnvironmentInspectorService extends Service implements Inspector {
     locations: InspectorLocation
   ) => {
     const newErrors: InspectorResult[] = []
-    const currentTab = this.restTabs.currentActiveTab.value
+    const currentTab = this.tabs.currentActiveTab.value
+    const currentDoc = currentTab.document
 
-    // Get the current request or example-response request
-    const currentTabRequest =
-      currentTab.document.type === "request"
-        ? currentTab.document.request
-        : currentTab.document.type === "example-response"
-          ? currentTab.document.response.originalRequest
-          : null
+    // Only inspect REST documents
+    if (!isRESTDocument(currentDoc)) return newErrors
+
+    const currentTabRequest = currentDoc.request
 
     // inherited collection-level variables
     const collectionVariables =
-      currentTab.document.type === "request" ||
-      currentTab.document.type === "example-response"
-        ? transformInheritedCollectionVariablesToAggregateEnv(
-            currentTab.document.inheritedProperties?.variables ?? []
-          )
-        : []
+      transformInheritedCollectionVariablesToAggregateEnv(
+        currentDoc.inheritedProperties?.variables ?? []
+      )
 
     // request variables (active only)
     const requestVariables =
@@ -207,19 +203,17 @@ export class EnvironmentInspectorService extends Service implements Inspector {
       matches?.forEach((exEnv) => {
         const formattedExEnv = exEnv.slice(2, -2)
         const currentSelectedEnvironment = getCurrentEnvironment()
-        const currentTab = this.restTabs.currentActiveTab.value
+        const currentTab = this.tabs.currentActiveTab.value
+        const currentDoc = currentTab.document
 
-        // Get current request or example
-        const currentTabRequest =
-          currentTab.document.type === "request"
-            ? currentTab.document.request
-            : currentTab.document.type === "example-response"
-              ? currentTab.document.response.originalRequest
-              : null
+        // Only inspect REST documents
+        if (!isRESTDocument(currentDoc)) return
+
+        const currentTabRequest = currentDoc.request
 
         // request variables (active only)
         const requestVariables =
-          currentTabRequest?.requestVariables
+          currentTabRequest.requestVariables
             .filter((v) => v.active)
             .map(({ key, value }) => ({
               key,
@@ -227,17 +221,14 @@ export class EnvironmentInspectorService extends Service implements Inspector {
               initialValue: value,
               sourceEnv: "RequestVariable",
               secret: false,
-            })) ?? []
+            }))
 
         // inherited collection variables
         const collectionVariables =
-          currentTab.document.type === "request" ||
-          currentTab.document.type === "example-response"
-            ? transformInheritedCollectionVariablesToAggregateEnv(
-                currentTab.document.inheritedProperties?.variables ?? [],
-                false
-              )
-            : []
+          transformInheritedCollectionVariablesToAggregateEnv(
+            currentDoc.inheritedProperties?.variables ?? [],
+            false
+          )
 
         // Merge all variables
         const environmentVariables = this.filterNonEmptyEnvironmentVariables([
@@ -314,9 +305,9 @@ export class EnvironmentInspectorService extends Service implements Inspector {
                   // If it's a request variable, open the requestVariables tab
                   if (
                     env.sourceEnv === "RequestVariable" &&
-                    currentTab.document.type === "request"
+                    isRESTDocument(currentDoc)
                   ) {
-                    currentTab.document.optionTabPreference = "requestVariables"
+                    currentDoc.optionTabPreference = "requestVariables"
                   } else {
                     invokeAction(invokeActionType, {
                       envName:

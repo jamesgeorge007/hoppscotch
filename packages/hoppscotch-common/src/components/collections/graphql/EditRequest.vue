@@ -104,7 +104,7 @@ import {
   useSubmitFeedback,
 } from "~/composables/ai-experiments"
 import { editGraphqlRequest } from "~/newstore/collections"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
 import IconSparkle from "~icons/lucide/sparkles"
 import IconThumbsUp from "~icons/lucide/thumbs-up"
 import IconThumbsDown from "~icons/lucide/thumbs-down"
@@ -112,7 +112,7 @@ import { handleTokenValidation } from "~/helpers/handleTokenValidation"
 
 const t = useI18n()
 const toast = useToast()
-const tabs = useService(GQLTabService)
+const tabs = useService(UnifiedTabService)
 
 const props = defineProps<{
   show: boolean
@@ -171,7 +171,7 @@ const saveRequest = async () => {
   }
 
   // Future TODO: Move below store and follow up tab updates to the page level
-  const possibleActiveTab = tabs.getTabRefWithSaveContext({
+  const possibleActiveTab = tabs.getTabRefWithSaveContext("graphql", {
     originLocation: "user-collection",
     requestIndex: props.requestIndex!,
     folderPath: props.folderPath!,

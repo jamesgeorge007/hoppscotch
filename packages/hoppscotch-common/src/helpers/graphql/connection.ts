@@ -26,7 +26,7 @@ import { getI18n } from "~/modules/i18n"
 import { addGraphqlHistoryEntry, makeGQLHistoryEntry } from "~/newstore/history"
 
 import { KernelInterceptorService } from "~/services/kernel-interceptor.service"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
 
 import { MediaType, content, Method, RelayRequest } from "@hoppscotch/kernel"
 import { GQLRequest } from "~/helpers/kernel/gql/request"
@@ -112,7 +112,7 @@ type Connection = {
   } | null
 }
 
-const tabs = getService(GQLTabService)
+const tabs = getService(UnifiedTabService)
 const currentTabID = computed(() => tabs.currentTabID.value)
 
 export const connection = reactive<Connection>({

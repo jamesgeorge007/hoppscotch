@@ -84,14 +84,15 @@ import {
   updateEnvironment,
 } from "~/newstore/environments"
 import { CurrentValueService } from "~/services/current-environment-value.service"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import { Scope } from "./Selector.vue"
 import { GlobalEnvironment } from "@hoppscotch/data"
 
 const t = useI18n()
 const toast = useToast()
 
-const tabs = useService(RESTTabService)
+const tabs = useService(UnifiedTabService)
 const currentEnvironmentValueService = useService(CurrentValueService)
 
 const props = defineProps<{
@@ -237,11 +238,13 @@ const addEnvironment = async () => {
     //replace the current tab endpoint with the variable name with << and >>
     const variableName = `<<${editingName.value}>>`
     //replace the currenttab endpoint containing the value in the text with variablename
-    tabs.currentActiveTab.value.document.request.endpoint =
-      tabs.currentActiveTab.value.document.request.endpoint.replace(
+    const doc = tabs.currentActiveTab.value.document
+    if (isRESTDocument(doc)) {
+      doc.request.endpoint = doc.request.endpoint.replace(
         editingValue.value,
         variableName
       )
+    }
   }
 
   hideModal()

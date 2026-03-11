@@ -19,7 +19,8 @@ import IconPlay from "~icons/lucide/play"
 import IconRotateCCW from "~icons/lucide/rotate-ccw"
 import IconSave from "~icons/lucide/save"
 import { GQLOptionTabs } from "~/components/graphql/RequestOptions.vue"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import { Container } from "dioc"
 
 type Doc = {
@@ -44,15 +45,18 @@ export class RequestSpotlightSearcherService extends StaticSpotlightSearcherServ
   public searcherSectionTitle = this.t("shortcut.request.title")
 
   private readonly spotlight = this.bind(SpotlightService)
-  private readonly restTab = this.bind(RESTTabService)
+  private readonly tabs = this.bind(UnifiedTabService)
 
   private route = useRoute()
   private isRESTPage = computed(
     () =>
       this.route.name === "index" &&
-      this.restTab.currentActiveTab.value.document.type === "request"
+      isRESTDocument(this.tabs.currentActiveTab.value.document)
   )
-  private isGQLPage = computed(() => this.route.name === "graphql")
+  private isGQLPage = computed(() =>
+    this.route.name === "index" &&
+    !isRESTDocument(this.tabs.currentActiveTab.value.document)
+  )
   private isRESTOrGQLPage = computed(
     () => this.isRESTPage.value || this.isGQLPage.value
   )
@@ -273,15 +277,14 @@ export class RequestSpotlightSearcherService extends StaticSpotlightSearcherServ
       case "gql_disconnect":
         invokeAction("gql.disconnect")
         break
-      case "save_to_collections":
+      case "save_to_collections": {
+        const doc = this.tabs.currentActiveTab.value?.document
         invokeAction("request.save-as", {
           requestType: "rest",
-          request:
-            this.restTab.currentActiveTab.value?.document.type === "request"
-              ? this.restTab.currentActiveTab.value?.document.request
-              : null,
+          request: doc && isRESTDocument(doc) ? doc.request : null,
         })
         break
+      }
       case "save_request":
         invokeAction("request-response.save")
         break

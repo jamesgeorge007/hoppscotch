@@ -97,12 +97,12 @@ import { useColorMode } from "@composables/theming"
 import { getStatusCodeReasonPhrase } from "~/helpers/utils/statusCodes"
 import { useService } from "dioc/vue"
 import { InspectionService } from "~/services/inspection"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
 import IconExternalLink from "~icons/lucide/external-link"
 
 const t = useI18n()
 const colorMode = useColorMode()
-const tabs = useService(GQLTabService)
+const tabs = useService(UnifiedTabService)
 
 const props = defineProps<{
   response: GQLResponseEvent[] | null | undefined

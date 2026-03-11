@@ -562,8 +562,8 @@ import {
 } from "~/services/oauth/oauth.service"
 import * as E from "fp-ts/Either"
 import { PersistenceService } from "~/services/persistence"
-import { GQLTabService } from "~/services/tab/graphql"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument, isGQLDocument } from "~/helpers/unified/document"
 import IconChevronDown from "~icons/lucide/chevron-down"
 import IconChevronUp from "~icons/lucide/chevron-up"
 import IconCircle from "~icons/lucide/circle"
@@ -669,8 +669,7 @@ const passBy = computed(() => {
   )
 })
 
-const gqlTabsService = useService(GQLTabService)
-const restTabsService = useService(RESTTabService)
+const tabsService = useService(UnifiedTabService)
 const persistenceService = useService(PersistenceService)
 
 const setAccessTokenInActiveContext = (
@@ -698,46 +697,24 @@ const setAccessTokenInActiveContext = (
     return
   }
 
-  if (props.source === "REST") {
-    const restTab = restTabsService.currentActiveTab.value
-    if (
-      "request" in restTab.document &&
-      restTab.document.request &&
-      restTab.document.request.auth.authType === "oauth-2" &&
-      accessToken
-    ) {
-      restTab.document.request.auth.grantTypeInfo.token = accessToken
-    }
+  const doc = tabsService.currentActiveTab.value?.document
+  if (!doc) return
 
-    if (
-      refreshToken &&
-      "request" in restTab.document &&
-      restTab.document.request &&
-      restTab.document.request.auth.authType === "oauth-2"
-    ) {
-      // @ts-expect-error - TODO: narrow the grantType to only supporting refresh tokens
-      restTab.document.request.auth.grantTypeInfo.refreshToken = refreshToken
-    }
-  } else {
-    const gqlTab = gqlTabsService.currentActiveTab.value
-    if (
-      "request" in gqlTab.document &&
-      gqlTab.document.request &&
-      gqlTab.document.request.auth.authType === "oauth-2" &&
-      accessToken
-    ) {
-      gqlTab.document.request.auth.grantTypeInfo.token = accessToken
-    }
+  if (
+    doc.request &&
+    doc.request.auth.authType === "oauth-2" &&
+    accessToken
+  ) {
+    doc.request.auth.grantTypeInfo.token = accessToken
+  }
 
-    if (
-      refreshToken &&
-      "request" in gqlTab.document &&
-      gqlTab.document.request &&
-      gqlTab.document.request.auth.authType === "oauth-2"
-    ) {
-      // @ts-expect-error - TODO: narrow the grantType to only supporting refresh tokens
-      gqlTab.document.request.auth.grantTypeInfo.refreshToken = refreshToken
-    }
+  if (
+    refreshToken &&
+    doc.request &&
+    doc.request.auth.authType === "oauth-2"
+  ) {
+    // @ts-expect-error - TODO: narrow the grantType to only supporting refresh tokens
+    doc.request.auth.grantTypeInfo.refreshToken = refreshToken
   }
 }
 

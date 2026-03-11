@@ -235,7 +235,7 @@ import { computed, ref } from "vue"
 import { handleTokenValidation } from "~/helpers/handleTokenValidation"
 import { Picked } from "~/helpers/types/HoppPicked"
 import { removeGraphqlFolder } from "~/newstore/collections"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
 import IconCheckCircle from "~icons/lucide/check-circle"
 import IconCopy from "~icons/lucide/copy"
 import IconEdit from "~icons/lucide/edit"
@@ -251,7 +251,7 @@ const toast = useToast()
 const t = useI18n()
 const colorMode = useColorMode()
 
-const tabs = useService(GQLTabService)
+const tabs = useService(UnifiedTabService)
 
 const props = defineProps<{
   picked: Picked

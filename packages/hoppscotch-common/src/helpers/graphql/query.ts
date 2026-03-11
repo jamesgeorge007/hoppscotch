@@ -13,7 +13,8 @@ import {
   print,
 } from "graphql"
 import { ref } from "vue"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isGQLDocument } from "~/helpers/unified/document"
 import { ExplorerFieldDef, ExplorerNavStackItem, useExplorer } from "./explorer"
 
 /**
@@ -32,7 +33,7 @@ const operations = ref<OperationDefinitionNode[]>([])
  * Provides functionality for building and modifying GraphQL operations
  */
 export function useQuery() {
-  const tabs = useService(GQLTabService)
+  const tabs = useService(UnifiedTabService)
   const { navStack } = useExplorer()
 
   /**
@@ -316,7 +317,7 @@ export function useQuery() {
    */
   const handleOperation = (item: ExplorerFieldDef, isArgument = false) => {
     const currentTab = tabs.currentActiveTab.value
-    if (!currentTab) return
+    if (!currentTab || !isGQLDocument(currentTab.document)) return
 
     const currentQuery = currentTab.document.request.query || ""
     const selectedOperation = getOperation(
@@ -375,8 +376,9 @@ export function useQuery() {
   }
 
   const isFieldInOperation = (item: ExplorerFieldDef): boolean => {
+    const doc = tabs.currentActiveTab.value?.document
     const operation = getOperation(
-      tabs.currentActiveTab.value?.document.cursorPosition || 0
+      doc && isGQLDocument(doc) ? doc.cursorPosition || 0 : 0
     )
     if (!operation) return false
 
@@ -408,7 +410,9 @@ export function useQuery() {
   }
 
   const isArgumentInOperation = (item: ExplorerFieldDef): boolean => {
-    const { cursorPosition } = tabs.currentActiveTab.value?.document
+    const doc = tabs.currentActiveTab.value?.document
+    if (!doc || !isGQLDocument(doc)) return false
+    const cursorPosition = doc.cursorPosition || 0
     const operation = getOperation(cursorPosition)
     if (!operation) return false
 

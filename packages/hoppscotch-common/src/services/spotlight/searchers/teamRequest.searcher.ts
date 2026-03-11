@@ -14,7 +14,7 @@ import IconFolder from "~icons/lucide/folder"
 import IconImport from "~icons/lucide/folder-down"
 import { WorkspaceService } from "~/services/workspace.service"
 import RESTTeamRequestEntry from "~/components/app/spotlight/entry/RESTTeamRequestEntry.vue"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
 import { HoppInheritedProperty } from "~/helpers/types/HoppInheritedProperties"
 import { HoppRESTRequest } from "@hoppscotch/data"
 import MiniSearch from "minisearch"
@@ -37,7 +37,7 @@ export class TeamsSpotlightSearcherService
 
   private readonly workspaceService = this.bind(WorkspaceService)
 
-  private readonly tabs = this.bind(RESTTabService)
+  private readonly tabs = this.bind(UnifiedTabService)
 
   override onServiceInit() {
     this.spotlight.registerSearcher(this)
@@ -224,7 +224,7 @@ export class TeamsSpotlightSearcherService
         collectionID
       )
 
-    const possibleTab = this.tabs.getTabRefWithSaveContext({
+    const possibleTab = this.tabs.getTabRefWithSaveContext("rest", {
       originLocation: "team-collection",
       requestID: result.id,
     })
@@ -233,9 +233,9 @@ export class TeamsSpotlightSearcherService
       this.tabs.setActiveTab(possibleTab.value.id)
     } else {
       this.tabs.createNewTab({
+        protocol: "rest",
         request: cloneDeep(selectedRequest.request as HoppRESTRequest),
         isDirty: false,
-        type: "request",
         saveContext: {
           originLocation: "team-collection",
           requestID: selectedRequest.id,

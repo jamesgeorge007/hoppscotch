@@ -128,7 +128,8 @@ import { ref, PropType, computed } from "vue"
 import { useI18n } from "@composables/i18n"
 import { TippyComponent } from "vue-tippy"
 import { useService } from "dioc/vue"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import { HoppRESTRequestResponse } from "@hoppscotch/data"
 import { HoppRESTSaveContext } from "~/helpers/rest/document"
 import findStatusGroup from "@helpers/findStatusGroup"
@@ -184,7 +185,7 @@ const emit = defineEmits<{
   (event: "select-response", payload: ResponsePayload): void
 }>()
 
-const tabs = useService(RESTTabService)
+const tabs = useService(UnifiedTabService)
 
 const pathToIndex = (path: string) => {
   const pathArr = path.split("/")
@@ -209,7 +210,11 @@ const getSaveContext = (): HoppRESTSaveContext => {
   }
 }
 
-const active = computed(() => tabs.currentActiveTab.value.document.saveContext)
+const active = computed(() => {
+  const doc = tabs.currentActiveTab.value.document
+  if (!isRESTDocument(doc)) return undefined
+  return doc.saveContext
+})
 
 const isActiveExample = computed(() => {
   const saveCtx = getSaveContext()

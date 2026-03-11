@@ -24,7 +24,8 @@ import {
   getSelectedEnvironmentType,
 } from "~/newstore/environments"
 import { SecretEnvironmentService } from "~/services/secret-environment.service"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import { CurrentValueService } from "~/services/current-environment-value.service"
 
 import IconEdit from "~icons/lucide/edit?raw"
@@ -58,7 +59,7 @@ const TOOLTIP_ENV_CONTAINER_Z_INDEX_CLASS = "!z-[1002]"
 
 const secretEnvironmentService = getService(SecretEnvironmentService)
 const currentEnvironmentValueService = getService(CurrentValueService)
-const restTabs = getService(RESTTabService)
+const tabs = getService(UnifiedTabService)
 
 /**
  * Transforms the environment list to a list with unique keys with value
@@ -236,12 +237,12 @@ const cursorTooltipField = (aggregateEnvs: AggregateEnvironment[]) =>
             invokeActionType = "modals.my.environment.edit"
           }
 
+          const activeDoc = tabs.currentActiveTab.value.document
           if (
             tooltipEnv?.sourceEnv === "RequestVariable" &&
-            restTabs.currentActiveTab.value.document.type === "request"
+            isRESTDocument(activeDoc)
           ) {
-            restTabs.currentActiveTab.value.document.optionTabPreference =
-              "requestVariables"
+            activeDoc.optionTabPreference = "requestVariables"
           } else {
             invokeAction(invokeActionType, {
               envName: tooltipEnv?.sourceEnv === "Global" ? "Global" : envName,
@@ -404,26 +405,15 @@ export class HoppEnvironmentPlugin {
   ) {
     // Watch the current active tab to update the variables accordingly
     watch(
-      () => restTabs.currentActiveTab.value,
+      () => tabs.currentActiveTab.value,
       (currentTab) => {
-        const request =
-          currentTab.document.type === "example-response"
-            ? currentTab.document.response.originalRequest
-            : currentTab.document.request
+        const doc = currentTab.document
+        if (!isRESTDocument(doc)) return
+        const request = doc.request
 
-        const inheritedProperties = currentTab.document.inheritedProperties
+        const collectionVariables = doc.inheritedProperties?.variables ?? []
 
-        // Extract collection variables safely, handling undefined or non-inherited-property types
-        const collectionVariables =
-          inheritedProperties && "variables" in inheritedProperties
-            ? inheritedProperties.variables
-            : []
-
-        // Get request variables if available, otherwise use empty array
-        const requestVariables =
-          request && "requestVariables" in request
-            ? request.requestVariables
-            : []
+        const requestVariables = request.requestVariables ?? []
 
         const requestAndCollVars = getRequestAndCollectionVariables(
           requestVariables,
@@ -445,20 +435,13 @@ export class HoppEnvironmentPlugin {
 
     subscribeToStream(aggregateEnvsWithCurrentValue$, (envs) => {
       // Recompute request and collection variables from current tab to avoid stale closure values
-      const tab = restTabs.currentActiveTab.value
-      const request =
-        tab.document.type === "example-response"
-          ? tab.document.response.originalRequest
-          : tab.document.request
-      const inheritedProperties = tab.document.inheritedProperties
-
-      // Get request variables if available, otherwise use empty array
-      const requestVariables =
-        request && "requestVariables" in request ? request.requestVariables : []
+      const tab = tabs.currentActiveTab.value
+      const tabDoc = tab.document
+      if (!isRESTDocument(tabDoc)) return
 
       const freshRequestAndCollVars = getRequestAndCollectionVariables(
-        requestVariables,
-        inheritedProperties?.variables ?? []
+        tabDoc.request.requestVariables ?? [],
+        tabDoc.inheritedProperties?.variables ?? []
       )
 
       this.envs = [...freshRequestAndCollVars, ...envs]

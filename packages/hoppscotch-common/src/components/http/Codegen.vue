@@ -142,7 +142,8 @@ import { onMounted } from "vue"
 import { useNestedSetting } from "~/composables/settings"
 import { toggleNestedSetting } from "~/newstore/settings"
 import { platform } from "~/platform"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import IconCheck from "~icons/lucide/check"
 import IconWrapText from "~icons/lucide/wrap-text"
 import { asyncComputed } from "@vueuse/core"
@@ -154,22 +155,15 @@ import { filterNonEmptyEnvironmentVariables } from "~/helpers/RequestRunner"
 
 const t = useI18n()
 
-const tabs = useService(RESTTabService)
+const tabs = useService(UnifiedTabService)
 const currentEnvironmentValueService = useService(CurrentValueService)
 
 // Get the current active request if the current active tab is a request else get the original request from the response tab
 const currentActiveRequest = computed(() => {
   let effectiveRequest = null
 
-  if (currentActiveTabDocument.value.type === "request") {
+  if (isRESTDocument(currentActiveTabDocument.value)) {
     effectiveRequest = currentActiveTabDocument.value.request
-  }
-
-  if (currentActiveTabDocument.value.type === "example-response") {
-    effectiveRequest = makeRESTRequest({
-      ...getDefaultRESTRequest(),
-      ...currentActiveTabDocument.value.response.originalRequest,
-    })
   }
 
   return cloneDeep(effectiveRequest) ?? getDefaultRESTRequest()
@@ -327,7 +321,7 @@ const buildFinalRequest = (auth: HoppRESTAuth, headers: HoppRESTHeaders) => {
  */
 const requestCode = asyncComputed(async (): Promise<string> => {
   try {
-    if (currentActiveTabDocument.value.type !== "request") {
+    if (!isRESTDocument(currentActiveTabDocument.value)) {
       errorState.value = true
       return ""
     }

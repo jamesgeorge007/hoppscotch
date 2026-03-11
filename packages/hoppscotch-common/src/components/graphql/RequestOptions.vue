@@ -75,7 +75,8 @@ import { completePageProgress, startPageProgress } from "~/modules/loadingbar"
 import { editGraphqlRequest } from "~/newstore/collections"
 import { platform } from "~/platform"
 import { KernelInterceptorService } from "~/services/kernel-interceptor.service"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isGQLDocument } from "~/helpers/unified/document"
 
 const _VALID_GQL_OPERATIONS = [
   "query",
@@ -91,7 +92,7 @@ const interceptorService = useService(KernelInterceptorService)
 const t = useI18n()
 const toast = useToast()
 
-const tabs = useService(GQLTabService)
+const tabs = useService(UnifiedTabService)
 
 // v-model integration with props and emit
 const props = withDefaults(
@@ -117,9 +118,15 @@ const selectedOptionTab = useVModel(props, "optionTab", emit)
 
 const request = useVModel(props, "modelValue", emit)
 
+// This component only renders for GQL tabs, so the active document is always GQL
+const currentGQLDoc = computed(() => {
+  const doc = tabs.currentActiveTab.value.document
+  return isGQLDocument(doc) ? doc : null
+})
+
 const url = computedWithControl(
   () => tabs.currentActiveTab.value,
-  () => tabs.currentActiveTab.value.document.request.url
+  () => currentGQLDoc.value?.request.url ?? ""
 )
 
 const activeGQLHeadersCount = computed(
@@ -140,7 +147,7 @@ const runQuery = async (
     const runVariables = clone(request.value.variables)
 
     const inheritedHeaders =
-      tabs.currentActiveTab.value.document.inheritedProperties?.headers.map(
+      currentGQLDoc.value?.inheritedProperties?.headers.map(
         (header) => header.inheritedHeader
       ) ?? []
 
@@ -149,7 +156,7 @@ const runQuery = async (
       url: runURL,
       request: request.value,
       inheritedHeaders,
-      inheritedAuth: tabs.currentActiveTab.value.document.inheritedProperties
+      inheritedAuth: currentGQLDoc.value?.inheritedProperties
         ?.auth.inheritedAuth as HoppGQLAuth | undefined,
       query: runQuery,
       variables: runVariables,
@@ -224,25 +231,30 @@ watch(
 )
 
 const updateCursorPos = (pos: number) => {
-  tabs.currentActiveTab.value.document.cursorPosition = pos
+  const doc = tabs.currentActiveTab.value.document
+  if (isGQLDocument(doc)) {
+    doc.cursorPosition = pos
+  }
 }
 
 const hideRequestModal = () => {
   showSaveRequestModal.value = false
 }
 const saveRequest = () => {
+  const doc = currentGQLDoc.value
+  if (!doc) return
+
   if (
-    tabs.currentActiveTab.value.document.saveContext &&
-    tabs.currentActiveTab.value.document.saveContext.originLocation ===
-      "user-collection"
+    doc.saveContext &&
+    doc.saveContext.originLocation === "user-collection"
   ) {
     editGraphqlRequest(
-      tabs.currentActiveTab.value.document.saveContext.folderPath,
-      tabs.currentActiveTab.value.document.saveContext.requestIndex,
-      tabs.currentActiveTab.value.document.request
+      doc.saveContext.folderPath,
+      doc.saveContext.requestIndex,
+      doc.request
     )
 
-    tabs.currentActiveTab.value.document.isDirty = false
+    doc.isDirty = false
   } else {
     showSaveRequestModal.value = true
   }

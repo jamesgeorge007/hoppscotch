@@ -251,7 +251,8 @@ import { computed, ref } from "vue"
 import { Picked } from "~/helpers/types/HoppPicked"
 import { removeGraphqlCollection } from "~/newstore/collections"
 import { handleTokenValidation } from "~/helpers/handleTokenValidation"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isGQLDocument } from "~/helpers/unified/document"
 import IconCheckCircle from "~icons/lucide/check-circle"
 import IconCopy from "~icons/lucide/copy"
 import IconEdit from "~icons/lucide/edit"
@@ -277,7 +278,7 @@ const colorMode = useColorMode()
 const toast = useToast()
 const t = useI18n()
 
-const tabs = useService(GQLTabService)
+const tabs = useService(UnifiedTabService)
 
 // TODO: improve types plz
 const emit = defineEmits<{
@@ -367,6 +368,8 @@ const removeCollection = async () => {
   }
 
   const possibleTabs = tabs.getTabsRefTo((tab) => {
+    if (!isGQLDocument(tab.document)) return false
+
     const ctx = tab.document.saveContext
 
     if (!ctx) return false
@@ -378,6 +381,7 @@ const removeCollection = async () => {
   })
 
   for (const tab of possibleTabs) {
+    if (!isGQLDocument(tab.value.document)) continue
     tab.value.document.saveContext = undefined
     tab.value.document.isDirty = true
   }

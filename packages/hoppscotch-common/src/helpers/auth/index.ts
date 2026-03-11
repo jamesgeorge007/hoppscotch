@@ -1,5 +1,6 @@
 import { getService } from "~/modules/dioc"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import { parseTemplateStringE } from "@hoppscotch/data"
 import * as E from "fp-ts/Either"
 import { getCombinedEnvVariables } from "../utils/environments"
@@ -11,12 +12,13 @@ export const replaceTemplateStringsInObjectValues = <
   source: "REST" | "GQL" = "REST"
 ) => {
   const envs = getCombinedEnvVariables()
-  const restTabsService = getService(RESTTabService)
+  const tabsService = getService(UnifiedTabService)
 
+  const doc = tabsService.currentActiveTab.value?.document
   const requestVariables =
     source === "REST" &&
-    restTabsService.currentActiveTab.value.document.type === "request"
-      ? restTabsService.currentActiveTab.value.document.request.requestVariables.map(
+    doc && isRESTDocument(doc)
+      ? doc.request.requestVariables.map(
           ({ key, value }) => ({
             key,
             initialValue: value,

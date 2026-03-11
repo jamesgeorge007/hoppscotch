@@ -469,7 +469,8 @@ import { pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import { Picked } from "~/helpers/types/HoppPicked.js"
 import { useService } from "dioc/vue"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import { useDebounceFn } from "@vueuse/core"
 import { CurrentSortValuesService } from "~/services/current-sort.service"
 
@@ -764,10 +765,10 @@ const isSelected = ({
   )
 }
 
-const tabs = useService(RESTTabService)
+const tabs = useService(UnifiedTabService)
 const active = computed(
   () =>
-    tabs.currentActiveTab.value.document.type !== "test-runner" &&
+    isRESTDocument(tabs.currentActiveTab.value.document) &&
     tabs.currentActiveTab.value.document.saveContext
 )
 

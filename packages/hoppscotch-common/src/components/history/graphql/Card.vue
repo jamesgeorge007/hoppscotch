@@ -68,10 +68,10 @@ import IconMaximize2 from "~icons/lucide/maximize-2"
 import { useI18n } from "@composables/i18n"
 import { makeGQLRequest } from "@hoppscotch/data"
 import { useService } from "dioc/vue"
-import { GQLTabService } from "~/services/tab/graphql"
+import { UnifiedTabService } from "~/services/tab/unified"
 
 const t = useI18n()
-const tabs = useService(GQLTabService)
+const tabs = useService(UnifiedTabService)
 
 const props = defineProps<{
   entry: GQLHistoryEntry
@@ -96,6 +96,7 @@ const query = computed(() =>
 
 const useEntry = () => {
   tabs.createNewTab({
+    protocol: "graphql",
     request: makeGQLRequest({
       name: props.entry.request.name,
       url: props.entry.request.url,

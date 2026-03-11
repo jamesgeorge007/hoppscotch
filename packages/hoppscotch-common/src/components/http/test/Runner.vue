@@ -148,7 +148,7 @@ import {
   restCollectionStore,
 } from "~/newstore/collections"
 import { HoppTab } from "~/services/tab"
-import { RESTTabService } from "~/services/tab/rest"
+import { UnifiedTabService } from "~/services/tab/unified"
 import { TeamCollectionsService } from "~/services/team-collection.service"
 import {
   TestRunnerRequest,
@@ -169,7 +169,7 @@ const emit = defineEmits<{
   (e: "update:modelValue", val: HoppTab<HoppTestRunnerDocument>): void
 }>()
 
-const tabs = useService(RESTTabService)
+const tabs = useService(UnifiedTabService)
 const tab = useVModel(props, "modelValue", emit)
 
 const selectedRequestPath = computed(
