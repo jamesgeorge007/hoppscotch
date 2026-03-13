@@ -450,7 +450,16 @@ const onCloseConfirmSaveTab = () => {
  * Called when the user confirms they want to save the tab
  */
 const onResolveConfirmSaveTab = () => {
-  if (tabs.currentActiveTab.value.document.saveContext) {
+  const doc = tabs.currentActiveTab.value.document
+  if (isTestRunnerDocument(doc)) {
+    if (confirmingCloseForTabID.value) {
+      tabs.closeTab(confirmingCloseForTabID.value)
+      confirmingCloseForTabID.value = null
+    }
+    return
+  }
+
+  if (doc.saveContext) {
     invokeAction("request-response.save")
 
     if (confirmingCloseForTabID.value) {
