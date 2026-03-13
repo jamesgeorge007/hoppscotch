@@ -159,15 +159,15 @@ const tabs = useService(UnifiedTabService)
 const currentEnvironmentValueService = useService(CurrentValueService)
 
 const currentActiveRequest = computed(() => {
-  let effectiveRequest = null
+  const doc = currentActiveTabDocument.value
 
-  if (isExampleResponseDocument(currentActiveTabDocument.value)) {
-    effectiveRequest = currentActiveTabDocument.value.response.originalRequest
-  } else if (isRESTDocument(currentActiveTabDocument.value)) {
-    effectiveRequest = currentActiveTabDocument.value.request
+  if (isExampleResponseDocument(doc)) {
+    return cloneDeep(doc.response.originalRequest)
   }
-
-  return cloneDeep(effectiveRequest) ?? getDefaultRESTRequest()
+  if (isRESTDocument(doc)) {
+    return cloneDeep(doc.request)
+  }
+  return getDefaultRESTRequest()
 })
 
 const currentActiveTabDocument = computed(() =>

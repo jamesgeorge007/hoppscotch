@@ -39,7 +39,7 @@
           @keyup.escape="hide()"
         >
           <HoppSmartItem
-            v-if="!isResponseExample"
+            v-if="!isResponseExample && !isTestRunner"
             ref="renameAction"
             :icon="IconFileEdit"
             :label="t('request.rename')"
@@ -52,7 +52,7 @@
             "
           />
           <HoppSmartItem
-            v-if="!isResponseExample"
+            v-if="!isResponseExample && !isTestRunner"
             ref="duplicateAction"
             :icon="IconCopy"
             :label="t('tab.duplicate')"
@@ -65,7 +65,7 @@
             "
           />
           <HoppSmartItem
-            v-if="!isResponseExample"
+            v-if="!isResponseExample && !isTestRunner"
             ref="shareRequestAction"
             :icon="IconShare2"
             :label="t('tab.share_tab_request')"

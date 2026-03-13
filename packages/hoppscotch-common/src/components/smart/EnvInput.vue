@@ -419,7 +419,7 @@ const envVars = computed(() => {
       false
     )
 
-  if (!isRESTDocument(document)) {
+  if (isGQLDocument(document)) {
     return [...collectionVariables, ...aggregateEnvs.value]
   }
 
