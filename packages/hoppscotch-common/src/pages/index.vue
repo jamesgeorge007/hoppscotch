@@ -371,7 +371,7 @@ const switchTabProtocol = (
   if (!currentTab) return
 
   const currentDoc = currentTab.document
-  if (isExampleResponseDocument(currentDoc)) return
+  if (isExampleResponseDocument(currentDoc) || isTestRunnerDocument(currentDoc)) return
 
   const requestName = currentDoc.request.name
 
@@ -408,7 +408,7 @@ const requestToRename = computed(() => {
   if (!renameTabID.value) return null
   const tab = tabs.getTabRef(renameTabID.value)
   const doc = tab.value?.document
-  if (!doc || isExampleResponseDocument(doc)) return null
+  if (!doc || isExampleResponseDocument(doc) || isTestRunnerDocument(doc)) return null
   return doc.request
 })
 
