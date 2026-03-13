@@ -7,7 +7,8 @@
 
 import { Container } from "dioc"
 import { computed } from "vue"
-import { PersistableTabState, TabService } from "./tab"
+import { TabService } from "./tab"
+import type { PersistableTabState } from "."
 import {
   HoppUnifiedDocument,
   HoppUnifiedSaveContext,
@@ -90,24 +91,28 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
       if (protocol === "rest" && isRESTDocument(tab.document)) {
         // REST-specific matching logic
         const ctx = tab.document.saveContext
+        const restSaveCtx = saveContext as Exclude<
+          import("~/helpers/rest/document").HoppRESTSaveContext,
+          null
+        >
 
-        if (!ctx || !saveContext) continue
+        if (!ctx || !restSaveCtx) continue
 
-        if (saveContext.originLocation === "team-collection") {
+        if (restSaveCtx.originLocation === "team-collection") {
           if (
             ctx.originLocation === "team-collection" &&
-            ctx.requestID === saveContext.requestID &&
-            ctx.exampleID === saveContext.exampleID
+            ctx.requestID === restSaveCtx.requestID &&
+            ctx.exampleID === restSaveCtx.exampleID
           ) {
             return this.getTabRef(tab.id)
           }
         } else if (
-          saveContext.originLocation === "user-collection" &&
+          restSaveCtx.originLocation === "user-collection" &&
           ctx.originLocation === "user-collection" &&
-          ctx.folderPath === saveContext.folderPath &&
-          ctx.requestIndex === saveContext.requestIndex &&
-          ctx.exampleID === saveContext.exampleID &&
-          ctx.requestRefID === saveContext.requestRefID
+          ctx.folderPath === restSaveCtx.folderPath &&
+          ctx.requestIndex === restSaveCtx.requestIndex &&
+          ctx.exampleID === restSaveCtx.exampleID &&
+          ctx.requestRefID === restSaveCtx.requestRefID
         ) {
           return this.getTabRef(tab.id)
         }

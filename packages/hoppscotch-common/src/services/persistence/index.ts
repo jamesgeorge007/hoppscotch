@@ -16,8 +16,6 @@ import {
 import { StoreError } from "@hoppscotch/kernel"
 
 import { Store } from "~/kernel/store"
-import { GQLTabService } from "~/services/tab/graphql"
-import { RESTTabService } from "~/services/tab/rest"
 import { UnifiedTabService } from "~/services/tab/unified"
 import {
   SecretEnvironmentService,
@@ -76,13 +74,11 @@ import {
   GLOBAL_ENVIRONMENT_SCHEMA,
   GQL_COLLECTION_SCHEMA,
   GQL_HISTORY_ENTRY_SCHEMA,
-  GQL_TAB_STATE_SCHEMA,
   LOCAL_STATE_SCHEMA,
   MQTT_REQUEST_SCHEMA,
   NUXT_COLOR_MODE_SCHEMA,
   REST_COLLECTION_SCHEMA,
   REST_HISTORY_ENTRY_SCHEMA,
-  REST_TAB_STATE_SCHEMA,
   SECRET_ENVIRONMENT_VARIABLE_SCHEMA,
   SELECTED_ENV_INDEX_SCHEMA,
   SETTINGS_SCHEMA,
@@ -92,9 +88,6 @@ import {
   VUEX_SCHEMA,
   WEBSOCKET_REQUEST_SCHEMA,
 } from "./validation-schemas"
-import { PersistableTabState } from "../tab"
-import { HoppTabDocument } from "~/helpers/rest/document"
-import { HoppGQLDocument } from "~/helpers/graphql/document"
 import {
   CurrentValueService,
   Variable,
@@ -186,8 +179,6 @@ export class PersistenceService extends Service {
   // TODO: Consider swapping this with platform dependent `StoreLike` impl
   public hoppLocalConfigStorage: StorageLike = localStorage
 
-  private readonly restTabService = this.bind(RESTTabService)
-  private readonly gqlTabService = this.bind(GQLTabService)
   private readonly unifiedTabService = this.bind(UnifiedTabService)
   private readonly secretEnvironmentService = this.bind(
     SecretEnvironmentService
@@ -918,100 +909,6 @@ export class PersistenceService extends Service {
     globalEnv$.subscribe(async (vars) => {
       await Store.set(STORE_NAMESPACE, STORE_KEYS.GLOBAL_ENV, vars)
     })
-  }
-
-  private async setupRESTTabsPersistence() {
-    const loadResult = await Store.get<any>(
-      STORE_NAMESPACE,
-      STORE_KEYS.REST_TABS
-    )
-
-    try {
-      if (E.isRight(loadResult) && loadResult.right) {
-        // Correcting the request schema for broken data
-        const orderedDocs = fixBrokenRequestVersion(
-          cloneDeep(loadResult.right.orderedDocs) ?? []
-        )
-
-        const transformedTabs = {
-          ...loadResult.right,
-          orderedDocs,
-        }
-        const result = REST_TAB_STATE_SCHEMA.safeParse(transformedTabs)
-        if (result.success) {
-          // SAFETY: We know the schema matches
-          this.restTabService.loadTabsFromPersistedState(
-            result.data as PersistableTabState<HoppTabDocument>
-          )
-        } else {
-          this.showErrorToast(STORE_KEYS.REST_TABS)
-          await Store.set(
-            STORE_NAMESPACE,
-            `${STORE_KEYS.REST_TABS}-backup`,
-            loadResult.right
-          )
-          console.error(
-            `Failed parsing persisted REST_TABS:`,
-            JSON.stringify(loadResult.right)
-          )
-          // NOTE: Still loading data to match legacy behavior
-          this.restTabService.loadTabsFromPersistedState(loadResult.right)
-        }
-      }
-    } catch (_e) {
-      console.error(`Failed parsing persisted REST_TABS:`, loadResult)
-    }
-
-    watchDebounced(
-      this.restTabService.persistableTabState,
-      async (newData) => {
-        await Store.set(STORE_NAMESPACE, STORE_KEYS.REST_TABS, newData)
-      },
-      { debounce: 500, deep: true }
-    )
-  }
-
-  private async setupGQLTabsPersistence() {
-    const loadResult = await Store.get<any>(
-      STORE_NAMESPACE,
-      STORE_KEYS.GQL_TABS
-    )
-
-    try {
-      if (E.isRight(loadResult) && loadResult.right) {
-        const result = GQL_TAB_STATE_SCHEMA.safeParse(loadResult.right)
-
-        if (result.success) {
-          // SAFETY: We know the schema matches
-          this.gqlTabService.loadTabsFromPersistedState(
-            result.data as PersistableTabState<HoppGQLDocument>
-          )
-        } else {
-          this.showErrorToast(STORE_KEYS.GQL_TABS)
-          await Store.set(
-            STORE_NAMESPACE,
-            `${STORE_KEYS.GQL_TABS}-backup`,
-            loadResult.right
-          )
-          console.error(
-            `Failed parsing persisted GQL_TABS:`,
-            JSON.stringify(loadResult.right)
-          )
-          // NOTE: Still loading data to match legacy behavior
-          this.gqlTabService.loadTabsFromPersistedState(loadResult.right)
-        }
-      }
-    } catch (_e) {
-      console.error(`Failed parsing persisted GQL_TABS:`, loadResult)
-    }
-
-    watchDebounced(
-      this.gqlTabService.persistableTabState,
-      async (newData) => {
-        await Store.set(STORE_NAMESPACE, STORE_KEYS.GQL_TABS, newData)
-      },
-      { debounce: 500, deep: true }
-    )
   }
 
   private async setupUnifiedTabsPersistence() {
