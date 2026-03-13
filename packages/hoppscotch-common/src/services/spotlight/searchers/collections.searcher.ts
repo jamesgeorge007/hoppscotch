@@ -114,8 +114,6 @@ export class CollectionsSpotlightSearcherService
     try {
       const url = new URL(window.location.href)
 
-      // The unified playground lives at "/", serving both REST and GQL.
-      // Legacy /graphql route is no longer used.
       if (url.pathname === "/" || url.pathname.startsWith("/graphql")) {
         return "unified"
       }
@@ -155,7 +153,6 @@ export class CollectionsSpotlightSearcherService
         id: "import-collection",
         name: this.t("collection.import"),
       })
-      // Unified page: index both REST and GQL collections
       this.loadRESTDocsIntoMinisearch(minisearch)
       this.loadGQLDocsIntoMinisearch(minisearch)
     }
@@ -341,7 +338,6 @@ export class CollectionsSpotlightSearcherService
       const reqWrapper = this.getGQLFolderFromFolderPath(folderPath.join("/"))
         ?.requests[reqIndex]
 
-      // Skip non-GQL requests
       if (!reqWrapper || isHoppRESTRequest(reqWrapper)) return
 
       this.unifiedTab.createNewTab({
