@@ -47,7 +47,6 @@ export class TeamsSpotlightSearcherService
     try {
       const url = new URL(window.location.href)
 
-      // The unified playground lives at "/", serving both REST and GQL.
       if (url.pathname === "/" || url.pathname.startsWith("/graphql")) {
         return "unified"
       }
