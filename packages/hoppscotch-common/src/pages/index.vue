@@ -189,7 +189,6 @@ import {
 } from "~/helpers/unified/document"
 import { ScrollService } from "~/services/scroll.service"
 
-// Lazy load request components
 const HttpRequestTab = defineAsyncComponent(
   () => import("~/components/http/RequestTab.vue")
 )
@@ -303,7 +302,6 @@ const onTabUpdate = (tab: HoppTab<HoppUnifiedDocument>) => {
 }
 
 const addNewTab = () => {
-  // Create new tab based on current protocol or default to REST
   const protocol = currentProtocol.value
   const document =
     protocol === "graphql"
@@ -354,7 +352,6 @@ const duplicateTab = (tabID: string) => {
   if (tab.value) {
     const newDocument = cloneDeep(tab.value.document)
     newDocument.isDirty = true
-    // Regenerate ref_id for requests to ensure uniqueness
     if (isRESTDocument(newDocument) && newDocument.request._ref_id) {
       newDocument.request._ref_id = generateUniqueRefId("req")
     }

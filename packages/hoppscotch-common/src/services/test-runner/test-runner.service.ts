@@ -168,9 +168,7 @@ export class TestRunnerService extends Service {
 
         const requestWrapper = collection.requests[i]
 
-        // HoppCollection.requests (v11) stores flat HoppRESTRequest | HoppGQLRequest objects —
-        // not protocol-wrapped objects. isHoppRESTRequest checks the raw request shape directly.
-        // Skip non-REST requests: test runner only supports REST for now.
+        // Skip non-REST requests: test runner only supports REST
         if (!isHoppRESTRequest(requestWrapper)) {
           continue
         }

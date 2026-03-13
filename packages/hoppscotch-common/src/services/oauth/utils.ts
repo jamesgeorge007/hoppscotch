@@ -8,7 +8,6 @@ import { OAuth2AdvancedParam } from "@hoppscotch/data"
 
 const interceptorService = getService(KernelInterceptorService)
 
-// Type definition for refresh request parameters
 export type RefreshRequestParam = {
   id: number
   key: string
@@ -17,7 +16,6 @@ export type RefreshRequestParam = {
   sendIn?: "headers" | "url" | "body"
 }
 
-// Unified refresh token parameters for all OAuth flows
 export type RefreshTokenParams = {
   tokenEndpoint: string
   clientID: string
@@ -26,11 +24,6 @@ export type RefreshTokenParams = {
   refreshRequestParams?: Array<RefreshRequestParam>
 }
 
-/**
- * Unified refresh token function for all OAuth flows
- * Supports both basic flows (authCode) and advanced flows (password, clientCredentials)
- * with optional advanced parameters
- */
 export const refreshToken = async ({
   tokenEndpoint,
   clientID,

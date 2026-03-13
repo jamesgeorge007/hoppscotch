@@ -213,7 +213,6 @@ watch(
   }
 )
 
-// GraphQL schema functionality
 const downloadSchemaIcon = refAutoReset<typeof IconDownload | typeof IconCheck>(
   IconDownload,
   1000
@@ -265,6 +264,5 @@ const copySchema = () => {
   toast.success(`${t("state.copied_to_clipboard")}`)
 }
 
-// Ensure mock servers are kept in sync with workspace changes globally
 useMockServerWorkspaceSync()
 </script>
