@@ -85,7 +85,7 @@ onMounted(async () => {
 
   if (E.isLeft(tokenInfo)) {
     toast.error(translateOAuthRedirectError(tokenInfo.left))
-    router.push("/") // Unified page handles both REST and GraphQL
+    router.push("/")
     return
   }
 
@@ -108,7 +108,7 @@ onMounted(async () => {
 
     toast.success(t("authorization.oauth.token_fetched_successfully"))
 
-    router.push("/") // Unified page handles both REST and GraphQL
+    router.push("/")
     return
   }
 

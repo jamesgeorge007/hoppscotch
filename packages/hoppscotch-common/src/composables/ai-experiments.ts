@@ -6,16 +6,19 @@ import { HoppGQLRequest, HoppRESTRequest } from "@hoppscotch/data"
 import { useToast } from "@composables/toast"
 import { useI18n } from "@composables/i18n"
 import * as E from "fp-ts/Either"
-import { useRoute } from "vue-router"
 import { invokeAction } from "~/helpers/actions"
+import { useService } from "dioc/vue"
+import { UnifiedTabService } from "~/services/tab/unified"
 
 export const useRequestNameGeneration = (targetNameRef: Ref<string>) => {
   const toast = useToast()
   const t = useI18n()
-  const route = useRoute()
+  const tabs = useService(UnifiedTabService)
 
   const targetPage = computed(() => {
-    return route.fullPath.includes("/graphql") ? "gql" : "rest"
+    return tabs.currentActiveTab.value.document.protocol === "graphql"
+      ? "gql"
+      : "rest"
   })
 
   const isGenerateRequestNamePending = ref(false)

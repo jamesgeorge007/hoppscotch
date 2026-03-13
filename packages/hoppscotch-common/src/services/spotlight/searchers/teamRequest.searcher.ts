@@ -234,6 +234,7 @@ export class TeamsSpotlightSearcherService
     } else {
       this.tabs.createNewTab({
         protocol: "rest",
+        type: "request",
         request: cloneDeep(selectedRequest.request as HoppRESTRequest),
         isDirty: false,
         saveContext: {

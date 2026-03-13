@@ -3,8 +3,6 @@ import * as E from "fp-ts/Either"
 import { getService } from "~/modules/dioc"
 
 import { PersistenceService } from "~/services/persistence"
-import { RESTTabService } from "~/services/tab/rest"
-import { GQLTabService } from "~/services/tab/graphql"
 import { UnifiedTabService } from "~/services/tab/unified"
 import { KernelInterceptorService } from "~/services/kernel-interceptor.service"
 
@@ -72,18 +70,8 @@ export class InitializationService extends Service<InitEvent> {
       throw new Error("Cannot initialize tabs before persistence")
     }
 
-    const restTabService = getService(RESTTabService)
-    const gqlTabService = getService(GQLTabService)
     const unifiedTabService = getService(UnifiedTabService)
-
-    // Unified tab service init() is a no-op (returns null) since persistence
-    // loading is handled by PersistenceService.setupUnifiedTabsPersistence(),
-    // but we call it for consistency with the other tab services.
-    await Promise.all([
-      restTabService.init(),
-      gqlTabService.init(),
-      unifiedTabService.init(),
-    ])
+    await unifiedTabService.init()
 
     this.initState.tabs = true
     this.emit({ type: "TABS_READY" })

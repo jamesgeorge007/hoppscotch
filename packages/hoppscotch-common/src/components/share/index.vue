@@ -220,7 +220,7 @@ watch(
   { deep: true }
 )
 
-const restTab = useService(UnifiedTabService)
+const tabs = useService(UnifiedTabService)
 
 const currentUser = useReadonlyStream(
   platform.auth.getCurrentUserStream(),
@@ -302,7 +302,7 @@ onAuthEvent((ev) => {
 
 const shareRequest = () => {
   if (currentUser.value) {
-    const tab = restTab.currentActiveTab
+    const tab = tabs.currentActiveTab
     const doc = tab.value.document
     if (!isRESTDocument(doc)) return
     invokeAction("share.request", {
@@ -507,8 +507,9 @@ const getErrorMessage = (err: GQLError<string>) => {
 }
 
 const openRequestInNewTab = (request: HoppRESTRequest) => {
-  restTab.createNewTab({
+  tabs.createNewTab({
     isDirty: false,
+    type: "request",
     request,
     protocol: "rest",
   })

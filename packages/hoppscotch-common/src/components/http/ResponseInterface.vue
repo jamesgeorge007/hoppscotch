@@ -145,7 +145,7 @@ import IconWrapText from "~icons/lucide/wrap-text"
 import jsonToLanguage from "~/helpers/utils/json-to-language"
 import { watch } from "vue"
 import { UnifiedTabService } from "~/services/tab/unified"
-import { isRESTDocument, isGQLDocument } from "~/helpers/unified/document"
+import { isRESTDocument, isGQLDocument, isExampleResponseDocument } from "~/helpers/unified/document"
 import { useColorMode } from "~/composables/theming"
 
 const t = useI18n()
@@ -163,23 +163,26 @@ const tabs = useService(UnifiedTabService)
 
 const selectedInterface = ref<InterfaceLanguage>("typescript")
 const response = computed(() => {
-  let response = ""
   const doc = tabs.currentActiveTab.value?.document
-  if (!doc) return response
+  if (!doc) return ""
+
+  if (isExampleResponseDocument(doc)) {
+    return doc.response.body || ""
+  }
 
   if (isRESTDocument(doc)) {
     const res = doc.response
     if (res?.type === "success" || res?.type === "fail") {
-      response = getResponseBodyText(res.body)
+      return getResponseBodyText(res.body)
     }
   } else if (isGQLDocument(doc)) {
     const res = doc.response
     if (res && res.length === 1 && res[0].type === "response" && res[0].data) {
-      response = JSON.stringify(JSON.parse(res[0].data), null, 2)
+      return JSON.stringify(JSON.parse(res[0].data), null, 2)
     }
   }
 
-  return response
+  return ""
 })
 const errorState = ref(false)
 

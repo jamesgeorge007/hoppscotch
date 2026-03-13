@@ -28,9 +28,6 @@ type Doc = {
 }
 
 /**
- *
- * This searcher is responsible for providing REST Tab related actions on the spotlight results.
- *
  * NOTE: Initializing this service registers it as a searcher with the Spotlight Service.
  */
 export class TabSpotlightSearcherService extends StaticSpotlightSearcherService<Doc> {

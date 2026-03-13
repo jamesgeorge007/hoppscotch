@@ -20,7 +20,7 @@ import IconRotateCCW from "~icons/lucide/rotate-ccw"
 import IconSave from "~icons/lucide/save"
 import { GQLOptionTabs } from "~/components/graphql/RequestOptions.vue"
 import { UnifiedTabService } from "~/services/tab/unified"
-import { isRESTDocument } from "~/helpers/unified/document"
+import { isRESTDocument, isGQLDocument } from "~/helpers/unified/document"
 import { Container } from "dioc"
 
 type Doc = {
@@ -55,7 +55,7 @@ export class RequestSpotlightSearcherService extends StaticSpotlightSearcherServ
   )
   private isGQLPage = computed(() =>
     this.route.name === "index" &&
-    !isRESTDocument(this.tabs.currentActiveTab.value.document)
+    isGQLDocument(this.tabs.currentActiveTab.value.document)
   )
   private isRESTOrGQLPage = computed(
     () => this.isRESTPage.value || this.isGQLPage.value

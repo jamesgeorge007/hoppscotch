@@ -3,7 +3,7 @@
     v-tippy="{ theme: 'tooltip', delay: [500, 20], allowHTML: true }"
     :title="tabTooltip"
     class="flex items-center truncate px-2"
-    @dblclick="emit('open-rename-modal')"
+    @dblclick="!isResponseExample && !isTestRunner && emit('open-rename-modal')"
     @contextmenu.prevent="options?.tippy?.show()"
     @click.middle="emit('close-tab')"
   >
@@ -121,56 +121,55 @@ import IconCopy from "~icons/lucide/copy"
 import IconShare2 from "~icons/lucide/share-2"
 import { HoppTab } from "~/services/tab"
 import {
-  HoppRequestDocument,
-  HoppSavedExampleDocument,
-} from "~/helpers/rest/document"
-import { HoppUnifiedDocument } from "~/helpers/unified/document"
+  HoppUnifiedDocument,
+  isExampleResponseDocument,
+  isTestRunnerDocument,
+} from "~/helpers/unified/document"
 import { restCollectionStore } from "~/newstore/collections"
 
 const t = useI18n()
 
 const props = defineProps<{
-  tab: HoppTab<
-    HoppUnifiedDocument | HoppRequestDocument | HoppSavedExampleDocument
-  >
+  tab: HoppTab<HoppUnifiedDocument>
   isRemovable: boolean
 }>()
 
 const tabState = computed(() => {
-  const doc = props.tab.document as any
+  const doc = props.tab.document
 
-  // Unified documents have a `protocol` discriminator
-  if ("protocol" in doc) {
+  if (isExampleResponseDocument(doc)) {
     return {
-      name: doc.request.name,
-      method: doc.request.method ?? "",
-      request: doc.request,
+      name: doc.response.name,
+      method: doc.response.originalRequest.method,
+      request: doc.response.originalRequest,
       saveContext: doc.saveContext ?? null,
     }
   }
 
-  // Legacy REST documents use `type`
-  if (doc.type === "request") {
+  if (isTestRunnerDocument(doc)) {
     return {
-      name: doc.request.name,
-      method: doc.request.method,
-      request: doc.request,
-      saveContext: doc.saveContext ?? null,
+      name: doc.collection.name,
+      method: "",
+      request: null,
+      saveContext: null,
     }
   }
 
   return {
-    name: doc.response.name,
-    method: doc.response.originalRequest.method,
-    request: doc.response.originalRequest,
-    saveContext: null,
+    name: doc.request.name,
+    method: doc.request.method ?? "",
+    request: doc.request,
+    saveContext: doc.saveContext ?? null,
   }
 })
 
-const isResponseExample = computed(() => {
-  const doc = props.tab.document as any
-  return "type" in doc && doc.type === "example-response"
-})
+const isResponseExample = computed(() =>
+  isExampleResponseDocument(props.tab.document)
+)
+
+const isTestRunner = computed(() =>
+  isTestRunnerDocument(props.tab.document)
+)
 
 const requestPath = computed(() => {
   const ctx = tabState.value.saveContext

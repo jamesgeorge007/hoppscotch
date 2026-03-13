@@ -18,8 +18,8 @@
             :is-removable="activeTabs.length > 1"
             :close-visibility="'hover'"
           >
-            <template v-if="isRESTDocument(tab.document) || isExampleResponseDocument(tab.document)" #tabhead>
-              <!-- REST TabHead -->
+            <template v-if="isRESTDocument(tab.document) || isExampleResponseDocument(tab.document) || isTestRunnerDocument(tab.document)" #tabhead>
+
               <HttpTabHead
                 :tab="tab"
                 :is-removable="activeTabs.length > 1"
@@ -31,7 +31,7 @@
               />
             </template>
             <template v-else-if="isGQLDocument(tab.document)" #tabhead>
-              <!-- GraphQL TabHead -->
+
               <GraphqlTabHead
                 :tab="tab"
                 :is-removable="activeTabs.length > 1"
@@ -42,7 +42,7 @@
               />
             </template>
             <template v-else #tabhead>
-              <!-- Fallback: Unknown protocol -->
+
               <div class="text-red-500">
                 Unknown Protocol: {{ tab.document.protocol }}
               </div>
@@ -63,13 +63,19 @@
               </span>
             </template>
 
-            <!-- Example Response Tab -->
+
             <HttpExampleResponseTab
               v-if="isExampleResponseDocument(tab.document)"
               :model-value="tab"
               @update:model-value="onTabUpdate"
             />
-            <!-- Dynamic Request Panel based on protocol -->
+
+            <HttpTestRunner
+              v-else-if="isTestRunnerDocument(tab.document)"
+              :model-value="tab"
+              @update:model-value="onTabUpdate"
+            />
+
             <component
               v-else
               :is="getRequestComponent(tab.document.protocol)"
@@ -177,6 +183,7 @@ import {
   isRESTDocument,
   isGQLDocument,
   isExampleResponseDocument,
+  isTestRunnerDocument,
   createDefaultRESTDocument,
   createDefaultGQLDocument,
 } from "~/helpers/unified/document"
@@ -188,6 +195,9 @@ const HttpRequestTab = defineAsyncComponent(
 )
 const GraphqlRequestTab = defineAsyncComponent(
   () => import("~/components/graphql/RequestTab.vue")
+)
+const HttpTestRunner = defineAsyncComponent(
+  () => import("~/components/http/test/Runner.vue")
 )
 const HttpExampleResponseTab = defineAsyncComponent(
   () => import("~/components/http/example/ResponseRequest.vue")
@@ -244,33 +254,31 @@ const contextMenu = ref<PopupDetails>({
 
 const activeTabs = tabs.getActiveTabs()
 
-// Get current protocol from active tab
 const currentProtocol = computed(() => {
   const tab = tabs.currentActiveTab.value
   return tab?.document.protocol ?? "rest"
 })
 
-// Get save mode based on current protocol
-const saveMode = computed(() => {
-  return currentProtocol.value === "graphql" ? "graphql" : "rest"
-})
+const saveMode = computed(() =>
+  currentProtocol.value === "graphql" ? "graphql" : "rest"
+)
 
-// Get request component based on protocol
 function getRequestComponent(protocol: "rest" | "graphql") {
   return protocol === "rest" ? HttpRequestTab : GraphqlRequestTab
 }
 
-// Get tab name based on document type
 function getTabName(tab: HoppTab<HoppUnifiedDocument>) {
   if (isExampleResponseDocument(tab.document)) {
     return tab.document.response.name || "Untitled"
+  }
+  if (isTestRunnerDocument(tab.document)) {
+    return tab.document.collection.name || "Untitled"
   }
   return tab.document.request.name || "Untitled"
 }
 
 function bindRequestToURLParams() {
   const route = useRoute()
-  // Get URL parameters and set that as the request
   onMounted(() => {
     const query = route.query
     // If query params are empty, or contains code or error param (these are from Oauth Redirect)
@@ -366,6 +374,8 @@ const switchTabProtocol = (
   if (!currentTab) return
 
   const currentDoc = currentTab.document
+  if (isExampleResponseDocument(currentDoc)) return
+
   const requestName = currentDoc.request.name
 
   let newDocument: HoppUnifiedDocument
@@ -400,28 +410,31 @@ const onResolveConfirmCloseAllTabs = () => {
 const requestToRename = computed(() => {
   if (!renameTabID.value) return null
   const tab = tabs.getTabRef(renameTabID.value)
-  return tab.value?.document.request ?? null
+  const doc = tab.value?.document
+  if (!doc || isExampleResponseDocument(doc)) return null
+  return doc.request
 })
 
 const openReqRenameModal = (tabID?: string) => {
-  if (tabID) {
-    const tab = tabs.getTabRef(tabID)
-    reqName.value = tab.value.document.request.name
-    renameTabID.value = tabID
-  } else {
-    const { id, document } = tabs.currentActiveTab.value
-    reqName.value = document.request.name
-    renameTabID.value = id
-  }
+  const targetTabID = tabID ?? tabs.currentActiveTab.value.id
+  const tab = tabs.getTabRef(targetTabID)
+  const doc = tab.value?.document
+  if (!doc || isExampleResponseDocument(doc) || isTestRunnerDocument(doc)) return
+
+  reqName.value = doc.request.name
+  renameTabID.value = targetTabID
   showRenamingReqNameModal.value = true
 }
 
 const renameReqName = () => {
   const tab = tabs.getTabRef(renameTabID.value ?? currentTabID.value)
-  if (tab.value) {
-    tab.value.document.request.name = reqName.value
-    tabs.updateTab(tab.value)
+  const doc = tab.value?.document
+  if (!doc || isExampleResponseDocument(doc) || isTestRunnerDocument(doc)) {
+    showRenamingReqNameModal.value = false
+    return
   }
+  doc.request.name = reqName.value
+  tabs.updateTab(tab.value)
   showRenamingReqNameModal.value = false
 }
 

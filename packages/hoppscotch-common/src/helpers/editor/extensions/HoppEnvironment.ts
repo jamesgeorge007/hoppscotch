@@ -25,7 +25,7 @@ import {
 } from "~/newstore/environments"
 import { SecretEnvironmentService } from "~/services/secret-environment.service"
 import { UnifiedTabService } from "~/services/tab/unified"
-import { isRESTDocument } from "~/helpers/unified/document"
+import { isRESTDocument, isGQLDocument } from "~/helpers/unified/document"
 import { CurrentValueService } from "~/services/current-environment-value.service"
 
 import IconEdit from "~icons/lucide/edit?raw"
@@ -408,12 +408,12 @@ export class HoppEnvironmentPlugin {
       () => tabs.currentActiveTab.value,
       (currentTab) => {
         const doc = currentTab.document
-        if (!isRESTDocument(doc)) return
-        const request = doc.request
+        if (!isRESTDocument(doc) && !isGQLDocument(doc)) return
 
         const collectionVariables = doc.inheritedProperties?.variables ?? []
-
-        const requestVariables = request.requestVariables ?? []
+        const requestVariables = isRESTDocument(doc)
+          ? (doc.request.requestVariables ?? [])
+          : []
 
         const requestAndCollVars = getRequestAndCollectionVariables(
           requestVariables,
@@ -434,13 +434,12 @@ export class HoppEnvironmentPlugin {
     )
 
     subscribeToStream(aggregateEnvsWithCurrentValue$, (envs) => {
-      // Recompute request and collection variables from current tab to avoid stale closure values
       const tab = tabs.currentActiveTab.value
       const tabDoc = tab.document
-      if (!isRESTDocument(tabDoc)) return
+      if (!isRESTDocument(tabDoc) && !isGQLDocument(tabDoc)) return
 
       const freshRequestAndCollVars = getRequestAndCollectionVariables(
-        tabDoc.request.requestVariables ?? [],
+        isRESTDocument(tabDoc) ? (tabDoc.request.requestVariables ?? []) : [],
         tabDoc.inheritedProperties?.variables ?? []
       )
 

@@ -290,6 +290,7 @@ const addRequestToTab = () => {
 
     tabs.createNewTab({
       protocol: "rest",
+      type: "request",
       request: safelyExtractRESTRequest(request, getDefaultRESTRequest()),
       isDirty: false,
     })

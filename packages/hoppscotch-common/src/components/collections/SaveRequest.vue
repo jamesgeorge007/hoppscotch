@@ -148,7 +148,7 @@ import {
 } from "~/newstore/collections"
 import { platform } from "~/platform"
 import { UnifiedTabService } from "~/services/tab/unified"
-import { isRESTDocument, isGQLDocument } from "~/helpers/unified/document"
+import { isExampleResponseDocument } from "~/helpers/unified/document"
 import { TeamWorkspace } from "~/services/workspace.service"
 import IconSparkle from "~icons/lucide/sparkles"
 import IconThumbsDown from "~icons/lucide/thumbs-down"
@@ -193,17 +193,17 @@ const emit = defineEmits<{
 }>()
 
 const reqName = computed(() => {
-  if (props.request) {
-    return props.request.name
-  }
-  return tabs.currentActiveTab.value?.document.request.name ?? ""
+  if (props.request) return props.request.name
+  const doc = tabs.currentActiveTab.value?.document
+  if (!doc || isExampleResponseDocument(doc)) return ""
+  return doc.request.name ?? ""
 })
 
 const requestContext = computed(() => {
-  if (props.request) {
-    return props.request
-  }
-  return tabs.currentActiveTab.value?.document.request ?? null
+  if (props.request) return props.request
+  const doc = tabs.currentActiveTab.value?.document
+  if (!doc || isExampleResponseDocument(doc)) return null
+  return doc.request
 })
 
 const requestName = ref(reqName.value)
@@ -231,8 +231,9 @@ const { submitFeedback, isSubmitFeedbackPending } = useSubmitFeedback()
 watch(
   () => tabs.currentActiveTab.value,
   () => {
-    requestName.value =
-      tabs.currentActiveTab.value?.document.request.name ?? ""
+    const doc = tabs.currentActiveTab.value?.document
+    if (!doc || isExampleResponseDocument(doc)) return
+    requestName.value = doc.request.name ?? ""
   }
 )
 
@@ -311,6 +312,7 @@ const saveRequestAs = async () => {
 
     tabs.currentActiveTab.value.document = {
       protocol: "rest",
+      type: "request",
       request: requestUpdated,
       isDirty: false,
       saveContext: {
@@ -348,6 +350,7 @@ const saveRequestAs = async () => {
       request: requestUpdated,
       isDirty: false,
       protocol: "rest",
+      type: "request",
       saveContext: {
         originLocation: "user-collection",
         folderPath: picked.value.folderPath,
@@ -380,6 +383,7 @@ const saveRequestAs = async () => {
       request: requestUpdated,
       isDirty: false,
       protocol: "rest",
+      type: "request",
       saveContext: {
         originLocation: "user-collection",
         folderPath: picked.value.folderPath,
@@ -488,7 +492,7 @@ const saveRequestAs = async () => {
     tabs.currentActiveTab.value.document.inheritedProperties =
       cascadeParentCollectionForProperties(picked.value.folderPath, "graphql")
 
-    requestSaved("GQL")
+    requestSaved()
   } else if (picked.value.pickedType === "gql-my-folder") {
     // TODO: Check for GQL request ?
     const insertionIndex = saveGraphqlRequestAs(
@@ -517,7 +521,7 @@ const saveRequestAs = async () => {
     tabs.currentActiveTab.value.document.inheritedProperties =
       cascadeParentCollectionForProperties(picked.value.folderPath, "graphql")
 
-    requestSaved("GQL")
+    requestSaved()
   } else if (picked.value.pickedType === "gql-my-collection") {
     // TODO: Check for GQL request ?
     const insertionIndex = saveGraphqlRequestAs(
@@ -549,7 +553,7 @@ const saveRequestAs = async () => {
         "graphql"
       )
 
-    requestSaved("GQL")
+    requestSaved()
   }
 }
 
@@ -587,6 +591,7 @@ const updateTeamCollectionOrFolder = (
 
         tabs.currentActiveTab.value.document = {
           protocol: "rest",
+          type: "request",
           request: requestUpdated,
           isDirty: false,
           saveContext: {
@@ -604,14 +609,10 @@ const updateTeamCollectionOrFolder = (
   )()
 }
 
-const requestSaved = (tab: "REST" | "GQL" = "REST") => {
+const requestSaved = () => {
   toast.success(`${t("request.added")}`)
   nextTick(() => {
-    if (tab === "REST") {
-      tabs.currentActiveTab.value.document.isDirty = false
-    } else {
-      tabs.currentActiveTab.value.document.isDirty = false
-    }
+    tabs.currentActiveTab.value.document.isDirty = false
   })
   hideModal()
 }

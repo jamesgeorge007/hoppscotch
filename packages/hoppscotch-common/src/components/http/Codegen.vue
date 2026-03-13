@@ -143,7 +143,7 @@ import { useNestedSetting } from "~/composables/settings"
 import { toggleNestedSetting } from "~/newstore/settings"
 import { platform } from "~/platform"
 import { UnifiedTabService } from "~/services/tab/unified"
-import { isRESTDocument } from "~/helpers/unified/document"
+import { isRESTDocument, isExampleResponseDocument } from "~/helpers/unified/document"
 import IconCheck from "~icons/lucide/check"
 import IconWrapText from "~icons/lucide/wrap-text"
 import { asyncComputed } from "@vueuse/core"
@@ -158,18 +158,18 @@ const t = useI18n()
 const tabs = useService(UnifiedTabService)
 const currentEnvironmentValueService = useService(CurrentValueService)
 
-// Get the current active request if the current active tab is a request else get the original request from the response tab
 const currentActiveRequest = computed(() => {
   let effectiveRequest = null
 
-  if (isRESTDocument(currentActiveTabDocument.value)) {
+  if (isExampleResponseDocument(currentActiveTabDocument.value)) {
+    effectiveRequest = currentActiveTabDocument.value.response.originalRequest
+  } else if (isRESTDocument(currentActiveTabDocument.value)) {
     effectiveRequest = currentActiveTabDocument.value.request
   }
 
   return cloneDeep(effectiveRequest) ?? getDefaultRESTRequest()
 })
 
-// Retrieve the document
 const currentActiveTabDocument = computed(() =>
   cloneDeep(tabs.currentActiveTab.value.document)
 )
@@ -202,27 +202,19 @@ const getCurrentValue = (env: AggregateEnvironment) => {
 }
 
 const getFinalURL = (input: string): string => {
-  // If the URL is empty, return "https://"
-  // This is to ensure that the URL is always valid and can be used in code generation
   if (!input) {
     return "https://"
   }
 
   let url = input.trim()
 
-  // Fix malformed protocols
   url = url.replace(/^https?:\s*\/+\s*/i, (match) =>
     match.toLowerCase().startsWith("https") ? "https://" : "http://"
   )
 
-  // If the URL does not start with http(s):// or is not a variable, prepend http(s)://
-  // If the URL starts with <<, it is a variable and should not be modified
   if (!/^https?:\/\//i.test(url) && !url.startsWith("<<")) {
     const endpoint = url
     const domain = endpoint.split(/[/:#?]+/)[0]
-
-    // Check if the domain is a local address or an IP address
-    // If it is, use http, otherwise use https
     const isLocalOrIP = /^(localhost|(\d{1,3}\.){3}\d{1,3})$/.test(domain)
     url = (isLocalOrIP ? "http://" : "https://") + endpoint
   }
@@ -230,9 +222,6 @@ const getFinalURL = (input: string): string => {
   return url
 }
 
-/**
- * Combines all environment variables into a single environment object
- */
 const buildFinalEnvironment = (): Environment => {
   const aggregateEnvs = getAggregateEnvsWithCurrentValue()
   const inheritedVariables =
@@ -280,9 +269,6 @@ const buildFinalEnvironment = (): Environment => {
   }
 }
 
-/**
- * Resolves authentication and headers with inheritance
- */
 const resolveRequestAuthAndHeaders = () => {
   const { auth, headers } = currentActiveRequest.value
   const { inheritedProperties } = currentActiveTabDocument.value
@@ -305,9 +291,6 @@ const resolveRequestAuthAndHeaders = () => {
   return { auth: resolvedAuth, headers: resolvedHeaders }
 }
 
-/**
- * Creates the final request object for code generation
- */
 const buildFinalRequest = (auth: HoppRESTAuth, headers: HoppRESTHeaders) => {
   return {
     ...currentActiveRequest.value,
@@ -316,22 +299,17 @@ const buildFinalRequest = (auth: HoppRESTAuth, headers: HoppRESTHeaders) => {
   }
 }
 
-/**
- * Generates the request code based on the current request and selected codegen type
- */
 const requestCode = asyncComputed(async (): Promise<string> => {
   try {
-    if (!isRESTDocument(currentActiveTabDocument.value)) {
+    const doc = currentActiveTabDocument.value
+    if (!isRESTDocument(doc) && !isExampleResponseDocument(doc)) {
       errorState.value = true
       return ""
     }
 
     const selectedCodegenType = codegenType.value
 
-    // Build environment with all variable sources
     const environment = buildFinalEnvironment()
-
-    // Resolve authentication and headers with inheritance
     const { auth, headers } = resolveRequestAuthAndHeaders()
 
     const finalRequest = buildFinalRequest(auth, headers)
@@ -342,7 +320,6 @@ const requestCode = asyncComputed(async (): Promise<string> => {
       true
     )
 
-    // Build the request object for code generation
     const codegenRequest = makeRESTRequest({
       ...effectiveRequest,
       body: resolvesEnvsInBody(effectiveRequest.body, environment),

@@ -118,7 +118,7 @@ const selectedOptionTab = useVModel(props, "optionTab", emit)
 
 const request = useVModel(props, "modelValue", emit)
 
-// This component only renders for GQL tabs, so the active document is always GQL
+// This component only renders for GQL tabs
 const currentGQLDoc = computed(() => {
   const doc = tabs.currentActiveTab.value.document
   return isGQLDocument(doc) ? doc : null

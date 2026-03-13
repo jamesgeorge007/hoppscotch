@@ -1,10 +1,3 @@
-/**
- * Unified Tab Service
- *
- * This service manages tabs for both REST and GraphQL protocols in a unified interface.
- * It extends the base TabService and provides protocol-aware operations.
- */
-
 import { Container } from "dioc"
 import { computed } from "vue"
 import { TabService } from "./tab"
@@ -14,6 +7,8 @@ import {
   HoppUnifiedSaveContext,
   isRESTDocument,
   isGQLDocument,
+  isExampleResponseDocument,
+  isTestRunnerDocument,
   createDefaultRESTDocument,
 } from "~/helpers/unified/document"
 
@@ -23,7 +18,6 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
   constructor(c: Container) {
     super(c)
 
-    // Initialize with a default REST tab
     this.tabMap.set("test", {
       id: "test",
       document: createDefaultRESTDocument(),
@@ -32,64 +26,68 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
     this.watchCurrentTabID()
   }
 
-  /**
-   * Persistence loading is handled by PersistenceService.setupUnifiedTabsPersistence()
-   * which calls loadTabsFromPersistedState() directly with migration support.
-   */
+  // Persistence loading handled by PersistenceService.setupUnifiedTabsPersistence()
   protected override async loadPersistedState(): Promise<PersistableTabState<HoppUnifiedDocument> | null> {
     return null
   }
 
-  /**
-   * Override persistable state to handle protocol-specific persistence
-   */
-  public override persistableTabState = computed(() => ({
-    lastActiveTabID: this.currentTabID.value,
-    orderedDocs: this.tabOrdering.value.map((tabID) => {
-      const tab = this.tabMap.get(tabID)!
+  public override persistableTabState = computed(() => {
+    const orderedDocs = this.tabOrdering.value
+      .filter((tabID) => {
+        const tab = this.tabMap.get(tabID)
+        // Don't persist transient tabs (example responses, test runner)
+        return tab && !isExampleResponseDocument(tab.document) && !isTestRunnerDocument(tab.document)
+      })
+      .map((tabID) => {
+        const tab = this.tabMap.get(tabID)!
 
-      // Protocol-specific persistence logic
-      if (isRESTDocument(tab.document)) {
-        // REST: Remove response to save space
+        if (isRESTDocument(tab.document)) {
+          return {
+            tabID: tab.id,
+            doc: {
+              ...tab.document,
+              response: null,
+              testResults: null,
+            },
+          }
+        }
+
+        if (isGQLDocument(tab.document)) {
+          return {
+            tabID: tab.id,
+            doc: {
+              ...tab.document,
+              response: null,
+            },
+          }
+        }
+
         return {
           tabID: tab.id,
-          doc: {
-            ...tab.document,
-            response: null,
-            testResults: null,
-          },
+          doc: tab.document,
         }
-      } else if (isGQLDocument(tab.document)) {
-        // GraphQL: Remove response to save space (matches GQLTabService behaviour)
-        return {
-          tabID: tab.id,
-          doc: {
-            ...tab.document,
-            response: null,
-          },
-        }
-      }
+      })
 
-      return {
-        tabID: tab.id,
-        doc: tab.document,
-      }
-    }),
-  }))
+    const persistedIDs = new Set(orderedDocs.map((d) => d.tabID))
+    const lastActiveTabID = persistedIDs.has(this.currentTabID.value)
+      ? this.currentTabID.value
+      : orderedDocs[0]?.tabID ?? this.currentTabID.value
 
-  /**
-   * Get tab by save context (protocol-aware)
-   */
+    return { lastActiveTabID, orderedDocs }
+  })
+
   public getTabRefWithSaveContext(
     protocol: "rest" | "graphql",
     saveContext: HoppUnifiedSaveContext
   ) {
     for (const tab of this.tabMap.values()) {
-      // Skip tabs of different protocol
+      if (isTestRunnerDocument(tab.document)) continue
       if (tab.document.protocol !== protocol) continue
 
-      if (protocol === "rest" && isRESTDocument(tab.document)) {
-        // REST-specific matching logic
+      if (
+        protocol === "rest" &&
+        (isRESTDocument(tab.document) || isExampleResponseDocument(tab.document))
+      ) {
         const ctx = tab.document.saveContext
         const restSaveCtx = saveContext as Exclude<
           import("~/helpers/rest/document").HoppRESTSaveContext,
@@ -117,7 +115,6 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
           return this.getTabRef(tab.id)
         }
       } else if (protocol === "graphql" && isGQLDocument(tab.document)) {
-        // GraphQL-specific matching logic
         const ctx = tab.document.saveContext
 
         if (!ctx || !saveContext) continue
@@ -143,10 +140,7 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
     return null
   }
 
-  /**
-   * Get tab by request reference ID.
-   * Only supports REST tabs — HoppGQLRequest v9 does not have _ref_id.
-   */
+  // Only supports REST tabs — HoppGQLRequest v9 does not have _ref_id
   public getTabRefWithRefId(refId: string) {
     for (const tab of this.tabMap.values()) {
       if (!isRESTDocument(tab.document)) continue
@@ -159,9 +153,6 @@ export class UnifiedTabService extends TabService<HoppUnifiedDocument> {
     return null
   }
 
-  /**
-   * Get count of dirty tabs (protocol-agnostic)
-   */
   public getDirtyTabsCount() {
     let count = 0
 

@@ -80,6 +80,7 @@ export class URLMenuService extends Service implements ContextMenu {
 
     this.tabs.createNewTab({
       protocol: "rest",
+      type: "request",
       request: request,
       isDirty: false,
     })

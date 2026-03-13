@@ -973,6 +973,7 @@ const onAddRequest = async (requestName: string) => {
 
     tabs.createNewTab({
       protocol: "rest",
+      type: "request",
       request: newRequest,
       isDirty: false,
       saveContext: {
@@ -1025,6 +1026,7 @@ const onAddRequest = async (requestName: string) => {
 
           tabs.createNewTab({
             protocol: "rest",
+            type: "request",
             request: newRequest,
             isDirty: false,
             saveContext: {
@@ -2286,6 +2288,7 @@ const onRemoveResponse = async () => {
           request: getDefaultRESTRequest(),
           isDirty: false,
           protocol: "rest",
+          type: "request",
           saveContext: undefined,
         })
         tabs.closeTab(possibleActiveResponseTab.value.id)
@@ -2357,6 +2360,7 @@ const onRemoveResponse = async () => {
           request: getDefaultRESTRequest(),
           isDirty: false,
           protocol: "rest",
+          type: "request",
           saveContext: undefined,
         })
         tabs.closeTab(possibleActiveResponseTab.value.id)
@@ -2421,6 +2425,7 @@ const selectRequest = (selectedRequest: {
     } else {
       tabs.createNewTab({
         protocol: "rest",
+        type: "request",
         request: cloneDeep(request),
         isDirty: false,
         saveContext: {
@@ -2444,9 +2449,9 @@ const selectRequest = (selectedRequest: {
     if (possibleTab) {
       tabs.setActiveTab(possibleTab.value.id)
     } else {
-      // If not, open the request in a new tab
       tabs.createNewTab({
         protocol: "rest",
+        type: "request",
         request: cloneDeep(request),
         isDirty: false,
         saveContext: {

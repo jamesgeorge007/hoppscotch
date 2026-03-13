@@ -99,7 +99,7 @@ import IconEyeoff from "~icons/lucide/eye-off"
 import { CompletionContext, autocompletion } from "@codemirror/autocomplete"
 import { useService } from "dioc/vue"
 import { UnifiedTabService } from "~/services/tab/unified"
-import { isRESTDocument } from "~/helpers/unified/document"
+import { isRESTDocument, isGQLDocument } from "~/helpers/unified/document"
 import { syntaxTree } from "@codemirror/language"
 import { uniqueID } from "~/helpers/utils/uniqueID"
 import { transformInheritedCollectionVariablesToAggregateEnv } from "~/helpers/utils/inheritedCollectionVarTransformer"
@@ -409,22 +409,21 @@ const envVars = computed(() => {
   const currentTab = tabs.currentActiveTab.value
   const { document } = currentTab
 
-  if (!isRESTDocument(document)) {
+  if (!isRESTDocument(document) && !isGQLDocument(document)) {
     return aggregateEnvs.value
   }
 
-  // variables inherited from the collection if we're in a request or example
   const collectionVariables =
     transformInheritedCollectionVariablesToAggregateEnv(
       document.inheritedProperties?.variables ?? [],
       false
     )
 
-  // request-level variables
-  const rawRequestVars = document.request.requestVariables
+  if (!isRESTDocument(document)) {
+    return [...collectionVariables, ...aggregateEnvs.value]
+  }
 
-  // formated request variables
-  const requestVariables = rawRequestVars
+  const requestVariables = document.request.requestVariables
     .filter((v) => v.active)
     .map(({ key, value }) => ({
       key,

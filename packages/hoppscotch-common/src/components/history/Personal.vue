@@ -322,6 +322,7 @@ const tabs = useService(UnifiedTabService)
 const useHistory = (entry: RESTHistoryEntry) => {
   tabs.createNewTab({
     protocol: "rest",
+    type: "request",
     request: entry.request,
     isDirty: false,
   })

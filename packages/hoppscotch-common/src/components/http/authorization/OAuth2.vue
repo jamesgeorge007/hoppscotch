@@ -698,21 +698,13 @@ const setAccessTokenInActiveContext = (
   }
 
   const doc = tabsService.currentActiveTab.value?.document
-  if (!doc) return
+  if (!doc || (!isRESTDocument(doc) && !isGQLDocument(doc))) return
 
-  if (
-    doc.request &&
-    doc.request.auth.authType === "oauth-2" &&
-    accessToken
-  ) {
+  if (doc.request.auth.authType === "oauth-2" && accessToken) {
     doc.request.auth.grantTypeInfo.token = accessToken
   }
 
-  if (
-    refreshToken &&
-    doc.request &&
-    doc.request.auth.authType === "oauth-2"
-  ) {
+  if (refreshToken && doc.request.auth.authType === "oauth-2") {
     // @ts-expect-error - TODO: narrow the grantType to only supporting refresh tokens
     doc.request.auth.grantTypeInfo.refreshToken = refreshToken
   }

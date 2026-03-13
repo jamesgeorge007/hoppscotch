@@ -5,7 +5,7 @@
     vertical
     render-inactive-tabs
   >
-    <!-- Collections Tab (unified for both protocols) -->
+
     <HoppSmartTab
       :id="'collections'"
       :icon="IconFolder"
@@ -14,7 +14,7 @@
       <Collections />
     </HoppSmartTab>
 
-    <!-- Environments Tab (available for both protocols now) -->
+
     <HoppSmartTab
       :id="'env'"
       :icon="IconLayers"
@@ -23,7 +23,7 @@
       <Environments />
     </HoppSmartTab>
 
-    <!-- GraphQL-specific: Documentation Tab -->
+
     <HoppSmartTab
       v-if="protocol === 'graphql'"
       :id="'docs'"
@@ -33,7 +33,7 @@
       <GraphqlDocExplorer />
     </HoppSmartTab>
 
-    <!-- GraphQL-specific: Schema Tab -->
+
     <HoppSmartTab
       v-if="protocol === 'graphql'"
       :id="'schema'"
@@ -88,7 +88,7 @@
       </HoppSmartPlaceholder>
     </HoppSmartTab>
 
-    <!-- History Tab (available for both protocols) -->
+
     <HoppSmartTab
       :id="'history'"
       :icon="IconClock"
@@ -97,7 +97,7 @@
       <History :page="protocol" :selected-tab="selectedNavigationTab" />
     </HoppSmartTab>
 
-    <!-- REST-specific: Share Request Tab -->
+
     <HoppSmartTab
       v-if="protocol === 'rest'"
       :id="'share-request'"
@@ -107,7 +107,7 @@
       <Share />
     </HoppSmartTab>
 
-    <!-- REST-specific: Code Generation Tab -->
+
     <HoppSmartTab
       v-if="protocol === 'rest'"
       :id="'codegen'"
@@ -128,7 +128,7 @@
       />
     </HoppSmartTab>
 
-    <!-- REST-specific: Mock Servers Tab -->
+
     <HoppSmartTab
       v-if="protocol === 'rest' && isMockServerVisible"
       :id="'mock-servers'"

@@ -186,7 +186,7 @@ defineActionHandler("navigation.jump.rest", () => {
 })
 
 defineActionHandler("navigation.jump.graphql", () => {
-  router.push({ path: "/" }) // Unified page handles both REST and GraphQL
+  router.push({ path: "/" })
 })
 
 defineActionHandler("navigation.jump.realtime", () => {

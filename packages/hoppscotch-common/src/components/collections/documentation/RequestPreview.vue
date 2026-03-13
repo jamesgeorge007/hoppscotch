@@ -152,7 +152,7 @@ const emit = defineEmits<{
   (event: "close-modal"): void
 }>()
 
-const restTabs = useService(UnifiedTabService)
+const tabs = useService(UnifiedTabService)
 const teamCollectionsService = useService(TeamCollectionsService)
 const documentationService = useService(DocumentationService)
 
@@ -442,13 +442,14 @@ const openInNewTab = () => {
         collectionID: props.folderPath!,
       }
 
-      const possibleTeamTab = restTabs.getTabRefWithSaveContext("rest", saveContext)
+      const possibleTeamTab = tabs.getTabRefWithSaveContext("rest", saveContext)
 
       if (possibleTeamTab) {
-        restTabs.setActiveTab(possibleTeamTab.value.id)
+        tabs.setActiveTab(possibleTeamTab.value.id)
       } else {
-        restTabs.createNewTab({
+        tabs.createNewTab({
           protocol: "rest",
+          type: "request",
           request: cloneDeep(props.request),
           isDirty: false,
           saveContext,
@@ -466,13 +467,14 @@ const openInNewTab = () => {
         requestRefID: requestId.value,
       }
 
-      const possibleUserTab = restTabs.getTabRefWithSaveContext("rest", saveContext)
+      const possibleUserTab = tabs.getTabRefWithSaveContext("rest", saveContext)
 
       if (possibleUserTab) {
-        restTabs.setActiveTab(possibleUserTab.value.id)
+        tabs.setActiveTab(possibleUserTab.value.id)
       } else {
-        restTabs.createNewTab({
+        tabs.createNewTab({
           protocol: "rest",
+          type: "request",
           request: cloneDeep(props.request),
           isDirty: false,
           saveContext,
@@ -487,8 +489,9 @@ const openInNewTab = () => {
       console.warn(
         "Unable to determine collection type, creating tab without save context"
       )
-      restTabs.createNewTab({
+      tabs.createNewTab({
         protocol: "rest",
+        type: "request",
         request: cloneDeep(props.request),
         isDirty: false,
         saveContext: undefined,

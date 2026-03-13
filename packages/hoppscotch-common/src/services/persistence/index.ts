@@ -9,6 +9,8 @@ import { assign, clone, isEmpty, cloneDeep } from "lodash-es"
 
 import {
   GlobalEnvironmentVariable,
+  getDefaultRESTRequest,
+  safelyExtractRESTRequest,
   translateToNewGQLCollection,
   translateToNewRESTCollection,
 } from "@hoppscotch/data"
@@ -912,87 +914,96 @@ export class PersistenceService extends Service {
   }
 
   private async setupUnifiedTabsPersistence() {
-    // Try loading unified tabs; fall back to REST_TABS for migration
-    const unifiedLoadResult = await Store.get<any>(
-      STORE_NAMESPACE,
-      STORE_KEYS.UNIFIED_TABS
-    )
+    try {
+      const unifiedLoadResult = await Store.get<any>(
+        STORE_NAMESPACE,
+        STORE_KEYS.UNIFIED_TABS
+      )
 
-    if (E.isRight(unifiedLoadResult) && unifiedLoadResult.right) {
-      // Basic structural validation before loading
-      const raw = unifiedLoadResult.right
-      if (
-        raw &&
-        typeof raw === "object" &&
-        Array.isArray(raw.orderedDocs)
-      ) {
-        this.unifiedTabService.loadTabsFromPersistedState(raw)
+      if (E.isRight(unifiedLoadResult) && unifiedLoadResult.right) {
+        const raw = unifiedLoadResult.right
+        if (
+          raw &&
+          typeof raw === "object" &&
+          Array.isArray(raw.orderedDocs)
+        ) {
+          // Migrate stale REST request schema versions forward (verzod v0–v17)
+          for (const item of raw.orderedDocs) {
+            if (item.doc?.protocol === "rest" && item.doc.type !== "example-response" && item.doc.request) {
+              item.doc.type = "request"
+              item.doc.request = safelyExtractRESTRequest(
+                item.doc.request,
+                getDefaultRESTRequest()
+              )
+            }
+          }
+          if (raw.orderedDocs.length > 0) {
+            this.unifiedTabService.loadTabsFromPersistedState(raw)
+          }
+        } else {
+          await Store.set(STORE_NAMESPACE, `${STORE_KEYS.UNIFIED_TABS}-backup`, raw)
+          this.showErrorToast(STORE_KEYS.UNIFIED_TABS)
+        }
       } else {
-        console.error("Failed parsing persisted UNIFIED_TABS:", JSON.stringify(raw))
-      }
-    } else {
-      // Migration path: load from both REST_TABS and GQL_TABS, convert to unified format
-      const restLoadResult = await Store.get<any>(
-        STORE_NAMESPACE,
-        STORE_KEYS.REST_TABS
-      )
-      const gqlLoadResult = await Store.get<any>(
-        STORE_NAMESPACE,
-        STORE_KEYS.GQL_TABS
-      )
-
-      const orderedDocs: any[] = []
-      const seenTabIDs = new Set<string>()
-
-      if (E.isRight(restLoadResult) && restLoadResult.right) {
-        // Fix broken request versions before converting to unified format
-        const fixedRestDocs = fixBrokenRequestVersion(
-          cloneDeep(restLoadResult.right.orderedDocs) ?? []
+        // Migration: merge REST_TABS + GQL_TABS into unified format
+        const restLoadResult = await Store.get<any>(
+          STORE_NAMESPACE,
+          STORE_KEYS.REST_TABS
         )
-        for (const item of fixedRestDocs) {
-          // Skip test-runner tabs — not supported in unified model
-          if (item.doc?.type === "test-runner") continue
-          // Guard against tab ID collisions between REST and GQL stores
-          if (seenTabIDs.has(item.tabID)) continue
-          seenTabIDs.add(item.tabID)
-          orderedDocs.push({
-            tabID: item.tabID,
-            doc: { ...item.doc, protocol: "rest" as const },
+        const gqlLoadResult = await Store.get<any>(
+          STORE_NAMESPACE,
+          STORE_KEYS.GQL_TABS
+        )
+
+        const orderedDocs: any[] = []
+        const seenTabIDs = new Set<string>()
+
+        if (E.isRight(restLoadResult) && restLoadResult.right) {
+          const fixedRestDocs = fixBrokenRequestVersion(
+            cloneDeep(restLoadResult.right.orderedDocs) ?? []
+          )
+          for (const item of fixedRestDocs) {
+            if (item.doc?.type === "test-runner") continue
+            if (seenTabIDs.has(item.tabID)) continue
+            seenTabIDs.add(item.tabID)
+            orderedDocs.push({
+              tabID: item.tabID,
+              doc: { ...item.doc, protocol: "rest" as const, type: "request" as const },
+            })
+          }
+        }
+
+        if (E.isRight(gqlLoadResult) && gqlLoadResult.right) {
+          const gqlDocs = cloneDeep(gqlLoadResult.right.orderedDocs) ?? []
+          for (const item of gqlDocs) {
+            if (seenTabIDs.has(item.tabID)) continue
+            seenTabIDs.add(item.tabID)
+            orderedDocs.push({
+              tabID: item.tabID,
+              doc: { ...item.doc, protocol: "graphql" as const },
+            })
+          }
+        }
+
+        if (orderedDocs.length > 0) {
+          const restLastTabID =
+            E.isRight(restLoadResult) && restLoadResult.right?.lastActiveTabID
+          const gqlLastTabID =
+            E.isRight(gqlLoadResult) && gqlLoadResult.right?.lastActiveTabID
+
+          const tabIDs = new Set(orderedDocs.map((d) => d.tabID))
+          const lastActiveTabID =
+            (restLastTabID && tabIDs.has(restLastTabID) && restLastTabID) ||
+            (gqlLastTabID && tabIDs.has(gqlLastTabID) && gqlLastTabID) ||
+            orderedDocs[0].tabID
+          this.unifiedTabService.loadTabsFromPersistedState({
+            lastActiveTabID,
+            orderedDocs,
           })
         }
       }
-
-      if (E.isRight(gqlLoadResult) && gqlLoadResult.right) {
-        const gqlDocs = cloneDeep(gqlLoadResult.right.orderedDocs) ?? []
-        for (const item of gqlDocs) {
-          if (seenTabIDs.has(item.tabID)) continue
-          seenTabIDs.add(item.tabID)
-          orderedDocs.push({
-            tabID: item.tabID,
-            doc: { ...item.doc, protocol: "graphql" as const },
-          })
-        }
-      }
-
-      if (orderedDocs.length > 0) {
-        // During migration, we can't determine which tab service was used last,
-        // so prefer the first tab in the merged list as the active tab.
-        const restLastTabID =
-          E.isRight(restLoadResult) && restLoadResult.right?.lastActiveTabID
-        const gqlLastTabID =
-          E.isRight(gqlLoadResult) && gqlLoadResult.right?.lastActiveTabID
-
-        // Use whichever lastActiveTabID exists in the merged orderedDocs
-        const tabIDs = new Set(orderedDocs.map((d) => d.tabID))
-        const lastActiveTabID =
-          (restLastTabID && tabIDs.has(restLastTabID) && restLastTabID) ||
-          (gqlLastTabID && tabIDs.has(gqlLastTabID) && gqlLastTabID) ||
-          orderedDocs[0].tabID
-        this.unifiedTabService.loadTabsFromPersistedState({
-          lastActiveTabID,
-          orderedDocs,
-        })
-      }
+    } catch (e) {
+      console.error("Failed to load unified tabs from persistence:", e)
     }
 
     watchDebounced(
@@ -1028,9 +1039,6 @@ export class PersistenceService extends Service {
       this.setupSocketIOPersistence(),
       this.setupSSEPersistence(),
       this.setupMQTTPersistence(),
-      // Unified tab persistence replaces the separate REST/GQL tab persistence.
-      // setupRESTTabsPersistence() and setupGQLTabsPersistence() are no longer
-      // called — unified handles migration from both legacy stores on first load.
       this.setupUnifiedTabsPersistence(),
 
       this.setupSecretEnvironmentsPersistence(),

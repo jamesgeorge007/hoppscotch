@@ -152,6 +152,7 @@ const tryExampleResponse = () => {
   tabs.createNewTab({
     isDirty: false,
     protocol: "rest",
+    type: "request",
     request: {
       ...getDefaultRESTRequest(),
       endpoint,

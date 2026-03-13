@@ -5,6 +5,7 @@ import { runGQLQuery } from "../backend/GQLClient"
 import * as E from "fp-ts/Either"
 import { getService } from "~/modules/dioc"
 import { UnifiedTabService } from "~/services/tab/unified"
+import { isRESTDocument } from "~/helpers/unified/document"
 import { TeamCollectionsService } from "~/services/team-collection.service"
 import { cascadeParentCollectionForProperties } from "~/newstore/collections"
 import { CollectionDataProps } from "../backend/helpers"
@@ -210,6 +211,10 @@ function resetSaveContextForAffectedRequests(folderPath: string) {
     tab.value.document.saveContext = undefined
     tab.value.document.isDirty = true
     tab.value.document.inheritedProperties = undefined
+
+    if (isRESTDocument(tab.value.document)) {
+      tab.value.document.request.responses = {}
+    }
   }
 }
 
@@ -234,6 +239,10 @@ export async function resetTeamRequestsContext() {
         tab.value.document.saveContext = undefined
         tab.value.document.isDirty = true
         tab.value.document.inheritedProperties = undefined
+
+        if (isRESTDocument(tab.value.document)) {
+          tab.value.document.request.responses = {}
+        }
       }
     }
   }

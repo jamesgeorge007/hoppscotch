@@ -129,7 +129,7 @@ import { useI18n } from "@composables/i18n"
 import { TippyComponent } from "vue-tippy"
 import { useService } from "dioc/vue"
 import { UnifiedTabService } from "~/services/tab/unified"
-import { isRESTDocument } from "~/helpers/unified/document"
+import { isRESTDocument, isExampleResponseDocument } from "~/helpers/unified/document"
 import { HoppRESTRequestResponse } from "@hoppscotch/data"
 import { HoppRESTSaveContext } from "~/helpers/rest/document"
 import findStatusGroup from "@helpers/findStatusGroup"
@@ -212,8 +212,8 @@ const getSaveContext = (): HoppRESTSaveContext => {
 
 const active = computed(() => {
   const doc = tabs.currentActiveTab.value.document
-  if (!isRESTDocument(doc)) return undefined
-  return doc.saveContext
+  if (isRESTDocument(doc) || isExampleResponseDocument(doc)) return doc.saveContext
+  return undefined
 })
 
 const isActiveExample = computed(() => {
