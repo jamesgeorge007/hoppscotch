@@ -148,7 +148,7 @@ import {
 } from "~/newstore/collections"
 import { platform } from "~/platform"
 import { UnifiedTabService } from "~/services/tab/unified"
-import { isExampleResponseDocument } from "~/helpers/unified/document"
+import { isExampleResponseDocument, isTestRunnerDocument } from "~/helpers/unified/document"
 import { TeamWorkspace } from "~/services/workspace.service"
 import IconSparkle from "~icons/lucide/sparkles"
 import IconThumbsDown from "~icons/lucide/thumbs-down"
@@ -195,14 +195,14 @@ const emit = defineEmits<{
 const reqName = computed(() => {
   if (props.request) return props.request.name
   const doc = tabs.currentActiveTab.value?.document
-  if (!doc || isExampleResponseDocument(doc)) return ""
+  if (!doc || isExampleResponseDocument(doc) || isTestRunnerDocument(doc)) return ""
   return doc.request.name ?? ""
 })
 
 const requestContext = computed(() => {
   if (props.request) return props.request
   const doc = tabs.currentActiveTab.value?.document
-  if (!doc || isExampleResponseDocument(doc)) return null
+  if (!doc || isExampleResponseDocument(doc) || isTestRunnerDocument(doc)) return null
   return doc.request
 })
 

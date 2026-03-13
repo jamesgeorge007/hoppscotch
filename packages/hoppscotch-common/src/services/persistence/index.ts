@@ -963,7 +963,7 @@ export class PersistenceService extends Service {
             cloneDeep(restLoadResult.right.orderedDocs) ?? []
           )
           for (const item of fixedRestDocs) {
-            if (item.doc?.type === "test-runner") continue
+            if (item.doc?.type === "test-runner" || item.doc?.type === "example-response") continue
             if (seenTabIDs.has(item.tabID)) continue
             seenTabIDs.add(item.tabID)
             orderedDocs.push({
