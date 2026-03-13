@@ -279,10 +279,17 @@ export class RequestSpotlightSearcherService extends StaticSpotlightSearcherServ
         break
       case "save_to_collections": {
         const doc = this.tabs.currentActiveTab.value?.document
-        invokeAction("request.save-as", {
-          requestType: "rest",
-          request: doc && isRESTDocument(doc) ? doc.request : null,
-        })
+        if (doc && isGQLDocument(doc)) {
+          invokeAction("request.save-as", {
+            requestType: "gql",
+            request: doc.request,
+          })
+        } else {
+          invokeAction("request.save-as", {
+            requestType: "rest",
+            request: doc && isRESTDocument(doc) ? doc.request : null,
+          })
+        }
         break
       }
       case "save_request":
