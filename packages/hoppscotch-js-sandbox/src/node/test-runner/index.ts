@@ -3,6 +3,7 @@ import * as TE from "fp-ts/TaskEither"
 import { pipe } from "fp-ts/function"
 
 import { RunPostRequestScriptOptions, TestResponse, TestResult } from "~/types"
+import { parseScriptForSyntax } from "~/utils/scripting"
 import { preventCyclicObjects } from "~/utils/shared"
 import { runPostRequestScriptWithFaradayCage } from "./experimental"
 
@@ -12,14 +13,12 @@ export const runTestScript = (
   testScript: string,
   options: RunPostRequestScriptOptions
 ): TE.TaskEither<string, TestResult> => {
-  // Pre-parse the script to catch syntax errors before execution
-  // Use AsyncFunction to support top-level await (required for hopp.fetch, etc.)
+  // Pre-parse in module mode so top-level `import` declarations and top-level
+  // `await` parse cleanly before the WASM cage spins up. `AsyncFunction` is
+  // script-mode and rejects ESM imports, which the experimental sandbox path
+  // otherwise supports via faraday-cage's esmModuleLoader.
   try {
-    // eslint-disable-next-line no-new-func
-    const AsyncFunction = Object.getPrototypeOf(
-      async function () {}
-    ).constructor
-    new (AsyncFunction as any)(testScript)
+    parseScriptForSyntax(testScript)
   } catch (e) {
     const err = e as Error
     const reason = `${"name" in err ? (err as any).name : "SyntaxError"}: ${err.message}`
