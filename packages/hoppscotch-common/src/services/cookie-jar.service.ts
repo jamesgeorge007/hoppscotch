@@ -17,7 +17,7 @@ const STORE_KEYS = {
 } as const
 
 interface StoredCookieJar {
-  version: string
+  version: "v1"
   domains: Record<string, Cookie[]>
   lastUpdated: string
   // Stamped on every write this process does, so the cross-process
@@ -26,12 +26,7 @@ interface StoredCookieJar {
   writeToken?: string
 }
 
-// Mirror of one entry in the kernel relay response's `cookies` array
-// (`RelayResponse["cookies"]`). Typed here instead of imported so the
-// service does not depend on the kernel re-exporting the type. The
-// relay leaves domain/path optional and gives a `Date` expiry, the
-// `@hoppscotch/data` schema needs a concrete domain, path, the
-// booleans, and an ISO string expiry, so capture normalizes it.
+// Stays `Date` until plugin-relay's `.d.ts` switches to ISO string — runtime accepts both.
 type ResponseCookie = {
   name: string
   value: string
@@ -151,23 +146,31 @@ export class CookieJarService extends Service {
   private async loadJar(): Promise<void> {
     const loadResult = await Store.get<unknown>(STORE_NAMESPACE, STORE_KEYS.JAR)
 
-    if (E.isRight(loadResult) && loadResult.right) {
-      // Initial load routes the on-disk payload through the same
-      // `parseStored` shape check the cross-process watcher uses,
-      // so a corrupted file or a future schema drift cannot
-      // hydrate the jar with values that later crash matching or
-      // serialization. Failure here keeps the in-memory map empty
-      // and the request flow keeps working on a fresh state.
-      let stored: StoredCookieJar
-      try {
-        stored = this.parseStored(loadResult.right)
-      } catch (e) {
-        console.error("[CookieJar] Initial load rejected payload:", e)
-        return
-      }
-      this.cookieJar.value = this.toMap(stored.domains)
-      this.pruneExpired()
+    // Don't degrade a read failure into "no jar yet" — that lets
+    // the next persistJar overwrite the disk with `{ domains: {} }`.
+    if (E.isLeft(loadResult)) {
+      this.initFailed = true
+      console.error(
+        "[CookieJar] Failed to read persisted jar:",
+        loadResult.left
+      )
+      return
     }
+    if (!loadResult.right) {
+      return
+    }
+    let stored: StoredCookieJar
+    try {
+      stored = this.parseStored(loadResult.right)
+    } catch (e) {
+      // Same reasoning as the read-failure path: a corrupted payload
+      // must not be silently replaced with an empty jar.
+      this.initFailed = true
+      console.error("[CookieJar] Initial load rejected payload:", e)
+      return
+    }
+    this.cookieJar.value = this.toMap(stored.domains)
+    this.pruneExpired()
   }
 
   // Cross-process reload, another webview in the same org writes
@@ -201,18 +204,13 @@ export class CookieJarService extends Service {
       throw new Error("payload is not an object")
     }
     const v = value as Partial<StoredCookieJar>
+    if (v.version !== "v1") {
+      throw new Error(`unsupported jar version: ${String(v.version)}`)
+    }
     if (typeof v.domains !== "object" || v.domains === null) {
       throw new Error("payload missing domains record")
     }
-    // Per-domain entries must be arrays of minimally-shaped cookie
-    // objects. Without the per-cookie shape check a malformed
-    // cross-process write (cookie with non-string name or value)
-    // would survive parseStored, slip past `isCookieNameValid`'s
-    // regex when `.test` coerces undefined to the string
-    // "undefined", and ship `Cookie: undefined=undefined` on the
-    // wire. The schema-grade fields the rest of the service relies
-    // on are name, value, and domain, so those get the typeof
-    // check at the boundary.
+    const validSameSite = new Set(["Strict", "Lax", "None"])
     for (const cookies of Object.values(v.domains)) {
       if (!Array.isArray(cookies)) {
         throw new Error("payload has non-array domain entry")
@@ -225,13 +223,10 @@ export class CookieJarService extends Service {
           typeof (c as { value?: unknown }).value !== "string" ||
           typeof (c as { domain?: unknown }).domain !== "string" ||
           typeof (c as { path?: unknown }).path !== "string" ||
-          typeof (c as { secure?: unknown }).secure !== "boolean"
+          typeof (c as { secure?: unknown }).secure !== "boolean" ||
+          typeof (c as { httpOnly?: unknown }).httpOnly !== "boolean" ||
+          !validSameSite.has((c as { sameSite?: unknown }).sameSite as string)
         ) {
-          // `path` is what `pathMatches` reads to decide whether
-          // a cookie applies, `secure` is what gates the HTTPS-only
-          // attach in `applyCookiesToRequest`, so a schema-drifted
-          // payload that smuggled a string `"false"` past either
-          // would silently mismatch path scope or attach over HTTP.
           throw new Error("payload has malformed cookie")
         }
       }
@@ -265,9 +260,14 @@ export class CookieJarService extends Service {
         dedup.set(key, bucket)
       }
       for (const c of cookies) {
+        const canonPath = c.path && c.path.length > 0 ? c.path : "/"
+        // Normalize path on the stored cookie so a later
+        // `upsertCookies` strict `c.path === normalized.path`
+        // match finds the migrated entry instead of duplicating.
         const canonized: Cookie = {
           ...c,
           domain: this.canonStoreDomain(c.domain ?? key) || key,
+          path: canonPath,
         }
         // NUL separator matches the `cookieKey` pattern in
         // `RequestRunner.ts`. Empty-string path collapses to
@@ -332,13 +332,12 @@ export class CookieJarService extends Service {
   public async upsertCookies(cookies: Cookie[]): Promise<void> {
     await this.whenReady()
     for (const cookie of cookies) {
-      // A script that returns a cookie without a domain (or with an
-      // empty string) would otherwise persist under the Map key
-      // `undefined` which serializes as the literal string
-      // `"undefined"`, so the entry is dropped with a warning.
-      if (!cookie.domain) {
+      // Drop non-string or empty domains before they hit
+      // `canonStoreDomain`'s `.trim()` (script returns like
+      // `{ domain: 42 }` would otherwise crash).
+      if (typeof cookie.domain !== "string" || cookie.domain.length === 0) {
         console.warn(
-          `[CookieJar] Skipping cookie "${cookie.name}" with empty domain`
+          `[CookieJar] Skipping cookie "${cookie.name}" with invalid domain`
         )
         continue
       }
@@ -379,19 +378,22 @@ export class CookieJarService extends Service {
         )
         continue
       }
+      // Defaults match `extractFromResponse` and satisfy the
+      // `parseStored` boundary so capture, script, and modal paths
+      // all converge on the same shape.
       const normalized: Cookie = {
         ...cookie,
         domain: canonDomain,
         path: cookie.path && cookie.path.length > 0 ? cookie.path : "/",
-        // `parseStored` validates `secure` as a boolean, so a
-        // script-set cookie that omitted the flag (or sent a
-        // non-boolean) would crash the entire jar load on next
-        // launch via the load-time shape check. Default to
-        // `false` so an in-memory write survives the persist
-        // round-trip.
         secure: typeof cookie.secure === "boolean" ? cookie.secure : false,
         httpOnly:
           typeof cookie.httpOnly === "boolean" ? cookie.httpOnly : false,
+        sameSite:
+          cookie.sameSite === "Strict" ||
+          cookie.sameSite === "Lax" ||
+          cookie.sameSite === "None"
+            ? cookie.sameSite
+            : "Lax",
       }
       const existing = this.cookieJar.value.get(normalized.domain) ?? []
 
