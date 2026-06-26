@@ -324,6 +324,7 @@ describe("CookieJarService", () => {
     it("rejects a payload whose cookie has non-string path", () => {
       expect(() =>
         (service as any).parseStored({
+          version: "v1",
           domains: {
             "example.com": [
               {
@@ -332,16 +333,19 @@ describe("CookieJarService", () => {
                 domain: "example.com",
                 path: 1,
                 secure: false,
+                httpOnly: false,
+                sameSite: "Lax",
               },
             ],
           },
         })
-      ).toThrow()
+      ).toThrow("malformed cookie")
     })
 
     it("rejects a payload whose cookie has non-boolean secure", () => {
       expect(() =>
         (service as any).parseStored({
+          version: "v1",
           domains: {
             "example.com": [
               {
@@ -350,11 +354,28 @@ describe("CookieJarService", () => {
                 domain: "example.com",
                 path: "/",
                 secure: "false",
+                httpOnly: false,
+                sameSite: "Lax",
               },
             ],
           },
         })
-      ).toThrow()
+      ).toThrow("malformed cookie")
+    })
+
+    it("rejects a payload with an unsupported version", () => {
+      expect(() =>
+        (service as any).parseStored({
+          version: "v2",
+          domains: {},
+        })
+      ).toThrow("unsupported jar version")
+    })
+
+    it("rejects a payload missing the version discriminator", () => {
+      expect(() =>
+        (service as any).parseStored({ domains: {} })
+      ).toThrow("unsupported jar version")
     })
   })
 
